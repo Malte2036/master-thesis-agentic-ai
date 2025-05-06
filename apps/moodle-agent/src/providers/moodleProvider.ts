@@ -2,9 +2,12 @@ import { z } from "zod";
 import {
   AssignmentsResponse,
   AssignmentsResponseSchema,
-} from "./schemas/assignment";
-import { CoursesResponse, CoursesResponseSchema } from "./schemas/course";
-import { UserInfo, UserInfoSchema } from "./schemas/user";
+} from "../schemas/moodle/assignment";
+import {
+  CoursesResponse,
+  CoursesResponseSchema,
+} from "../schemas/moodle/course";
+import { UserInfo, UserInfoSchema } from "../schemas/moodle/user";
 
 const MOODLE_WEBSERVICE_PATH = "/webservice/rest/server.php";
 
