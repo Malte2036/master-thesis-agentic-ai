@@ -20,8 +20,8 @@ const moodleProvider = new MoodleProvider(moodleBaseUrl);
 
 const agentFramework = createAgentFramework('moodle-agent');
 
-const parseRequest = (query: Record<string, string>): RequestData => {
-  const parsed = RequestDataSchema.safeParse(query);
+const parseRequest = (body: unknown): RequestData => {
+  const parsed = RequestDataSchema.safeParse(body);
   if (!parsed.success) {
     console.error('Invalid request data:', parsed.error.flatten());
     throw createResponseError('Invalid request data', 400);
@@ -31,7 +31,7 @@ const parseRequest = (query: Record<string, string>): RequestData => {
 
 const coursesHandler: IAgentRequestHandler = async (payload, callback) => {
   try {
-    const requestData = parseRequest(payload.query);
+    const requestData = parseRequest(payload.body);
     const userInfo = await moodleProvider.getUserInfo(requestData.moodle_token);
     if (!userInfo) {
       callback(createResponseError('User info not found', 400));
@@ -58,7 +58,7 @@ const coursesHandler: IAgentRequestHandler = async (payload, callback) => {
 
 const assignmentsHandler: IAgentRequestHandler = async (payload, callback) => {
   try {
-    const requestData = parseRequest(payload.query);
+    const requestData = parseRequest(payload.body);
     const assignments = await moodleProvider.getAssignments(
       requestData.moodle_token,
     );
@@ -78,7 +78,7 @@ const assignmentsHandler: IAgentRequestHandler = async (payload, callback) => {
 
 const userHandler: IAgentRequestHandler = async (payload, callback) => {
   try {
-    const requestData = parseRequest(payload.query);
+    const requestData = parseRequest(payload.body);
     const userInfo = await moodleProvider.getUserInfo(requestData.moodle_token);
     if (!userInfo) {
       callback(createResponseError('User info not found', 400));

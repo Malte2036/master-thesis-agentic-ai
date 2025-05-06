@@ -1,6 +1,4 @@
 export interface RequestPayload {
-  query: Record<string, string>;
-  params: Record<string, string>;
   body: unknown;
 }
 

@@ -6,15 +6,13 @@ import {
   ResponseError,
 } from '../index';
 
-interface HttpError extends Error {
-  statusCode: number;
-}
-
 export class ExpressAgentAdapter implements IAgentFramework {
   private expressApp: express.Application;
 
   constructor(private port: number) {
     this.expressApp = express();
+    // Add JSON parsing middleware
+    this.expressApp.use(express.json());
   }
 
   listen(): Promise<void> {
@@ -36,12 +34,10 @@ export class ExpressAgentAdapter implements IAgentFramework {
   }
 
   registerEndpoint(endpointName: string, handler: IAgentRequestHandler): void {
-    this.expressApp.get(
+    this.expressApp.post(
       `/${endpointName}/`,
       (req: express.Request, res: express.Response) => {
         const payload: RequestPayload = {
-          query: req.query as Record<string, string>,
-          params: req.params as Record<string, string>,
           body: req.body,
         };
 

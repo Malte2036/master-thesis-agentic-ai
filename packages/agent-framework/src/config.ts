@@ -12,5 +12,5 @@ export function getAgentPort(agentName: AgentName): number {
 export function getAgentUrl(agentName: AgentName, path?: string): string {
   const port = getAgentPort(agentName);
 
-  return `http://localhost:${port}${path}`;
+  return `http://localhost:${port}${path ?? ''}`;
 }

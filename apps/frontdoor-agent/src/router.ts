@@ -16,18 +16,18 @@ export async function routeQuestion(
   // Check for Moodle-related keywords
   if (lowerQuestion.includes('moodle') || lowerQuestion.includes('kurs')) {
     try {
-      const urlParams = new URLSearchParams();
-      urlParams.set('prompt', question);
-      urlParams.set('moodle_token', moodle_token);
-
-      const url = `${getAgentUrl('moodle-agent')}/courses?${urlParams.toString()}`;
+      const url = `${getAgentUrl('moodle-agent')}/courses`;
 
       // Forward the question to the Moodle agent
       const response = await fetch(url, {
-        method: 'GET',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          prompt: question,
+          moodle_token: moodle_token,
+        }),
       });
 
       if (!response.ok) {

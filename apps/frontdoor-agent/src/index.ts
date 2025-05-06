@@ -1,31 +1,56 @@
-import express from 'express';
+import {
+  createAgentFramework,
+  IAgentRequestHandler,
+  ResponseError,
+  createResponseError,
+} from '@master-thesis-agentic-rag/agent-framework';
 import { routeQuestion } from './router';
-import { getAgentPort } from '@master-thesis-agentic-rag/agent-framework';
-const app = express();
 
-// Add JSON parsing middleware
-app.use(express.json());
+const agentFramework = createAgentFramework('frontdoor-agent');
 
-console.log('Frontdoor agent is running');
-
-app.post('/ask', async (req, res) => {
-  const { prompt, moodle_token } = req.body;
-  console.log('Received question:', prompt);
-
+const askHandler: IAgentRequestHandler = async (payload, callback) => {
   try {
+    const { prompt, moodle_token } = payload.body as {
+      prompt: string;
+      moodle_token: string;
+    };
+    console.log('Received question:', prompt);
+
+    if (!prompt || !moodle_token) {
+      callback(
+        createResponseError(
+          'Missing required fields: prompt and moodle_token',
+          400,
+        ),
+      );
+      return;
+    }
+
     const result = await routeQuestion(prompt, moodle_token);
-    res.json(result);
+    callback(null, result);
   } catch (error) {
     console.error('Error processing question:', error);
-    res.status(500).json({
-      agent: 'error',
-      response: 'An error occurred while processing your question.',
-    });
+    if (error instanceof Error) {
+      const responseError = error as ResponseError;
+      if (!responseError.statusCode) {
+        responseError.statusCode = 500;
+      }
+      callback(error);
+    } else {
+      callback(
+        createResponseError(
+          'An error occurred while processing your question.',
+          500,
+        ),
+      );
+    }
   }
-});
+};
 
-const port = getAgentPort('frontdoor-agent');
+agentFramework.registerEndpoint('ask', askHandler);
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+// Start the server and keep it running
+agentFramework.listen().catch((error) => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
 });
