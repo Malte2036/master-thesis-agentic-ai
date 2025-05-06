@@ -1,0 +1,26 @@
+{
+  "name": "master-thesis-agentic-rag",
+  "private": true,
+  "packageManager": "pnpm@9.7.0",
+  "scripts": {
+    "dev": "nx run-many -t serve",
+    "dev:moodle-agent": "nx serve moodle-agent",
+    "build": "nx run-many -t build",
+    "build:moodle-agent": "nx build moodle-agent",
+    "lint": "nx run-many -t lint",
+    "test": "nx run-many -t test",
+    "clean": "nx run-many -t clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,md,js,jsx,json}\"",
+    "graph": "nx graph"
+  },
+  "devDependencies": {
+    "@nx/eslint": "20.5.0",
+    "@nx/js": "20.5.0",
+    "@nx/node": "20.5.0",
+    "@nx/workspace": "20.5.0",
+    "concurrently": "^8.2.2",
+    "prettier": "^3.2.5",
+    "nx": "20.5.0",
+    "typescript": "^5.3.3"
+  }
+}
