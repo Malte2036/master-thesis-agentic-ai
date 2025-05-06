@@ -1,22 +1,20 @@
 import express from "express";
 import dotenv from "dotenv";
-import { getAssignments, getCourses } from "./moodleApi";
+import { MoodleProvider } from "./moodleProvider";
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
+const moodleProvider = new MoodleProvider(process.env.MOODLE_BASE_URL!);
+
 app.get("/courses/", async (_req, res) => {
-  const courses = await getCourses(
-    process.env.MOODLE_BASE_URL!,
-    process.env.MOODLE_TOKEN!
-  );
+  const courses = await moodleProvider.getCourses(process.env.MOODLE_TOKEN!);
   res.json(courses);
 });
 
 app.get("/assignments/", async (req, res) => {
-  const assignments = await getAssignments(
-    process.env.MOODLE_BASE_URL!,
+  const assignments = await moodleProvider.getAssignments(
     process.env.MOODLE_TOKEN!
   );
 
