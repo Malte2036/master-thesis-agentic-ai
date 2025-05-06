@@ -35,6 +35,8 @@ Beispielhafte Capabilities:
 - `mod/assign:grade`
 - `webservice/rest:use`
 
+Stelle sicher, dass die Rolle "Authenticated user" die Berechtigung `webservice/rest:use` hat. Dies ist notwendig, damit die API-Aufrufe funktionieren.
+
 Stelle sicher, dass der Benutzer diese Rolle systemweit zugewiesen bekommt.
 
 ---
@@ -75,16 +77,27 @@ curl -X POST https://deine-moodle-site/webservice/rest/server.php \
   -d wstoken=DEIN_TOKEN_HIER \
   -d wsfunction=mod_assign_get_assignments \
   -d moodlewsrestformat=json
-
-
+```
 
 Gehe zu:
 
 ## Zugangsdaten:
 
-Moodle Default User: user
+### Admin User:
 
-Moodle Default Password: bitnami
+```
+username: user
+password: Test123!
+email: user@example.com
 
-Moodle Default Email: user@example.com
+(default password: bitnami)
+```
+
+### Student User:
+
+```
+username: student
+password: Test123!
+email: student@example.com
+
 ```

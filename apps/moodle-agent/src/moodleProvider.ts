@@ -4,6 +4,7 @@ import {
   AssignmentsResponseSchema,
 } from "./schemas/assignment";
 import { CoursesResponse, CoursesResponseSchema } from "./schemas/course";
+import { UserInfo, UserInfoSchema } from "./schemas/user";
 
 const MOODLE_WEBSERVICE_PATH = "/webservice/rest/server.php";
 
@@ -100,13 +101,27 @@ export class MoodleProvider {
     return this.verifyData(data, AssignmentsResponseSchema);
   }
 
-  public async getCourses(token: string): Promise<CoursesResponse> {
+  public async getEnrolledCourses(
+    token: string,
+    userid: number
+  ): Promise<CoursesResponse> {
     const data = await this.callMoodleFunction<unknown>(
       this.moodleBaseUrl,
       token,
-      "core_course_get_courses"
+      "core_enrol_get_users_courses",
+      { userid: userid.toString() }
     );
 
     return this.verifyData(data, CoursesResponseSchema);
+  }
+
+  public async getUserInfo(token: string): Promise<UserInfo> {
+    const data = await this.callMoodleFunction<unknown>(
+      this.moodleBaseUrl,
+      token,
+      "core_webservice_get_site_info"
+    );
+
+    return this.verifyData(data, UserInfoSchema);
   }
 }

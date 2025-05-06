@@ -9,7 +9,16 @@ const port = process.env.PORT || 3000;
 const moodleProvider = new MoodleProvider(process.env.MOODLE_BASE_URL!);
 
 app.get("/courses/", async (_req, res) => {
-  const courses = await moodleProvider.getCourses(process.env.MOODLE_TOKEN!);
+  const userInfo = await moodleProvider.getUserInfo(process.env.MOODLE_TOKEN!);
+  if (!userInfo) {
+    res.status(400).json({ error: "User info not found" });
+    return;
+  }
+
+  const courses = await moodleProvider.getEnrolledCourses(
+    process.env.MOODLE_TOKEN!,
+    userInfo.userid
+  );
   res.json(courses);
 });
 
@@ -19,6 +28,11 @@ app.get("/assignments/", async (req, res) => {
   );
 
   res.json(assignments);
+});
+
+app.get("/user/", async (_req, res) => {
+  const userInfo = await moodleProvider.getUserInfo(process.env.MOODLE_TOKEN!);
+  res.json(userInfo);
 });
 
 app.listen(port, () => {
