@@ -133,3 +133,5 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 .devcontainer/ 
+
+docker_data
