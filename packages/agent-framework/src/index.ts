@@ -9,3 +9,4 @@ export function createAgentFramework(agentName: AgentName): IAgentFramework {
 export * from './schemas/agent';
 export * from './schemas/request';
 export * from './config';
+export * from './services/storage';
