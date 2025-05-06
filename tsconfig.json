@@ -14,8 +14,11 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@master-thesis-agentic-rag/*": ["apps/*/src/index.ts"]
+      "@master-thesis-agentic-rag/*": ["apps/*/src/index.ts"],
+      "@master-thesis-agentic-rag/agent-framework": [
+        "packages/agent-framework/src/index.ts"
+      ]
     }
   },
   "exclude": ["node_modules", "tmp"]
-} 
+}
