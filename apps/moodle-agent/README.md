@@ -2,7 +2,9 @@
 
 # #📡 Moodle REST API Setup Guide
 
-Dieses Dokument beschreibt die nötigen Schritte, um die Moodle-REST-API mit einem Token-basierten Zugriff zu verwenden – z. B. zum Abrufen von Hausaufgaben, Kursen oder Nutzerdaten per Skript oder Anwendung.
+Dieses Dokument beschreibt die nötigen Schritte, um die Moodle-REST-API mit einem Token-basierten Zugriff zu verwenden – z. B. zum Abrufen von Hausaufgaben, Kursen oder Nutzerdaten per Skript oder Anwendung.
+
+Die Moodle-Instanz läuft auf: `http://localhost:8080`
 
 ---
 
@@ -44,7 +46,7 @@ Stelle sicher, dass der Benutzer diese Rolle systemweit zugewiesen bekommt.
 ### 🔌 2. Externen Dienst definieren
 
 1. `Website-Administration → Server → Webservices → Externe Dienste`
-2. „Neuen Dienst hinzufügen“ → z. B. **`Custom REST API`**
+2. „Neuen Dienst hinzufügen“ → z. B. **`Custom REST API`**
 3. Aktivieren: `[x] Benutzer kann Dienst aktivieren`
 4. Speichern
 
