@@ -1,6 +1,6 @@
 import express from 'express';
 import { routeQuestion } from './router';
-
+import { getAgentPort } from '@master-thesis-agentic-rag/agent-framework';
 const app = express();
 
 // Add JSON parsing middleware
@@ -24,6 +24,8 @@ app.post('/ask', async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+const port = getAgentPort('frontdoor-agent');
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });

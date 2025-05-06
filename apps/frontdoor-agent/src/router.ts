@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import { getAgentUrl } from '@master-thesis-agentic-rag/agent-framework';
 
 interface AgentResponse {
   agent: string;
@@ -19,7 +20,7 @@ export async function routeQuestion(
       urlParams.set('prompt', question);
       urlParams.set('moodle_token', moodle_token);
 
-      const url = `http://localhost:3003/courses?${urlParams.toString()}`;
+      const url = `${getAgentUrl('moodle-agent')}/courses?${urlParams.toString()}`;
 
       // Forward the question to the Moodle agent
       const response = await fetch(url, {

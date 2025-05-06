@@ -1,19 +1,11 @@
 import { IAgentFramework } from './schemas/agent';
 import { ExpressAgentAdapter } from './adapters/express';
+import { getAgentPort, AgentName } from './config';
 
-const getPort = (agentName: string): number => {
-  switch (agentName) {
-    case 'moodle-agent':
-      return 3003;
-    default:
-      console.error(`Unknown agent name: ${agentName}`);
-      return 3001;
-  }
-};
-
-export function createAgentFramework(agentName: string): IAgentFramework {
-  return new ExpressAgentAdapter(getPort(agentName));
+export function createAgentFramework(agentName: AgentName): IAgentFramework {
+  return new ExpressAgentAdapter(getAgentPort(agentName));
 }
 
 export * from './schemas/agent';
 export * from './schemas/request';
+export * from './config';

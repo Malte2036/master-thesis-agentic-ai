@@ -4,14 +4,19 @@ import { RequestData, RequestDataSchema } from './schemas/request/request';
 import {
   createAgentFramework,
   IAgentRequestHandler,
-  RequestPayload,
   ResponseError,
   createResponseError,
 } from '@master-thesis-agentic-rag/agent-framework';
 
 dotenv.config();
 
-const moodleProvider = new MoodleProvider(process.env.MOODLE_BASE_URL!);
+const moodleBaseUrl = process.env.MOODLE_BASE_URL;
+
+if (!moodleBaseUrl) {
+  throw new Error('MOODLE_BASE_URL is not set');
+}
+
+const moodleProvider = new MoodleProvider(moodleBaseUrl);
 
 const agentFramework = createAgentFramework('moodle-agent');
 
