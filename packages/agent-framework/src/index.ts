@@ -4,7 +4,7 @@ import { ExpressAgentAdapter } from './adapters/express';
 const getPort = (agentName: string): number => {
   switch (agentName) {
     case 'moodle-agent':
-      return 3000;
+      return 3003;
     default:
       console.error(`Unknown agent name: ${agentName}`);
       return 3001;
