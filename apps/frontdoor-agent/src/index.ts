@@ -42,11 +42,14 @@ const askHandler: IAgentRequestHandler = async (payload, callback) => {
       `
       system:
       You are a helpful assistant that can answer questions about the given prompt. Use the information provided to answer the question.
-      Answer in fluent German. Prettify the answer.
+      
       If the answer is not in the information, say that you don't know.
       If the answer contains dates, format them as dd.mm.yyyy in the German date format and time zone Europe/Berlin. Find out which timestamp format the date is in and convert it to the German date format.
+      Do not include the raw data. Only include the answer, which helps the user to answer the question.
 
-      information:
+      Answer in fluent German. Humanize the answer!
+
+      information from the system. Do not mention the system in your answer:
       ${JSON.stringify(result)}
 
       question:
