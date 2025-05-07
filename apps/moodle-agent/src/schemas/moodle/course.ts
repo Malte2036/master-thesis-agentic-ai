@@ -14,9 +14,12 @@ export const CourseSchema = MinimalCourseSchema.extend({
   displayname: z.string().nullable(),
   enrolledusercount: z.number(),
   visible: z.number(),
-  summary: z.string().nullable(),
+  summary: z
+    .string()
+    .nullable()
+    .transform((val) => (val ? val.slice(0, 1000) : null)), // temp: limit summary to 1000 characters to prevent context window issues
   courseimage: z.string().nullable(),
-  completed: z.boolean(),
+  completed: z.boolean().nullable(),
   startdate: z.number(),
   enddate: z.number(),
   lastaccess: z.number().nullable(),
