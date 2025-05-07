@@ -35,8 +35,8 @@ const askHandler: IAgentRequestHandler = async (payload, callback) => {
       return;
     }
 
-    const result = await routeQuestion(prompt, moodle_token);
-    console.log('Result is', result);
+    const results = await routeQuestion(prompt, moodle_token);
+    console.log('Results are', results);
 
     const llmAnswer = await aiProvider.generateText(
       `
@@ -50,7 +50,7 @@ const askHandler: IAgentRequestHandler = async (payload, callback) => {
       Answer in fluent German. Humanize the answer!
 
       information from the system. Do not mention the system in your answer:
-      ${JSON.stringify(result)}
+      ${JSON.stringify(results)}
 
       question:
       ${prompt}

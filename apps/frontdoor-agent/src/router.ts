@@ -3,7 +3,6 @@ import {
   AgentConfig,
   getAgentConfig,
   getAgentConfigs,
-  getAgentUrl,
   generateSchemaDescription,
 } from '@master-thesis-agentic-rag/agent-framework';
 import { aiProvider } from '.';
@@ -11,31 +10,32 @@ import { z } from 'zod';
 
 interface AgentResponse {
   agent: string;
+  function: AgentCallFunction | undefined;
   response: unknown;
 }
 
+const AgentCallFunctionSchema = z.object({
+  functionName: z.string(),
+  description: z.string(),
+  parameters: z.record(z.string(), z.unknown()).optional(),
+});
+
+type AgentCallFunction = z.infer<typeof AgentCallFunctionSchema>;
+
 const AgentCallSchema = z.object({
   agentName: z.string(),
-  functionsToCall: z
-    .array(
-      z.object({
-        functionName: z.string(),
-        parameters: z.record(z.string(), z.unknown()),
-      }),
-    )
-    .optional(),
+  functionsToCall: z.array(AgentCallFunctionSchema).optional(),
 });
 
 const AgentCallsSchema = z.object({
   agentCalls: z.array(AgentCallSchema),
 });
 
+type AgentCalls = z.infer<typeof AgentCallsSchema>;
+
 async function findRelevantAgent(question: string): Promise<{
   agent: AgentConfig;
-  functions: {
-    functionName: string;
-    parameters: Record<string, unknown> | undefined;
-  }[];
+  functions: AgentCallFunction[];
 } | null> {
   const agents = JSON.stringify(getAgentConfigs(false));
 
@@ -47,11 +47,6 @@ async function findRelevantAgent(question: string): Promise<{
   Drop functions that are not needed to answer the question.
   If there is no relevant agent or functions, accept that.
   
-  Strict: Answer in raw json format.
-  Strict: The AgentCallsSchemas is the schema of the json object you should return. Follow it strictly! Do not add any other properties. Do not return an toplevel array. The returned object contains an array of AgentCallSchemas under the key "agentCalls". Follow the schema strictly!
-
-  AgentCallSchemas:
-  ${generateSchemaDescription(AgentCallsSchema)}
 
   Available agents:
   ${agents}
@@ -61,19 +56,12 @@ async function findRelevantAgent(question: string): Promise<{
   `;
 
   console.log('Prompt is', prompt);
-  const response = await aiProvider.generateText(prompt);
-  console.log('Detected agent is', response);
-
-  const jsonResponse = JSON.parse(response);
-
-  if (jsonResponse === 'null') {
-    return null;
-  }
-
-  const agentCalls = AgentCallsSchema.parse(jsonResponse);
-  if (agentCalls.agentCalls.length === 0) {
-    return null;
-  }
+  const agentCalls = await aiProvider.generateText<AgentCalls>(
+    prompt,
+    undefined,
+    AgentCallsSchema,
+  );
+  console.log('Detected agent is', agentCalls);
 
   return {
     agent: getAgentConfig(agentCalls.agentCalls[0].agentName),
@@ -84,34 +72,50 @@ async function findRelevantAgent(question: string): Promise<{
 export async function routeQuestion(
   question: string,
   moodle_token: string,
-): Promise<AgentResponse> {
+): Promise<AgentResponse[]> {
   const relevantAgent = await findRelevantAgent(question);
   if (!relevantAgent) {
-    return {
-      agent: 'default',
-      response:
-        'I could not determine which agent should handle your question. Please try rephrasing it.',
-    };
+    return [
+      {
+        agent: 'default',
+        response:
+          'I could not determine which agent should handle your question. Please try rephrasing it.',
+        function: undefined,
+      },
+    ];
   }
 
   if (relevantAgent.functions.length === 0) {
-    return {
-      agent: 'default',
-      response:
-        'The agent does not have any functions. Please try rephrasing it.',
-    };
+    return [
+      {
+        agent: 'default',
+        response:
+          'The agent does not have any functions. Please try rephrasing it.',
+        function: undefined,
+      },
+    ];
   }
 
   console.log('Agent is', relevantAgent);
 
-  try {
-    console.log(
-      'Forwarding to',
-      relevantAgent.agent.name,
-      relevantAgent.functions[0].functionName,
-    );
+  const responses = await Promise.all(
+    relevantAgent.functions.map((agentFunction) =>
+      callAgent(relevantAgent.agent, agentFunction, moodle_token),
+    ),
+  );
 
-    const url = `http://localhost:${relevantAgent.agent.port}/${relevantAgent.functions[0].functionName}`;
+  return responses;
+}
+
+async function callAgent(
+  agent: AgentConfig,
+  agentFunction: AgentCallFunction,
+  moodle_token: string,
+): Promise<AgentResponse> {
+  try {
+    console.log('Forwarding to', agent.name, agentFunction.functionName);
+
+    const url = `http://localhost:${agent.port}/${agentFunction.functionName}`;
 
     // Forward the question to the Moodle agent
     const response = await fetch(url, {
@@ -120,7 +124,6 @@ export async function routeQuestion(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        prompt: question,
         moodle_token: moodle_token,
       }),
     });
@@ -131,17 +134,16 @@ export async function routeQuestion(
 
     const data = await response.json();
     return {
-      agent: relevantAgent.agent.name,
+      agent: agent.name,
       response: data,
+      function: agentFunction,
     };
   } catch (error) {
-    console.error(
-      `Error forwarding to ${relevantAgent.agent.name} agent:`,
-      error,
-    );
+    console.error(`Error forwarding to ${agent.name} agent:`, error);
     return {
-      agent: relevantAgent.agent.name,
-      response: ` Sorry, there was an error processing your ${relevantAgent.agent.friendlyName}-related question.`,
+      agent: agent.name,
+      response: `Sorry, there was an error processing your ${agent.friendlyName}-related question.`,
+      function: agentFunction,
     };
   }
 }

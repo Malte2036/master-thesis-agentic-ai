@@ -47,8 +47,7 @@ const AGENT_CONFIGS: Record<string, AgentConfig> = {
       },
       {
         name: 'assignments',
-        description:
-          'Get all assignments for all courses the user is enrolled in',
+        description: 'Get all assignments the user has access to',
         parameters: {},
       },
     ],
