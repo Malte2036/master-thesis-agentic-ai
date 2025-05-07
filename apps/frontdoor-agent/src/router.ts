@@ -1,20 +1,80 @@
 import fetch from 'node-fetch';
 import { getAgentUrl } from '@master-thesis-agentic-rag/agent-framework';
+import { aiProvider } from '.';
 
 interface AgentResponse {
   agent: string;
   response: unknown;
 }
 
+interface KeywordMapping {
+  keyword: string;
+  relatedTerms: string[];
+}
+
+async function detectKeyword(
+  question: string,
+  keywordMappings: KeywordMapping[],
+): Promise<boolean> {
+  const keywords = keywordMappings.map((mapping) => mapping.keyword);
+  const relatedTermsList = keywordMappings
+    .map((mapping) => `${mapping.keyword}: ${mapping.relatedTerms.join(', ')}`)
+    .join('\n      - ');
+
+  const prompt = `
+  system:
+  You are a precise topic detection assistant specialized in educational context. Your task is to analyze if a given question is related to specific keywords.
+  
+  Rules:
+  1. Consider both direct mentions and contextual relevance
+  2. Look for semantic relationships, not just exact matches
+  3. Return ONLY "true" or "false" as your response
+  4. Be conservative - only return true if there's a clear connection
+  5. Consider the following keyword relationships:
+      - ${relatedTermsList}
+  
+  Keywords to check: ${keywords.join(', ')}
+  
+  user:
+  Question to analyze: "${question}"
+  
+  assistant:
+  I will analyze if the question is related to any of the keywords and respond with either "true" or "false".
+  `;
+  console.log('Prompt is', prompt);
+  const response = await aiProvider.generateText(prompt);
+  console.log('AI Response is', response);
+
+  return response.toLowerCase().includes('true');
+}
+
 export async function routeQuestion(
   question: string,
   moodle_token: string,
 ): Promise<AgentResponse> {
-  // Convert question to lowercase for case-insensitive matching
-  const lowerQuestion = question.toLowerCase();
-
   // Check for Moodle-related keywords
-  if (lowerQuestion.includes('moodle') || lowerQuestion.includes('kurs')) {
+  const keywordMappings: KeywordMapping[] = [
+    {
+      keyword: 'moodle',
+      relatedTerms: ['LMS', 'Learning Management System', 'Moodle'],
+    },
+    {
+      keyword: 'kurs',
+      relatedTerms: [
+        'Module',
+        'Kurse',
+        'Lehrveranstaltungen',
+        'Studium',
+        'Studien',
+        'Lehrveranstaltung',
+      ],
+    },
+  ];
+
+  const isMoodleRelated = await detectKeyword(question, keywordMappings);
+  console.log('isMoodleRelated', isMoodleRelated);
+
+  if (isMoodleRelated) {
     try {
       const url = `${getAgentUrl('moodle-agent')}/courses`;
 

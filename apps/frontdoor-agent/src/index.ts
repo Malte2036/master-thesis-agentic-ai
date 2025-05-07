@@ -3,8 +3,17 @@ import {
   IAgentRequestHandler,
   ResponseError,
   createResponseError,
+  GroqProvider,
 } from '@master-thesis-agentic-rag/agent-framework';
 import { routeQuestion } from './router';
+
+const groqApiKey = process.env['GROQ_API_KEY'];
+if (!groqApiKey) {
+  throw new Error('GROQ_API_KEY is not set');
+}
+export const aiProvider = new GroqProvider({
+  apiKey: groqApiKey,
+});
 
 const agentFramework = createAgentFramework('frontdoor-agent');
 
@@ -27,7 +36,22 @@ const askHandler: IAgentRequestHandler = async (payload, callback) => {
     }
 
     const result = await routeQuestion(prompt, moodle_token);
-    callback(null, result);
+    console.log('Result is', result);
+
+    const llmAnswer = await aiProvider.generateText(
+      `
+      system:
+      You are a helpful assistant that can answer questions about the given prompt. Use the information provided to answer the question.
+      Answer is in German. Prettify the answer.
+
+      information:
+      ${JSON.stringify(result)}
+
+      question:
+      ${prompt}
+      `,
+    );
+    callback(null, llmAnswer);
   } catch (error) {
     console.error('Error processing question:', error);
     if (error instanceof Error) {
