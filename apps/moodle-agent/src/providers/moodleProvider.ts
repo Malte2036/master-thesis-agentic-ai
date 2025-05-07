@@ -8,6 +8,10 @@ import {
   CoursesResponseSchema,
 } from '../schemas/moodle/course';
 import { UserInfo, UserInfoSchema } from '../schemas/moodle/user';
+import {
+  CourseContentsResponse,
+  CourseContentsResponseSchema,
+} from '../schemas/moodle/course_content';
 
 const MOODLE_WEBSERVICE_PATH = '/webservice/rest/server.php';
 
@@ -28,7 +32,7 @@ export class MoodleProvider {
     moodleBaseUrl: string,
     token: string,
     wsfunction: string,
-    args: Record<string, any> = {},
+    args: Record<string, unknown> = {},
   ): Promise<T> {
     const MoodleUrl = `${moodleBaseUrl}${MOODLE_WEBSERVICE_PATH}`;
 
@@ -94,14 +98,14 @@ export class MoodleProvider {
     return result.data;
   }
 
-  public async getAssignments(token: string): Promise<AssignmentsResponse> {
+  public async getUserInfo(token: string): Promise<UserInfo> {
     const data = await this.callMoodleFunction<unknown>(
       this.moodleBaseUrl,
       token,
-      'mod_assign_get_assignments',
+      'core_webservice_get_site_info',
     );
 
-    return this.verifyData(data, AssignmentsResponseSchema);
+    return this.verifyData(data, UserInfoSchema);
   }
 
   public async getEnrolledCourses(
@@ -118,13 +122,27 @@ export class MoodleProvider {
     return this.verifyData(data, CoursesResponseSchema);
   }
 
-  public async getUserInfo(token: string): Promise<UserInfo> {
+  public async getCourseContents(
+    token: string,
+    courseid: number,
+  ): Promise<CourseContentsResponse> {
     const data = await this.callMoodleFunction<unknown>(
       this.moodleBaseUrl,
       token,
-      'core_webservice_get_site_info',
+      'core_course_get_contents',
+      { courseid: courseid.toString() },
     );
 
-    return this.verifyData(data, UserInfoSchema);
+    return this.verifyData(data, CourseContentsResponseSchema);
+  }
+
+  public async getAssignments(token: string): Promise<AssignmentsResponse> {
+    const data = await this.callMoodleFunction<unknown>(
+      this.moodleBaseUrl,
+      token,
+      'mod_assign_get_assignments',
+    );
+
+    return this.verifyData(data, AssignmentsResponseSchema);
   }
 }
