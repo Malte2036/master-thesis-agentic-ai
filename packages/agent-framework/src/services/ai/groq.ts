@@ -23,10 +23,8 @@ export class GroqProvider implements AIProvider {
           ? [
               {
                 role: 'system' as const,
-                content: `You are a JSON response generator. Your response must be a valid JSON object.
-                The response must be a single JSON object that strictly follows the provided schema.
-                Do not include any text before or after the JSON object.
-                Do not wrap the JSON object in any additional formatting or markdown.
+                content: `You are a JSON response generator. 
+                The response must be a single valid JSON object that strictly follows the provided schema.
                 The schema of the JSON object is:
                 ${generateSchemaDescription(jsonSchema)}`,
               },
@@ -38,6 +36,7 @@ export class GroqProvider implements AIProvider {
           content: prompt,
         },
       ],
+      response_format: jsonSchema ? { type: 'json_object' } : undefined,
     });
 
     if (!response.choices[0].message.content) {
