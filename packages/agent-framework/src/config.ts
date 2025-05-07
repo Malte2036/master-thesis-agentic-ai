@@ -30,12 +30,12 @@ const AGENT_CONFIGS: Record<string, AgentConfig> = {
     functions: [
       {
         name: 'user',
-        description: 'Get information about the user',
+        description: 'Get personal information about the user',
         parameters: {},
       },
       {
         name: 'courses',
-        description: 'Get courses that the user is enrolled in',
+        description: 'Get all courses that the user is enrolled in',
         parameters: {},
       },
       {
