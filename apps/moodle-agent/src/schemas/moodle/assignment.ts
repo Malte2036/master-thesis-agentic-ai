@@ -1,19 +1,30 @@
-import { z } from "zod";
-import { CourseSchema } from "./course";
+import { z } from 'zod';
+import { MinimalCourseSchema } from './course';
 
 // Schema for a single assignment
 export const AssignmentSchema = z.object({
   id: z.number(),
   course: z.number(),
   name: z.string(),
-  intro: z.string().optional(),
+  nosubmissions: z.number(),
+  submissiondrafts: z.number(),
   duedate: z.number(),
   allowsubmissionsfromdate: z.number(),
+  grade: z.number(),
+  timemodified: z.number(),
+  completionsubmit: z.number(),
   cutoffdate: z.number(),
+  gradingduedate: z.number(),
+  teamsubmission: z.number(),
+  requireallteammemberssubmit: z.number(),
+  teamsubmissiongroupingid: z.number(),
+  maxattempts: z.number(),
+  intro: z.string(),
+  timelimit: z.number(),
 });
 
 export const AssignmentsResponseSchema = z.object({
-  courses: z.array(CourseSchema),
+  courses: z.array(MinimalCourseSchema),
 });
 
 // Type exports

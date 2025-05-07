@@ -1,15 +1,15 @@
-import { z } from "zod";
+import { z } from 'zod';
 import {
   AssignmentsResponse,
   AssignmentsResponseSchema,
-} from "../schemas/moodle/assignment";
+} from '../schemas/moodle/assignment';
 import {
   CoursesResponse,
   CoursesResponseSchema,
-} from "../schemas/moodle/course";
-import { UserInfo, UserInfoSchema } from "../schemas/moodle/user";
+} from '../schemas/moodle/course';
+import { UserInfo, UserInfoSchema } from '../schemas/moodle/user';
 
-const MOODLE_WEBSERVICE_PATH = "/webservice/rest/server.php";
+const MOODLE_WEBSERVICE_PATH = '/webservice/rest/server.php';
 
 export class MoodleProvider {
   constructor(private readonly moodleBaseUrl: string) {}
@@ -28,14 +28,14 @@ export class MoodleProvider {
     moodleBaseUrl: string,
     token: string,
     wsfunction: string,
-    args: Record<string, any> = {}
+    args: Record<string, any> = {},
   ): Promise<T> {
     const MoodleUrl = `${moodleBaseUrl}${MOODLE_WEBSERVICE_PATH}`;
 
     const params = new URLSearchParams();
-    params.append("wstoken", token);
-    params.append("wsfunction", wsfunction);
-    params.append("moodlewsrestformat", "json");
+    params.append('wstoken', token);
+    params.append('wsfunction', wsfunction);
+    params.append('moodlewsrestformat', 'json');
 
     // Add any additional arguments
     Object.entries(args).forEach(([key, value]) => {
@@ -46,16 +46,16 @@ export class MoodleProvider {
 
     try {
       const response = await fetch(MoodleUrl, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: params.toString(),
       });
 
       if (!response.ok) {
         throw new Error(
-          `HTTP error! status: ${response.status} - ${await response.text()}`
+          `HTTP error! status: ${response.status} - ${await response.text()}`,
         );
       }
 
@@ -66,7 +66,7 @@ export class MoodleProvider {
         throw new Error(
           `Moodle API Error: ${data.message || data.exception} (Errorcode: ${
             data.errorcode
-          })`
+          })`,
         );
       }
 
@@ -75,7 +75,7 @@ export class MoodleProvider {
       if (error instanceof Error) {
         console.error(
           `Failed to call Moodle function ${wsfunction}:`,
-          error.message
+          error.message,
         );
       } else {
         console.error(`Failed to call Moodle function ${wsfunction}:`, error);
@@ -98,7 +98,7 @@ export class MoodleProvider {
     const data = await this.callMoodleFunction<unknown>(
       this.moodleBaseUrl,
       token,
-      "mod_assign_get_assignments"
+      'mod_assign_get_assignments',
     );
 
     return this.verifyData(data, AssignmentsResponseSchema);
@@ -106,13 +106,13 @@ export class MoodleProvider {
 
   public async getEnrolledCourses(
     token: string,
-    userid: number
+    userid: number,
   ): Promise<CoursesResponse> {
     const data = await this.callMoodleFunction<unknown>(
       this.moodleBaseUrl,
       token,
-      "core_enrol_get_users_courses",
-      { userid: userid.toString() }
+      'core_enrol_get_users_courses',
+      { userid: userid.toString() },
     );
 
     return this.verifyData(data, CoursesResponseSchema);
@@ -122,7 +122,7 @@ export class MoodleProvider {
     const data = await this.callMoodleFunction<unknown>(
       this.moodleBaseUrl,
       token,
-      "core_webservice_get_site_info"
+      'core_webservice_get_site_info',
     );
 
     return this.verifyData(data, UserInfoSchema);
