@@ -39,10 +39,23 @@ const AGENT_CONFIGS: Record<string, AgentConfig> = {
         parameters: {},
       },
       {
+        name: 'find_course_id',
+        description: 'Find the course id of a given course name search query',
+        parameters: {
+          course_name: {
+            type: 'string',
+            description: 'The name of the course to find the id of',
+          },
+        },
+      },
+      {
         name: 'course_contents',
         description: 'Get contents of a given course',
         parameters: {
-          course_id: z.number(),
+          course_id: {
+            type: 'number',
+            description: 'The id of the course to get the contents of',
+          },
         },
       },
       {

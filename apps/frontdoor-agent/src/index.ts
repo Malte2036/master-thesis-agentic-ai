@@ -23,7 +23,6 @@ const askHandler: IAgentRequestHandler = async (payload, callback) => {
       prompt: string;
       moodle_token: string;
     };
-    console.log('Received question:', prompt);
 
     if (!prompt || !moodle_token) {
       callback(

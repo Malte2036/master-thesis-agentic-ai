@@ -16,7 +16,7 @@ interface AgentResponse {
 
 const AgentCallFunctionSchema = z.object({
   functionName: z.string(),
-  description: z.string(),
+  description: z.string().optional(),
   parameters: z.record(z.string(), z.unknown()).optional(),
 });
 
@@ -41,27 +41,32 @@ async function findRelevantAgent(question: string): Promise<{
 
   const prompt = `
   system:
-  You are a helpful assistant that can help the user find the most relevant agents for their question.
-  Only include agents that are relevant to the question.
-  Only include the agent functions that are relevant to the questions and which are needed to answer the question.
-  Drop functions that are not needed to answer the question.
-  If there is no relevant agent or functions, accept that.
+  You are a smart assistant designed to select only the most relevant and immediately executable agent functions to answer the user's question.
   
-
-  Available agents:
+  Guidelines:
+  - ONLY include agents and functions that can be executed **now**, using information already available in the question.
+  - OMIT functions that require the result of another function — even if that function is also listed in this response.
+  - If a parameter is not known yet, DO NOT include the function depending on it in the current step.
+  - Clearly identify which function(s) to call **first** to gather the necessary data.
+  - If no agents or functions are relevant or ready to run, respond accordingly.
+  
+  Execution logic:
+  - Treat the resolution as a **multi-step process**. After each function call, a **new prompt iteration** will be made.
+  - DO NOT include functions for future steps in the current response.
+  - If a function must be called to fetch parameters for a second function, return only the first one now.
+  
+  Available agents and their functions:
   ${agents}
-
-  Question:
+  
+  User question:
   ${question}
   `;
 
-  console.log('Prompt is', prompt);
   const agentCalls = await aiProvider.generateText<AgentCalls>(
     prompt,
     undefined,
     AgentCallsSchema,
   );
-  console.log('Detected agent is', agentCalls);
 
   return {
     agent: getAgentConfig(agentCalls.agentCalls[0].agentName),
@@ -96,7 +101,7 @@ export async function routeQuestion(
     ];
   }
 
-  console.log('Agent is', relevantAgent);
+  console.log('Agent is', relevantAgent.agent.friendlyName);
 
   const responses = await Promise.all(
     relevantAgent.functions.map((agentFunction) =>
@@ -125,6 +130,7 @@ async function callAgent(
       },
       body: JSON.stringify({
         moodle_token: moodle_token,
+        ...agentFunction.parameters,
       }),
     });
 
