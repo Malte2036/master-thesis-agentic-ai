@@ -30,14 +30,8 @@ const AGENT_CONFIGS: Record<string, AgentConfig> = {
       'Get information about university courses and assignments. All timestamps in responses are in Unix timestamp format (seconds since epoch) and in UTC timezone.',
     functions: [
       {
-        name: 'user',
+        name: 'get_user_info',
         description: 'Get personal information about the user',
-        parameters: {},
-      },
-      {
-        name: 'courses',
-        description:
-          'Get all courses that the user is enrolled in. Important: Prefer "find_courses_by_name" if you need to get courses by name.',
         parameters: {},
       },
       {
@@ -52,7 +46,13 @@ const AGENT_CONFIGS: Record<string, AgentConfig> = {
         },
       },
       {
-        name: 'course_contents',
+        name: 'get_all_courses',
+        description:
+          'Get all courses that the user is enrolled in. Important: Prefer "find_courses_by_name" if you need to get courses by name.',
+        parameters: {},
+      },
+      {
+        name: 'get_course_contents',
         description:
           'Get contents of a specific course. The course is identified by the course_id parameter. Maybe you need to call find_course_id_by_name first to get the course_id.',
         parameters: {
@@ -63,18 +63,18 @@ const AGENT_CONFIGS: Record<string, AgentConfig> = {
         },
       },
       {
-        name: 'assignments',
-        description:
-          'Get all assignments the user has access to. Important: Prefer "assignments_for_course" if you need to get assignments for a specific course.',
-        parameters: {},
-      },
-      {
-        name: 'assignments_for_course',
+        name: 'get_assignments_for_course',
         description:
           'Get all assignments for a specific course. Important: Prefer this over "assignments" if you need to get assignments for a specific course.',
         parameters: {
           course_id: { type: 'number', description: 'The id of the course.' },
         },
+      },
+      {
+        name: 'get_all_assignments_for_all_courses',
+        description:
+          'Get all assignments the user has access to. Important: Prefer "assignments_for_course" if you need to get assignments for a specific course.',
+        parameters: {},
       },
     ],
   },

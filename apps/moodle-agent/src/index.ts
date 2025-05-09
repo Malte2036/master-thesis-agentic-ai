@@ -211,15 +211,18 @@ const userHandler: IAgentRequestHandler = async (payload, callback) => {
   }
 };
 
-agentFramework.registerEndpoint('courses', coursesHandler);
+agentFramework.registerEndpoint('get_all_courses', coursesHandler);
 agentFramework.registerEndpoint('find_courses_by_name', findCoursesByName);
-agentFramework.registerEndpoint('assignments', assignmentsHandler);
 agentFramework.registerEndpoint(
-  'assignments_for_course',
+  'get_all_assignments_for_all_courses',
+  assignmentsHandler,
+);
+agentFramework.registerEndpoint(
+  'get_assignments_for_course',
   assignmentsForCourseHandler,
 );
-agentFramework.registerEndpoint('course_contents', courseContentsHandler);
-agentFramework.registerEndpoint('user', userHandler);
+agentFramework.registerEndpoint('get_course_contents', courseContentsHandler);
+agentFramework.registerEndpoint('get_user_info', userHandler);
 
 // Start the server and keep it running
 agentFramework.listen().catch((error) => {
