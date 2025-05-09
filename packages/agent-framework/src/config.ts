@@ -15,10 +15,10 @@ export interface AgentConfig {
 }
 
 const AGENT_CONFIGS: Record<string, AgentConfig> = {
-  'frontdoor-agent': {
+  'routing-agent': {
     port: 3000,
-    name: 'frontdoor-agent',
-    friendlyName: 'Frontdoor Agent',
+    name: 'routing-agent',
+    friendlyName: 'Routing Agent',
     description: 'Ask questions about the university',
     functions: [],
   },
@@ -117,14 +117,14 @@ export const AgentNameSchema = z.enum(
 );
 
 export function getAgentConfigs(
-  includeFrontdoorAgent = true,
+  includeRoutingAgent = true,
 ): Record<AgentName, AgentConfig> {
-  if (includeFrontdoorAgent) {
+  if (includeRoutingAgent) {
     return AGENT_CONFIGS;
   }
 
   return Object.fromEntries(
-    Object.entries(AGENT_CONFIGS).filter(([key]) => key !== 'frontdoor-agent'),
+    Object.entries(AGENT_CONFIGS).filter(([key]) => key !== 'routing-agent'),
   );
 }
 

@@ -1,16 +1,16 @@
 {
-  "name": "@master-thesis-agentic-rag/frontdoor-agent",
+  "name": "@master-thesis-agentic-rag/routing-agent",
   "version": "0.0.1",
   "private": true,
   "type": "commonjs",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
   "scripts": {
-    "build": "nx build frontdoor-agent",
-    "start": "node dist/apps/frontdoor-agent/index.js",
-    "dev": "nx serve frontdoor-agent",
-    "lint": "nx lint frontdoor-agent",
-    "test": "nx test frontdoor-agent"
+    "build": "nx build routing-agent",
+    "start": "node dist/apps/routing-agent/index.js",
+    "dev": "nx serve routing-agent",
+    "lint": "nx lint routing-agent",
+    "test": "nx test routing-agent"
   },
   "dependencies": {
     "express": "^5.1.0",

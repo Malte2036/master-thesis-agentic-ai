@@ -18,8 +18,8 @@
       "@master-thesis-agentic-rag/agent-framework": [
         "packages/agent-framework/src/index.ts"
       ],
-      "@master-thesis-agentic-rag/frontdoor-agent": [
-        "apps/frontdoor-agent/src/index.ts"
+      "@master-thesis-agentic-rag/routing-agent": [
+        "apps/routing-agent/src/index.ts"
       ]
     }
   },

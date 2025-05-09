@@ -1,0 +1,26 @@
+{
+  "name": "@master-thesis-agentic-rag/routing-agent",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/routing-agent/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/routing-agent",
+        "main": "apps/routing-agent/src/index.ts",
+        "tsConfig": "apps/routing-agent/tsconfig.lib.json",
+        "assets": ["apps/routing-agent/*.md"]
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "@master-thesis-agentic-rag/routing-agent:build",
+        "watch": true
+      }
+    }
+  }
+}

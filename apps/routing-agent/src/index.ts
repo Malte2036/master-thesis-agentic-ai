@@ -6,7 +6,7 @@ import {
 } from '@master-thesis-agentic-rag/agent-framework';
 import { routeQuestion } from './router';
 
-const agentFramework = createAgentFramework('frontdoor-agent');
+const agentFramework = createAgentFramework('routing-agent');
 
 const askHandler: IAgentRequestHandler = async (payload, callback) => {
   try {

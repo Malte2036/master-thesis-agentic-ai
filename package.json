@@ -5,10 +5,10 @@
   "scripts": {
     "dev": "nx run-many -t serve",
     "dev:moodle-agent": "nx serve moodle-agent",
-    "dev:frontdoor-agent": "nx serve frontdoor-agent",
+    "dev:routing-agent": "nx serve routing-agent",
     "build": "nx run-many -t build",
     "build:moodle-agent": "nx build moodle-agent",
-    "build:frontdoor-agent": "nx build frontdoor-agent",
+    "build:routing-agent": "nx build routing-agent",
     "lint": "nx run-many -t lint",
     "test": "nx run-many -t test",
     "clean": "nx run-many -t clean && rm -rf node_modules",
