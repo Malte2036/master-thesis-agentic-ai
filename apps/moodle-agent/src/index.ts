@@ -56,7 +56,7 @@ const coursesHandler: IAgentRequestHandler = async (payload, callback) => {
   }
 };
 
-const findCourseByName: IAgentRequestHandler = async (payload, callback) => {
+const findCoursesByName: IAgentRequestHandler = async (payload, callback) => {
   try {
     const requestData = parseRequest(payload.body);
     if (!requestData.course_name) {
@@ -94,7 +94,7 @@ const findCourseByName: IAgentRequestHandler = async (payload, callback) => {
       return;
     }
 
-    callback(null, searchedEnrolledCourses[0]);
+    callback(null, searchedEnrolledCourses);
   } catch (error) {
     if (error instanceof Error) {
       console.error('Error:', error);
@@ -182,7 +182,7 @@ const userHandler: IAgentRequestHandler = async (payload, callback) => {
 };
 
 agentFramework.registerEndpoint('courses', coursesHandler);
-agentFramework.registerEndpoint('find_course_by_name', findCourseByName);
+agentFramework.registerEndpoint('find_courses_by_name', findCoursesByName);
 agentFramework.registerEndpoint('assignments', assignmentsHandler);
 agentFramework.registerEndpoint('course_contents', courseContentsHandler);
 agentFramework.registerEndpoint('user', userHandler);

@@ -39,8 +39,9 @@ const AGENT_CONFIGS: Record<string, AgentConfig> = {
       //   parameters: {},
       // },
       {
-        name: 'find_course_by_name',
-        description: 'Find a course by a search query for the course name',
+        name: 'find_courses_by_name',
+        description:
+          'Find courses by a search query for the course name. If there are multiple courses, return all of them.',
         parameters: {
           course_name: {
             type: 'string',

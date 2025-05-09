@@ -48,8 +48,6 @@ export class OpenAIProvider implements AIProvider {
       return response.choices[0].message.content as T;
     }
 
-    console.log('response is', response.choices[0].message.content);
-
     let jsonResponse;
     try {
       jsonResponse = JSON.parse(response.choices[0].message.content);
@@ -67,6 +65,11 @@ export class OpenAIProvider implements AIProvider {
       );
       throw new Error('Invalid JSON response');
     }
+
+    console.log(
+      'Response from LLM is:\n',
+      JSON.stringify(parsedResponse.data, null, 2),
+    );
 
     return parsedResponse.data;
   }
