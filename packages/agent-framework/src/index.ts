@@ -1,9 +1,14 @@
 import { ExpressAgentAdapter } from './adapters/express';
-import { AgentName, getAgentConfig } from './config';
+import { AgentName, AgentNameSchema, getAgentConfig } from './config';
 import { IAgentFramework } from './schemas/agent';
 
 export function createAgentFramework(agentName: AgentName): IAgentFramework {
-  return new ExpressAgentAdapter(getAgentConfig(agentName).port);
+  const parsedAgentName = AgentNameSchema.safeParse(agentName);
+  if (!parsedAgentName.success) {
+    throw new Error(`Invalid agent name: ${agentName}`);
+  }
+
+  return new ExpressAgentAdapter(getAgentConfig(parsedAgentName.data).port);
 }
 
 export * from './config';

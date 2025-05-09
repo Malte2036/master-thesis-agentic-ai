@@ -64,6 +64,15 @@ const AGENT_CONFIGS: Record<string, AgentConfig> = {
         description: 'Get all assignments the user has access to',
         parameters: {},
       },
+    ],
+  },
+  'calendar-agent': {
+    port: 3004,
+    name: 'calendar-agent',
+    friendlyName: 'Calendar Agent',
+    description:
+      "This agent is responsible for creating calendar events. It is used to create events in the user's calendar.",
+    functions: [
       {
         name: 'create_calendar_event',
         description: 'Create a calendar event',

@@ -1,0 +1,40 @@
+{
+  "name": "@master-thesis-agentic-rag/calendar-agent",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/calendar-agent/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/calendar-agent",
+        "main": "apps/calendar-agent/src/index.ts",
+        "tsConfig": "apps/calendar-agent/tsconfig.json",
+        "assets": [
+          "apps/calendar-agent/src/assets",
+          "apps/calendar-agent/package.json"
+        ]
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "@master-thesis-agentic-rag/calendar-agent:build",
+        "watch": true
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/calendar-agent/jest.config.ts"
+      }
+    }
+  },
+  "tags": []
+}
