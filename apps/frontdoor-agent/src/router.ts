@@ -1,11 +1,9 @@
 import {
-  AgentConfig,
+  createAIProvider,
   getAgentConfig,
   getAgentConfigs,
 } from '@master-thesis-agentic-rag/agent-framework';
-import { aiProvider } from '.';
 import {
-  AgentCallFunction,
   AgentCalls,
   AgentCallsSchema,
   AgentResponse,
@@ -13,34 +11,63 @@ import {
 } from './agent';
 import { Prompt } from './prompt';
 
-async function findRelevantAgent(question: string): Promise<{
-  agent: AgentConfig;
-  functions: AgentCallFunction[];
-} | null> {
+const aiProvider = createAIProvider();
+
+async function findRelevantAgent(
+  question: string,
+  intermediateAnswer?: string,
+): Promise<AgentCalls> {
   const agents = getAgentConfigs(false);
 
-  const prompt = Prompt.getFindRelevantAgentPrompt(agents, question);
+  const systemPrompt = Prompt.getFindRelevantAgentPrompt(
+    agents,
+    intermediateAnswer,
+  );
 
-  const agentCalls = await aiProvider.generateText<AgentCalls>(
+  return await aiProvider.generateText<AgentCalls>(
+    question,
+    systemPrompt,
+    AgentCallsSchema,
+  );
+}
+
+async function generateAnswer(
+  question: string,
+  intermediateAnswer?: string,
+): Promise<AgentResponse[]> {
+  const prompt = Prompt.getGenerateAnswerPrompt(question, intermediateAnswer);
+
+  return await aiProvider.generateText<AgentResponse[]>(
     prompt,
     undefined,
     AgentCallsSchema,
   );
-
-  // TODO: Allow multiple agents
-  const firstAgentCall = agentCalls.agentCalls[0];
-  return {
-    agent: getAgentConfig(firstAgentCall.agentName),
-    functions: firstAgentCall.functionsToCall ?? [],
-  };
 }
 
-export async function routeQuestion(
+async function handleQuestion(
   question: string,
   moodle_token: string,
+  remainingCalls: number,
+  intermediateAnswer?: string,
 ): Promise<AgentResponse[]> {
-  const relevantAgent = await findRelevantAgent(question);
-  if (!relevantAgent) {
+  console.log('--------------------------------');
+  console.log('Iteration', remainingCalls);
+  console.log('--------------------------------');
+
+  if (remainingCalls < 0) {
+    return [
+      {
+        agent: 'default',
+        response:
+          'Maximum number of LLM calls reached. Please try rephrasing your question.',
+        function: undefined,
+      },
+    ];
+  }
+
+  const response = await findRelevantAgent(question, intermediateAnswer);
+
+  if (!response) {
     return [
       {
         agent: 'default',
@@ -50,6 +77,24 @@ export async function routeQuestion(
       },
     ];
   }
+
+  if (response.answer && response.agentCalls.length === 0) {
+    console.log('Finished with answer', response.answer);
+    return [
+      {
+        agent: 'default',
+        response: response.answer,
+        function: undefined,
+      },
+    ];
+  }
+
+  // TODO: Allow multiple agents
+  const firstAgentCall = response.agentCalls[0];
+  const relevantAgent = {
+    agent: getAgentConfig(firstAgentCall.agentName),
+    functions: firstAgentCall.functionsToCall ?? [],
+  };
 
   if (relevantAgent.functions.length === 0) {
     return [
@@ -70,5 +115,27 @@ export async function routeQuestion(
     ),
   );
 
-  return responses;
+  // If this was the last call, return the responses
+  if (remainingCalls === 0) {
+    const answer = await generateAnswer(question, JSON.stringify(responses));
+    console.log('Answer after last iteration', answer);
+    return answer;
+  }
+
+  intermediateAnswer += `Iteration ${remainingCalls}: ${JSON.stringify(responses)}`;
+
+  // Recursively handle the next iteration with the current response
+  return handleQuestion(
+    question,
+    moodle_token,
+    remainingCalls - 1,
+    intermediateAnswer,
+  );
+}
+
+export async function routeQuestion(
+  question: string,
+  moodle_token: string,
+): Promise<AgentResponse[]> {
+  return handleQuestion(question, moodle_token, 3);
 }

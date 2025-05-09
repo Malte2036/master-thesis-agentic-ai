@@ -56,6 +56,16 @@ const coursesHandler: IAgentRequestHandler = async (payload, callback) => {
   }
 };
 
+const findCourseIdByName: IAgentRequestHandler = async (payload, callback) => {
+  try {
+    // TODO: Implement this
+    callback(null, 3533);
+    // callback(null, 1392);
+  } catch (error) {
+    callback(createResponseError('Unknown error occurred', 500));
+  }
+};
+
 const courseContentsHandler: IAgentRequestHandler = async (
   payload,
   callback,
@@ -128,10 +138,25 @@ const userHandler: IAgentRequestHandler = async (payload, callback) => {
   }
 };
 
+const createCalendarEventHandler: IAgentRequestHandler = async (
+  payload,
+  callback,
+) => {
+  // TODO: Implement this in an calendar agent
+  callback(null, {
+    success: true,
+  });
+};
+
 agentFramework.registerEndpoint('courses', coursesHandler);
+agentFramework.registerEndpoint('find_course_id_by_name', findCourseIdByName);
 agentFramework.registerEndpoint('assignments', assignmentsHandler);
 agentFramework.registerEndpoint('course_contents', courseContentsHandler);
 agentFramework.registerEndpoint('user', userHandler);
+agentFramework.registerEndpoint(
+  'create_calendar_event',
+  createCalendarEventHandler,
+);
 
 // Start the server and keep it running
 agentFramework.listen().catch((error) => {

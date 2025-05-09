@@ -22,6 +22,7 @@ export const AgentCallSchema = z.object({
 
 export const AgentCallsSchema = z.object({
   agentCalls: z.array(AgentCallSchema),
+  answer: z.string().nullish(),
 });
 
 export type AgentCalls = z.infer<typeof AgentCallsSchema>;

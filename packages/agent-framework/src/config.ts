@@ -33,13 +33,13 @@ const AGENT_CONFIGS: Record<string, AgentConfig> = {
         description: 'Get personal information about the user',
         parameters: {},
       },
+      // {
+      //   name: 'courses',
+      //   description: 'Get all courses that the user is enrolled in',
+      //   parameters: {},
+      // },
       {
-        name: 'courses',
-        description: 'Get all courses that the user is enrolled in',
-        parameters: {},
-      },
-      {
-        name: 'find_course_id',
+        name: 'find_course_id_by_name',
         description: 'Find the course id of a given course name search query',
         parameters: {
           course_name: {
@@ -50,11 +50,12 @@ const AGENT_CONFIGS: Record<string, AgentConfig> = {
       },
       {
         name: 'course_contents',
-        description: 'Get contents of a given course',
+        description:
+          'Get contents of a specific course. The course is identified by the course_id parameter. Maybe you need to call find_course_id_by_name first to get the course_id.',
         parameters: {
           course_id: {
             type: 'number',
-            description: 'The id of the course to get the contents of',
+            description: 'The id of the course.',
           },
         },
       },
@@ -62,6 +63,28 @@ const AGENT_CONFIGS: Record<string, AgentConfig> = {
         name: 'assignments',
         description: 'Get all assignments the user has access to',
         parameters: {},
+      },
+      {
+        name: 'create_calendar_event',
+        description: 'Create a calendar event',
+        parameters: {
+          event_name: {
+            type: 'string',
+            description: 'The name of the event to create',
+          },
+          event_description: {
+            type: 'string',
+            description: 'The description of the event to create',
+          },
+          event_start_date: {
+            type: 'string',
+            description: 'The start date of the event to create',
+          },
+          event_end_date: {
+            type: 'string',
+            description: 'The end date of the event to create',
+          },
+        },
       },
     ],
   },

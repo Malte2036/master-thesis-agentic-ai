@@ -1,8 +1,11 @@
+import { z } from 'zod';
+
 export interface AIProvider {
-  generateText(
+  generateText<T>(
     prompt: string,
     options?: AIGenerateTextOptions,
-  ): Promise<string>;
+    jsonSchema?: z.ZodSchema,
+  ): Promise<T>;
 }
 
 export interface AIGenerateTextOptions {

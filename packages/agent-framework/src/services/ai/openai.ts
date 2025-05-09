@@ -1,12 +1,13 @@
 import { AIProvider, AIProviderOptions, AIGenerateTextOptions } from './types';
-import Groq from 'groq-sdk';
+import OpenAI from 'openai';
 import { z } from 'zod';
 import { generateSchemaDescription } from '../../utils/schema';
-export class GroqProvider implements AIProvider {
-  private readonly groq: Groq;
+
+export class OpenAIProvider implements AIProvider {
+  private readonly openai: OpenAI;
 
   constructor(private readonly options: AIProviderOptions) {
-    this.groq = new Groq({
+    this.openai = new OpenAI({
       apiKey: options.apiKey,
     });
   }
@@ -16,15 +17,14 @@ export class GroqProvider implements AIProvider {
     options?: AIGenerateTextOptions,
     jsonSchema?: z.ZodSchema,
   ): Promise<T> {
-    const response = await this.groq.chat.completions.create({
-      model: 'llama-3.1-8b-instant',
-      // model: 'llama3-70b-8192',
+    const response = await this.openai.chat.completions.create({
+      model: 'gpt-4.1-mini',
       messages: [
         ...(jsonSchema
           ? [
               {
                 role: 'system' as const,
-                content: `You are a JSON response generator. 
+                content: `You are a JSON response generator.
                 The response must be a single valid JSON object that strictly follows the provided schema.
                 The schema of the JSON object is:
                 ${generateSchemaDescription(jsonSchema)}`,
@@ -41,7 +41,7 @@ export class GroqProvider implements AIProvider {
     });
 
     if (!response.choices[0].message.content) {
-      throw new Error('No response from Groq');
+      throw new Error('No response from OpenAI');
     }
 
     if (!jsonSchema) {

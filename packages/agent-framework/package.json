@@ -8,6 +8,7 @@
   "dependencies": {
     "express": "^5.1.0",
     "groq-sdk": "^0.21.0",
+    "openai": "^4.98.0",
     "tslib": "^2.3.0",
     "zod": "^3.22.4"
   },
