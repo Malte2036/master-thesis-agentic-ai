@@ -34,15 +34,16 @@ const AGENT_CONFIGS: Record<string, AgentConfig> = {
         description: 'Get personal information about the user',
         parameters: {},
       },
-      // {
-      //   name: 'courses',
-      //   description: 'Get all courses that the user is enrolled in',
-      //   parameters: {},
-      // },
+      {
+        name: 'courses',
+        description:
+          'Get all courses that the user is enrolled in. Important: Prefer "find_courses_by_name" if you need to get courses by name.',
+        parameters: {},
+      },
       {
         name: 'find_courses_by_name',
         description:
-          'Find courses by a search query for the course name. If there are multiple courses, return all of them.',
+          'Find courses by a search query for the course name. If there are multiple courses, return all of them. Important: Prefer this over "courses" if you need to get courses by name.',
         parameters: {
           course_name: {
             type: 'string',
