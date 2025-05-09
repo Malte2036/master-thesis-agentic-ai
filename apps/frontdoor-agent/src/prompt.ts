@@ -48,26 +48,36 @@ You must follow these rules strictly:
 Available agents and their functions:
 ${JSON.stringify(agents, null, 2)}
 
-Information from the system:
+Information from the system, and which functions were already executed:
 ${intermediateAnswer}`,
       },
     ],
   });
 
   public static getGenerateAnswerPrompt = (
-    question: string,
     intermediateAnswer?: string,
-  ): string => `system:
-You are a helpful assistant that can answer questions about the given prompt. Use the information provided to answer the question.
-
-If the answer is not in the information, say that you don't know.
-If the task could not be completed due to missing information or errors in earlier function calls, say that clearly in your response.
-
-Information from the system:
-${intermediateAnswer}
-
-User question:
-${question}
-
-${intermediateAnswer ? `Intermediate answer from previous steps:\n${intermediateAnswer}\n` : ''}`;
+  ): AIGenerateTextOptions => ({
+    messages: [
+      {
+        role: 'system',
+        content: `You are a helpful assistant. Your task is to generate the final user-facing answer, based on the results of previously executed agent functions.
+  
+  ## Instructions:
+  - Use only the information provided in the intermediate results.
+  - If the answer cannot be determined from the available data, say so clearly.
+  - If previous function calls failed or returned errors, explain this directly and clearly.
+  - Speak in **first person**, as an active assistant.
+  - Do NOT describe past actions in passive voice like “was created” or “was retrieved”.
+  - Instead, use direct and friendly formulations like:
+    - "I found..."
+    - "I created a calendar event for you..."
+    - "Here's what I’ve gathered for you..."
+  
+  ## Context:
+  These are the results from previously executed functions:
+  ${intermediateAnswer || '(no intermediate data available)'}
+  `,
+      },
+    ],
+  });
 }

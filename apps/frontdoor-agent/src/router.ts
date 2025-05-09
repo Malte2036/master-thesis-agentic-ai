@@ -35,11 +35,11 @@ async function generateAnswer(
   question: string,
   intermediateAnswer?: string,
 ): Promise<AgentResponse[]> {
-  const prompt = Prompt.getGenerateAnswerPrompt(question, intermediateAnswer);
+  const systemPrompt = Prompt.getGenerateAnswerPrompt(intermediateAnswer);
 
   return await aiProvider.generateText<AgentResponse[]>(
-    prompt,
-    undefined,
+    question,
+    systemPrompt,
     AgentCallsSchema,
   );
 }
