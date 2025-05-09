@@ -26,7 +26,8 @@ const AGENT_CONFIGS: Record<string, AgentConfig> = {
     port: 3003,
     name: 'moodle-agent',
     friendlyName: 'Moodle Agent',
-    description: 'Get information about university courses and assignments',
+    description:
+      'Get information about university courses and assignments. All timestamps in responses are in Unix timestamp format (seconds since epoch) and in UTC timezone.',
     functions: [
       {
         name: 'user',
@@ -62,8 +63,17 @@ const AGENT_CONFIGS: Record<string, AgentConfig> = {
       },
       {
         name: 'assignments',
-        description: 'Get all assignments the user has access to',
+        description:
+          'Get all assignments the user has access to. Important: Prefer "assignments_for_course" if you need to get assignments for a specific course.',
         parameters: {},
+      },
+      {
+        name: 'assignments_for_course',
+        description:
+          'Get all assignments for a specific course. Important: Prefer this over "assignments" if you need to get assignments for a specific course.',
+        parameters: {
+          course_id: { type: 'number', description: 'The id of the course.' },
+        },
       },
     ],
   },

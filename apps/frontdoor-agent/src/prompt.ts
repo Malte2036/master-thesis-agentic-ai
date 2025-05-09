@@ -5,13 +5,29 @@ import {
 } from '@master-thesis-agentic-rag/agent-framework';
 
 export class Prompt {
+  public static readonly BASE_PROMPTS: string[] = [
+    `Current date and time: ${new Date().toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short',
+    })}`,
+  ];
+
   public static getFindRelevantAgentPrompt = (
     agents: Record<AgentName, AgentConfig>,
     intermediateAnswer?: string,
   ): AIGenerateTextOptions => ({
     messages: [
+      ...this.BASE_PROMPTS.map((prompt) => ({
+        role: 'system' as const,
+        content: prompt,
+      })),
       {
-        role: 'system',
+        role: 'system' as const,
         content: `You are a smart assistant that selects only the most relevant and executable agent functions to answer the user's question in as few steps as possible.
 
 You must follow these rules strictly:
@@ -58,6 +74,10 @@ ${intermediateAnswer}`,
     intermediateAnswer?: string,
   ): AIGenerateTextOptions => ({
     messages: [
+      ...this.BASE_PROMPTS.map((prompt) => ({
+        role: 'system' as const,
+        content: prompt,
+      })),
       {
         role: 'system',
         content: `You are a helpful assistant. Your task is to generate the final user-facing answer, based on the results of previously executed agent functions.
@@ -67,11 +87,11 @@ ${intermediateAnswer}`,
   - If the answer cannot be determined from the available data, say so clearly.
   - If previous function calls failed or returned errors, explain this directly and clearly.
   - Speak in **first person**, as an active assistant.
-  - Do NOT describe past actions in passive voice like “was created” or “was retrieved”.
+  - Do NOT describe past actions in passive voice like "was created" or "was retrieved".
   - Instead, use direct and friendly formulations like:
     - "I found..."
     - "I created a calendar event for you..."
-    - "Here's what I’ve gathered for you..."
+    - "Here's what I've gathered for you..."
   
   ## Context:
   These are the results from previously executed functions:

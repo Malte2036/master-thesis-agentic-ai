@@ -159,6 +159,36 @@ const assignmentsHandler: IAgentRequestHandler = async (payload, callback) => {
   }
 };
 
+const assignmentsForCourseHandler: IAgentRequestHandler = async (
+  payload,
+  callback,
+) => {
+  try {
+    const requestData = parseRequest(payload.body);
+
+    if (!requestData.course_id) {
+      callback(createResponseError('Course ID is required', 400));
+      return;
+    }
+
+    const assignments = await moodleProvider.getAssignmentsForCourse(
+      requestData.moodle_token,
+      requestData.course_id,
+    );
+    callback(null, assignments);
+  } catch (error) {
+    if (error instanceof Error) {
+      const responseError = error as ResponseError;
+      if (!responseError.statusCode) {
+        responseError.statusCode = 500;
+      }
+      callback(error);
+    } else {
+      callback(createResponseError('Unknown error occurred', 500));
+    }
+  }
+};
+
 const userHandler: IAgentRequestHandler = async (payload, callback) => {
   try {
     const requestData = parseRequest(payload.body);
@@ -184,6 +214,10 @@ const userHandler: IAgentRequestHandler = async (payload, callback) => {
 agentFramework.registerEndpoint('courses', coursesHandler);
 agentFramework.registerEndpoint('find_courses_by_name', findCoursesByName);
 agentFramework.registerEndpoint('assignments', assignmentsHandler);
+agentFramework.registerEndpoint(
+  'assignments_for_course',
+  assignmentsForCourseHandler,
+);
 agentFramework.registerEndpoint('course_contents', courseContentsHandler);
 agentFramework.registerEndpoint('user', userHandler);
 

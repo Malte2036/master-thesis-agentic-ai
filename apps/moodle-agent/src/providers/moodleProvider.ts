@@ -6,14 +6,15 @@ import {
 import {
   CoursesResponse,
   CoursesResponseSchema,
+  MinimalCourse,
   SearchCoursesResponse,
   SearchCoursesResponseSchema,
 } from '../schemas/moodle/course';
-import { UserInfo, UserInfoSchema } from '../schemas/moodle/user';
 import {
   CourseContentsResponse,
   CourseContentsResponseSchema,
 } from '../schemas/moodle/course_content';
+import { UserInfo, UserInfoSchema } from '../schemas/moodle/user';
 
 const MOODLE_WEBSERVICE_PATH = '/webservice/rest/server.php';
 
@@ -160,5 +161,13 @@ export class MoodleProvider {
     );
 
     return this.verifyData(data, AssignmentsResponseSchema);
+  }
+
+  public async getAssignmentsForCourse(
+    token: string,
+    courseid: number,
+  ): Promise<MinimalCourse | undefined> {
+    const assignments = await this.getAssignments(token);
+    return assignments.courses.find((course) => course.id === courseid);
   }
 }
