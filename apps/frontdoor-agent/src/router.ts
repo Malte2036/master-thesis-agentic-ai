@@ -11,11 +11,11 @@ import {
 } from './agent';
 import { Prompt } from './prompt';
 
-const MAX_CALLS = 3;
+const MAX_CALLS = 5;
 
 const aiProvider = createAIProvider();
 
-async function findRelevantAgent(
+async function findRelevantAgents(
   question: string,
   intermediateAnswer?: string,
 ): Promise<AgentCalls> {
@@ -69,7 +69,7 @@ async function handleQuestion(
     ];
   }
 
-  const response = await findRelevantAgent(question, intermediateAnswer);
+  const response = await findRelevantAgents(question, intermediateAnswer);
 
   if (!response) {
     return [
@@ -93,40 +93,48 @@ async function handleQuestion(
     ];
   }
 
-  // TODO: Allow multiple agents
-  const firstAgentCall = response.agentCalls[0];
-  const relevantAgent = {
-    agent: getAgentConfig(firstAgentCall.agentName),
-    functions: firstAgentCall.functionsToCall ?? [],
-  };
+  // Process all agent calls in parallel
+  const agentCalls = response.agentCalls.map((agentCall) => ({
+    agent: getAgentConfig(agentCall.agentName),
+    functions: agentCall.functionsToCall ?? [],
+  }));
 
-  if (relevantAgent.functions.length === 0) {
+  // Filter out agents with no functions
+  const validAgents = agentCalls.filter((agent) => agent.functions.length > 0);
+
+  if (validAgents.length === 0) {
     return [
       {
         agent: 'default',
         response:
-          'The agent does not have any functions. Please try rephrasing it.',
+          'None of the selected agents have any functions. Please try rephrasing it.',
         function: undefined,
       },
     ];
   }
 
-  console.log('Agent is', relevantAgent.agent.friendlyName);
+  console.log(
+    'Processing agents:',
+    validAgents.map((a) => a.agent.friendlyName).join(', '),
+  );
 
-  const responses = await Promise.all(
-    relevantAgent.functions.map((agentFunction) =>
-      callAgent(relevantAgent.agent, agentFunction, moodle_token),
+  // Call all functions from all agents in parallel
+  const allResponses = await Promise.all(
+    validAgents.flatMap((agent) =>
+      agent.functions.map((agentFunction) =>
+        callAgent(agent.agent, agentFunction, moodle_token),
+      ),
     ),
   );
 
   // If this was the last call, return the responses
   if (remainingCalls === 0) {
-    const answer = await generateAnswer(question, JSON.stringify(responses));
+    const answer = await generateAnswer(question, JSON.stringify(allResponses));
     console.log('Answer after last iteration', answer);
     return answer;
   }
 
-  intermediateAnswer += `Iteration ${MAX_CALLS - remainingCalls}/${MAX_CALLS}: ${JSON.stringify(responses)}`;
+  intermediateAnswer += `Iteration ${MAX_CALLS - remainingCalls}/${MAX_CALLS}: ${JSON.stringify(allResponses)}`;
 
   // Recursively handle the next iteration with the current response
   return handleQuestion(

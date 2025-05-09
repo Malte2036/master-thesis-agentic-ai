@@ -5,7 +5,7 @@ export const MinimalCourseSchema = z.object({
   id: z.number(),
   fullname: z.string(),
   shortname: z.string(),
-  timemodified: z.number().optional(),
+  // timemodified: z.number().optional(),
   assignments: z.array(z.lazy(() => AssignmentSchema)).optional(),
 });
 
@@ -22,7 +22,7 @@ export const CourseSchema = MinimalCourseSchema.extend({
   completed: z.boolean().nullable(),
   startdate: z.number(),
   enddate: z.number(),
-  lastaccess: z.number().nullable(),
+  // lastaccess: z.number().nullable(),
   isfavourite: z.boolean(),
   hidden: z.boolean(),
 });
