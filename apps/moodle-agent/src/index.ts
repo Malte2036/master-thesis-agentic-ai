@@ -56,13 +56,56 @@ const coursesHandler: IAgentRequestHandler = async (payload, callback) => {
   }
 };
 
-const findCourseIdByName: IAgentRequestHandler = async (payload, callback) => {
+const findCourseByName: IAgentRequestHandler = async (payload, callback) => {
   try {
-    // TODO: Implement this
-    callback(null, 3533);
-    // callback(null, 1392);
+    const requestData = parseRequest(payload.body);
+    if (!requestData.course_name) {
+      console.error('Course name is required');
+      callback(createResponseError('Course name is required', 400));
+      return;
+    }
+
+    const [searchResponse, enrolledCourses] = await Promise.all([
+      moodleProvider.findCoursesByName(
+        requestData.moodle_token,
+        requestData.course_name,
+      ),
+      (async () => {
+        const userInfo = await moodleProvider.getUserInfo(
+          requestData.moodle_token,
+        );
+        if (!userInfo) {
+          throw createResponseError('User info not found', 400);
+        }
+
+        return await moodleProvider.getEnrolledCourses(
+          requestData.moodle_token,
+          userInfo.userid,
+        );
+      })(),
+    ]);
+
+    const searchedEnrolledCourses = enrolledCourses.filter((course) =>
+      searchResponse.courses.some((c) => c.id === course.id),
+    );
+
+    if (searchedEnrolledCourses.length === 0) {
+      callback(createResponseError('Course not found', 404));
+      return;
+    }
+
+    callback(null, searchedEnrolledCourses[0]);
   } catch (error) {
-    callback(createResponseError('Unknown error occurred', 500));
+    if (error instanceof Error) {
+      console.error('Error:', error);
+      const responseError = error as ResponseError;
+      if (!responseError.statusCode) {
+        responseError.statusCode = 500;
+      }
+      callback(error);
+    } else {
+      callback(createResponseError('Unknown error occurred', 500));
+    }
   }
 };
 
@@ -138,25 +181,11 @@ const userHandler: IAgentRequestHandler = async (payload, callback) => {
   }
 };
 
-const createCalendarEventHandler: IAgentRequestHandler = async (
-  payload,
-  callback,
-) => {
-  // TODO: Implement this in an calendar agent
-  callback(null, {
-    success: true,
-  });
-};
-
 agentFramework.registerEndpoint('courses', coursesHandler);
-agentFramework.registerEndpoint('find_course_id_by_name', findCourseIdByName);
+agentFramework.registerEndpoint('find_course_by_name', findCourseByName);
 agentFramework.registerEndpoint('assignments', assignmentsHandler);
 agentFramework.registerEndpoint('course_contents', courseContentsHandler);
 agentFramework.registerEndpoint('user', userHandler);
-agentFramework.registerEndpoint(
-  'create_calendar_event',
-  createCalendarEventHandler,
-);
 
 // Start the server and keep it running
 agentFramework.listen().catch((error) => {

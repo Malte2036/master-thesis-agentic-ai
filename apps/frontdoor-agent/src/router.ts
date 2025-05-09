@@ -11,6 +11,8 @@ import {
 } from './agent';
 import { Prompt } from './prompt';
 
+const MAX_CALLS = 3;
+
 const aiProvider = createAIProvider();
 
 async function findRelevantAgent(
@@ -50,8 +52,10 @@ async function handleQuestion(
   remainingCalls: number,
   intermediateAnswer?: string,
 ): Promise<AgentResponse[]> {
+  console.log();
+
   console.log('--------------------------------');
-  console.log('Iteration', remainingCalls);
+  console.log('Iteration', MAX_CALLS - remainingCalls, '/', MAX_CALLS);
   console.log('--------------------------------');
 
   if (remainingCalls < 0) {
@@ -122,7 +126,7 @@ async function handleQuestion(
     return answer;
   }
 
-  intermediateAnswer += `Iteration ${remainingCalls}: ${JSON.stringify(responses)}`;
+  intermediateAnswer += `Iteration ${MAX_CALLS - remainingCalls}/${MAX_CALLS}: ${JSON.stringify(responses)}`;
 
   // Recursively handle the next iteration with the current response
   return handleQuestion(
@@ -137,5 +141,5 @@ export async function routeQuestion(
   question: string,
   moodle_token: string,
 ): Promise<AgentResponse[]> {
-  return handleQuestion(question, moodle_token, 3);
+  return handleQuestion(question, moodle_token, MAX_CALLS);
 }

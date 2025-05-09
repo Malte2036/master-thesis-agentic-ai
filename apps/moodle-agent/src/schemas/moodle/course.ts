@@ -5,14 +5,14 @@ export const MinimalCourseSchema = z.object({
   id: z.number(),
   fullname: z.string(),
   shortname: z.string(),
-  timemodified: z.number(),
+  timemodified: z.number().optional(),
   assignments: z.array(z.lazy(() => AssignmentSchema)).optional(),
 });
 
 // Schema for a course
 export const CourseSchema = MinimalCourseSchema.extend({
   displayname: z.string().nullable(),
-  enrolledusercount: z.number(),
+  // enrolledusercount: z.number(),
   visible: z.number(),
   summary: z
     .string()
@@ -34,3 +34,10 @@ export const CoursesResponseSchema = z.array(CourseSchema);
 export type MinimalCourse = z.infer<typeof MinimalCourseSchema>;
 export type Course = z.infer<typeof CourseSchema>;
 export type CoursesResponse = z.infer<typeof CoursesResponseSchema>;
+
+export const SearchCoursesResponseSchema = z.object({
+  total: z.number(),
+  courses: z.array(MinimalCourseSchema),
+});
+
+export type SearchCoursesResponse = z.infer<typeof SearchCoursesResponseSchema>;

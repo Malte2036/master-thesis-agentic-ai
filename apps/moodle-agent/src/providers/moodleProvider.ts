@@ -6,6 +6,8 @@ import {
 import {
   CoursesResponse,
   CoursesResponseSchema,
+  SearchCoursesResponse,
+  SearchCoursesResponseSchema,
 } from '../schemas/moodle/course';
 import { UserInfo, UserInfoSchema } from '../schemas/moodle/user';
 import {
@@ -120,6 +122,20 @@ export class MoodleProvider {
     );
 
     return this.verifyData(data, CoursesResponseSchema);
+  }
+
+  public async findCoursesByName(
+    token: string,
+    courseName: string,
+  ): Promise<SearchCoursesResponse> {
+    const data = await this.callMoodleFunction<unknown>(
+      this.moodleBaseUrl,
+      token,
+      'core_course_search_courses',
+      { criterianame: 'search', criteriavalue: courseName },
+    );
+
+    return this.verifyData(data, SearchCoursesResponseSchema);
   }
 
   public async getCourseContents(

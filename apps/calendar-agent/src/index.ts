@@ -5,7 +5,7 @@ import {
 } from '@master-thesis-agentic-rag/agent-framework';
 import dotenv from 'dotenv';
 import { CreateCalendarEventRequestDataSchema } from './schemas/request/request';
-import { CalendarProvider } from './providers/moodleProvider';
+import { CalendarProvider } from './providers/calendarProvider';
 
 dotenv.config();
 
