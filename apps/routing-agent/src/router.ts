@@ -103,6 +103,15 @@ async function handleQuestion(
   const validAgents = agentCalls.filter((agent) => agent.functions.length > 0);
 
   if (validAgents.length === 0) {
+    if (response.answer) {
+      return [
+        {
+          agent: 'default',
+          response: response.answer,
+          function: undefined,
+        },
+      ];
+    }
     return [
       {
         agent: 'default',
