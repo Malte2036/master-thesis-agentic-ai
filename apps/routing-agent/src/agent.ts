@@ -21,7 +21,7 @@ export const AgentCallSchema = z.object({
 });
 
 export const AgentCallsSchema = z.object({
-  agentCalls: z.array(AgentCallSchema),
+  agentCalls: z.array(AgentCallSchema).optional(),
   answer: z.string().nullish(),
 });
 

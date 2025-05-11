@@ -82,7 +82,7 @@ async function handleQuestion(
     ];
   }
 
-  if (response.answer && response.agentCalls.length === 0) {
+  if (response.answer && response.agentCalls?.length === 0) {
     console.log('Finished with answer', response.answer);
     return [
       {
@@ -94,10 +94,11 @@ async function handleQuestion(
   }
 
   // Process all agent calls in parallel
-  const agentCalls = response.agentCalls.map((agentCall) => ({
-    agent: getAgentConfig(agentCall.agentName),
-    functions: agentCall.functionsToCall ?? [],
-  }));
+  const agentCalls =
+    response.agentCalls?.map((agentCall) => ({
+      agent: getAgentConfig(agentCall.agentName),
+      functions: agentCall.functionsToCall ?? [],
+    })) ?? [];
 
   // Filter out agents with no functions
   const validAgents = agentCalls.filter((agent) => agent.functions.length > 0);
