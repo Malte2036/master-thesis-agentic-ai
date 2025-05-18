@@ -4,7 +4,7 @@ import {
   AIGenerateTextOptions,
 } from '@master-thesis-agentic-rag/agent-framework';
 
-export class Prompt {
+export class LegacyPrompt {
   public static readonly BASE_PROMPTS: string[] = [
     `Current date and time: ${new Date().toLocaleString('en-US', {
       weekday: 'long',

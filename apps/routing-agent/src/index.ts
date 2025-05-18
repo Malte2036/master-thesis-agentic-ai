@@ -1,12 +1,18 @@
 import {
   createAgentFramework,
+  createAIProvider,
   createResponseError,
   IAgentRequestHandler,
   ResponseError,
 } from '@master-thesis-agentic-rag/agent-framework';
-import { routeQuestion } from './router';
+import { LegacyRouter } from './legacy/router';
+import { ReActRouter } from './react/router';
 
 const agentFramework = createAgentFramework('routing-agent');
+
+const aiProvider = createAIProvider();
+// const router = new LegacyRouter(aiProvider);
+const router = new ReActRouter(aiProvider);
 
 const askHandler: IAgentRequestHandler = async (payload, callback) => {
   try {
@@ -25,7 +31,7 @@ const askHandler: IAgentRequestHandler = async (payload, callback) => {
       return;
     }
 
-    const results = await routeQuestion(prompt, moodle_token);
+    const results = await router.routeQuestion(prompt, moodle_token);
     console.log('Results are', results);
     callback(null, results);
   } catch (error) {
