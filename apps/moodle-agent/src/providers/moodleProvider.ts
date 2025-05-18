@@ -15,6 +15,10 @@ import {
   CourseContentsResponseSchema,
 } from '../schemas/moodle/course_content';
 import { UserInfo, UserInfoSchema } from '../schemas/moodle/user';
+import {
+  ForumDiscussionsResponse,
+  ForumDiscussionsResponseSchema,
+} from '../schemas/moodle/forum_discussion';
 
 const MOODLE_WEBSERVICE_PATH = '/webservice/rest/server.php';
 
@@ -169,5 +173,26 @@ export class MoodleProvider {
   ): Promise<MinimalCourse | undefined> {
     const assignments = await this.getAssignments(token);
     return assignments.courses.find((course) => course.id === courseid);
+  }
+
+  public async getForumDiscussions(
+    token: string,
+    courseids: number[],
+  ): Promise<ForumDiscussionsResponse> {
+    const courseidsParams: Record<string, string> = {};
+
+    // Properly format courseids for Moodle API
+    courseids.forEach((id, index) => {
+      courseidsParams[`courseids[${index}]`] = id.toString();
+    });
+
+    const data = await this.callMoodleFunction<unknown>(
+      this.moodleBaseUrl,
+      token,
+      'mod_forum_get_forums_by_courses',
+      courseidsParams,
+    );
+
+    return this.verifyData(data, ForumDiscussionsResponseSchema);
   }
 }

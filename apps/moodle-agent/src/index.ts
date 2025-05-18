@@ -211,6 +211,36 @@ const userHandler: IAgentRequestHandler = async (payload, callback) => {
   }
 };
 
+const forumDiscussionsHandler: IAgentRequestHandler = async (
+  payload,
+  callback,
+) => {
+  try {
+    const requestData = parseRequest(payload.body);
+
+    if (!requestData.course_ids) {
+      callback(createResponseError('Course IDs are required', 400));
+      return;
+    }
+
+    const forumDiscussions = await moodleProvider.getForumDiscussions(
+      requestData.moodle_token,
+      requestData.course_ids,
+    );
+    callback(null, forumDiscussions);
+  } catch (error) {
+    if (error instanceof Error) {
+      const responseError = error as ResponseError;
+      if (!responseError.statusCode) {
+        responseError.statusCode = 500;
+      }
+      callback(error);
+    } else {
+      callback(createResponseError('Unknown error occurred', 500));
+    }
+  }
+};
+
 agentFramework.registerEndpoint('get_all_courses', coursesHandler);
 agentFramework.registerEndpoint('find_courses_by_name', findCoursesByName);
 agentFramework.registerEndpoint(
@@ -223,6 +253,10 @@ agentFramework.registerEndpoint(
 );
 agentFramework.registerEndpoint('get_course_contents', courseContentsHandler);
 agentFramework.registerEndpoint('get_user_info', userHandler);
+agentFramework.registerEndpoint(
+  'get_forum_discussions',
+  forumDiscussionsHandler,
+);
 
 // Start the server and keep it running
 agentFramework.listen().catch((error) => {

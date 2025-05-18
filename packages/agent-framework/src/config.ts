@@ -76,6 +76,18 @@ const AGENT_CONFIGS: Record<string, AgentConfig> = {
           'Get all assignments the user has access to. Important: Prefer "assignments_for_course" if you need to get assignments for a specific course.',
         parameters: {},
       },
+      {
+        name: 'get_forum_discussions',
+        description:
+          'Get all forum discussions for a specific course. This includes thread titles, author, and creation date. Use this to summarize or analyze course discussions.',
+        parameters: {
+          course_ids: {
+            type: 'array',
+            description: 'The ids of the courses to get forum discussions from',
+            items: { type: 'number' },
+          },
+        },
+      },
     ],
   },
   'calendar-agent': {
