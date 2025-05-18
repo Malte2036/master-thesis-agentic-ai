@@ -18,7 +18,9 @@ export class ReActRouter implements Router {
   constructor(private readonly aiProvider: AIProvider) {}
 
   async routeQuestion(question: string, moodle_token: string): Promise<any> {
-    return this.iterate(question, moodle_token, 5, []);
+    const result = await this.iterate(question, moodle_token, 5, []);
+
+    return result;
   }
 
   async iterate(
@@ -26,22 +28,31 @@ export class ReActRouter implements Router {
     moodle_token: string,
     remainingCalls: number,
     previousAgentResponses: ReactActThinkAndFindActionsResponse[] = [],
+    previousSummaries: ReactActObserveAndSummarizeAgentResponsesResponse[] = [],
   ): Promise<any> {
     if (remainingCalls <= 0) {
       return {
         agent: 'default',
         response:
-          'Maximum number of iterations reached. Please try a more specific question. Here is the summary of the previous iterations: ' +
-          previousAgentResponses.map((response) => response.thought).join('\n'),
+          'Maximum number of iterations reached. Please try a more specific question. Here is the summary of the previous iterations: ',
         function: undefined,
       };
     }
 
-    const thinkAndFindResponse = await this.thinkAndFindActions(question);
+    const thinkAndFindResponse = await this.thinkAndFindActions(
+      question,
+      previousSummaries,
+    );
     const { agentCalls, isFinished } = thinkAndFindResponse;
 
     if (isFinished) {
-      return [...previousAgentResponses, thinkAndFindResponse];
+      return {
+        previousSummaries: [...previousSummaries, { summary: 'Finished' }],
+        previousAgentResponses: [
+          ...previousAgentResponses,
+          thinkAndFindResponse,
+        ],
+      };
     }
 
     if (!agentCalls) {
@@ -92,19 +103,26 @@ export class ReActRouter implements Router {
       thinkAndFindResponse,
     ];
 
+    const updatedPreviousSummaries = [...previousSummaries, { summary }];
+
     return this.iterate(
-      summary,
+      question,
       moodle_token,
       remainingCalls - 1,
       updatedPreviousAgentResponses,
+      updatedPreviousSummaries,
     );
   }
 
   async thinkAndFindActions(
     question: string,
+    previousSummaries: ReactActObserveAndSummarizeAgentResponsesResponse[],
   ): Promise<ReactActThinkAndFindActionsResponse> {
     const agents = getAgentConfigs(false);
-    const systemPrompt = ReActPrompt.getThinkAndFindActionPrompt(agents);
+    const systemPrompt = ReActPrompt.getThinkAndFindActionPrompt(
+      agents,
+      previousSummaries,
+    );
 
     return await this.aiProvider.generateText<ReactActThinkAndFindActionsResponse>(
       question,

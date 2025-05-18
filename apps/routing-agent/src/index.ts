@@ -7,18 +7,27 @@ import {
 } from '@master-thesis-agentic-rag/agent-framework';
 import { LegacyRouter } from './legacy/router';
 import { ReActRouter } from './react/router';
+import { Router } from './router';
 
 const agentFramework = createAgentFramework('routing-agent');
 
 const aiProvider = createAIProvider();
-// const router = new LegacyRouter(aiProvider);
-const router = new ReActRouter(aiProvider);
+const legacyRouter = new LegacyRouter(aiProvider);
+const reActRouter = new ReActRouter(aiProvider);
+
+const getRouter = (router?: 'legacy' | 'react'): Router => {
+  if (router === 'legacy') {
+    return legacyRouter;
+  }
+  return reActRouter;
+};
 
 const askHandler: IAgentRequestHandler = async (payload, callback) => {
   try {
-    const { prompt, moodle_token } = payload.body as {
+    const { prompt, moodle_token, router } = payload.body as {
       prompt: string;
       moodle_token: string;
+      router?: 'legacy' | 'react';
     };
 
     if (!prompt || !moodle_token) {
@@ -31,9 +40,12 @@ const askHandler: IAgentRequestHandler = async (payload, callback) => {
       return;
     }
 
-    const results = await router.routeQuestion(prompt, moodle_token);
-    console.log('Results are', results);
-    callback(null, results);
+    const results = await getRouter(router).routeQuestion(prompt, moodle_token);
+    // console.log('Results are', results);
+    callback(null, {
+      router: router,
+      results: results,
+    });
   } catch (error) {
     console.error('Error processing question:', error);
     if (error instanceof Error) {

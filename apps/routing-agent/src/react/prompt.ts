@@ -4,7 +4,10 @@ import {
   AIGenerateTextOptions,
 } from '@master-thesis-agentic-rag/agent-framework';
 import { AgentResponse } from '../agents/types';
-import { ReactActThinkAndFindActionsResponse } from './types';
+import {
+  ReactActObserveAndSummarizeAgentResponsesResponse,
+  ReactActThinkAndFindActionsResponse,
+} from './types';
 
 export class ReActPrompt {
   public static readonly BASE_PROMPTS: string[] = [
@@ -21,6 +24,7 @@ export class ReActPrompt {
 
   public static getThinkAndFindActionPrompt = (
     agents: Record<AgentName, AgentConfig>,
+    previousSummaries: ReactActObserveAndSummarizeAgentResponsesResponse[],
   ): AIGenerateTextOptions => ({
     messages: [
       ...this.BASE_PROMPTS.map((prompt) => ({
@@ -43,12 +47,24 @@ export class ReActPrompt {
   - It's critical to avoid repeating the same agent calls in successive iterations. If you're about to call the same function with the same parameters as in previous iterations, choose a different, more specific approach.
   - If previous calls didn't yield the desired information, try different functions or parameters rather than repeating the same call.
   - Always move forward with new information gathered from previous calls. Use the information you've already obtained rather than requesting it again.
-  - If you think you have found the answer, set the isFinished flag to true. Only do this, if you do not need to call any more agents.`,
+  - The isFinished flag should only be set to true in the iteration AFTER the last agent call. This means:
+    1. If you need to make one more agent call, set isFinished to false
+    2. Only set isFinished to true in the next iteration after observing the results of the last agent call
+    3. This ensures we properly observe and process the final agent's response before concluding
+  - Never set isFinished to true in the same iteration where you're making an agent call.`,
       },
       {
         role: 'system',
         content: `Available agents and their functions: ${JSON.stringify(
           agents,
+          null,
+          2,
+        )}`,
+      },
+      {
+        role: 'system' as const,
+        content: `Previous summaries: ${JSON.stringify(
+          previousSummaries,
           null,
           2,
         )}`,
