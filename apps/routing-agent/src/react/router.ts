@@ -84,7 +84,12 @@ export class ReActRouter implements Router {
     }
 
     // Serialize current agent calls to check for duplicates
-    const currentAgentCallsStr = JSON.stringify(agentCalls);
+    const currentAgentCallsStr = JSON.stringify(
+      agentCalls.map((a) => ({
+        ...a,
+        description: undefined,
+      })),
+    );
 
     // Check if we're repeating the same calls - detect loop
     const hasDuplicateCalls = previousAgentResponses.some(
@@ -110,6 +115,7 @@ export class ReActRouter implements Router {
         agentCall.functionsToCall?.map((functionCall) => ({
           agent: agentCall.agentName,
           function: functionCall.functionName,
+          functionDescription: functionCall.description,
           parameters: JSON.stringify(functionCall.parameters, null, 2),
         })) || [],
     );

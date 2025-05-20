@@ -8,7 +8,7 @@ export interface AgentResponse {
 
 export const AgentCallFunctionSchema = z.object({
   functionName: z.string(),
-  description: z.string().optional(),
+  description: z.string(),
   parameters: z.record(z.string(), z.unknown()).optional(),
 });
 

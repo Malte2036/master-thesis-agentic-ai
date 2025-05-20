@@ -1,13 +1,17 @@
-import { AIProvider, AIProviderOptions, AIGenerateTextOptions } from './types';
+import { AIProvider, AIGenerateTextOptions } from './types';
 import Groq from 'groq-sdk';
 import { z } from 'zod';
 import { generateSchemaDescription } from '../../utils/schema';
 export class GroqProvider implements AIProvider {
   private readonly groq: Groq;
 
-  constructor(private readonly options: AIProviderOptions) {
+  constructor() {
+    const groqApiKey = process.env['GROQ_API_KEY'];
+    if (!groqApiKey) {
+      throw new Error('GROQ_API_KEY is not set');
+    }
     this.groq = new Groq({
-      apiKey: options.apiKey,
+      apiKey: groqApiKey,
     });
   }
 
@@ -17,8 +21,10 @@ export class GroqProvider implements AIProvider {
     jsonSchema?: z.ZodSchema,
   ): Promise<T> {
     const response = await this.groq.chat.completions.create({
-      model: 'llama-3.1-8b-instant',
+      // model: 'llama-3.1-8b-instant',
+      // model: 'deepseek-r1-distill-llama-70b',
       // model: 'llama3-70b-8192',
+      model: 'gemma2-9b-it',
       messages: [
         ...(jsonSchema
           ? [
@@ -48,7 +54,7 @@ export class GroqProvider implements AIProvider {
       return response.choices[0].message.content as T;
     }
 
-    console.log('response is', response.choices[0].message.content);
+    // console.log('response is', response.choices[0].message.content);
 
     let jsonResponse;
     try {

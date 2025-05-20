@@ -1,17 +1,18 @@
 import {
   createAgentFramework,
-  createAIProvider,
   createResponseError,
   IAgentRequestHandler,
+  OpenAIProvider,
   ResponseError,
 } from '@master-thesis-agentic-rag/agent-framework';
 import { LegacyRouter } from './legacy/router';
 import { ReActRouter } from './react/router';
 import { Router } from './router';
+import chalk from 'chalk';
 
 const agentFramework = createAgentFramework('routing-agent');
 
-const aiProvider = createAIProvider();
+const aiProvider = new OpenAIProvider();
 const legacyRouter = new LegacyRouter(aiProvider);
 const reActRouter = new ReActRouter(aiProvider);
 
@@ -39,6 +40,10 @@ const askHandler: IAgentRequestHandler = async (payload, callback) => {
       );
       return;
     }
+
+    console.log(chalk.cyan('--------------------------------'));
+    console.log(chalk.cyan('User question:'), prompt);
+    console.log(chalk.cyan('--------------------------------'));
 
     const results = await getRouter(router).routeQuestion(prompt, moodle_token);
     // console.log('Results are', results);

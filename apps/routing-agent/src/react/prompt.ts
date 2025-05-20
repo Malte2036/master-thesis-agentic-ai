@@ -44,6 +44,7 @@ export class ReActPrompt {
   - If it make sense to call multiple agents in parallel, do so.
   - You need to return the agent and function that you think is the most relevant to answer the question.
   - You need to return the agentCalls array with the agent and function that you think is the most relevant for the next step.
+  - Function descriptions must specify exactly what data or identifiers (e.g. course IDs, user IDs, filters) you need so the call returns all information required for the subsequent step.
   - It's critical to avoid repeating the same agent calls in successive iterations. If you're about to call the same function with the same parameters as in previous iterations, choose a different, more specific approach.
   - If previous calls didn't yield the desired information, try different functions or parameters rather than repeating the same call.
   - Always move forward with new information gathered from previous calls. Use the information you've already obtained rather than requesting it again.
@@ -83,6 +84,7 @@ export class ReActPrompt {
         response: JSON.stringify(agentResponses[index].response, null, 2),
       })),
     };
+    console.log(thinkAndFindAndAgentResponses.agentCalls?.[0]?.functionsToCall);
 
     return {
       messages: [
@@ -102,6 +104,7 @@ export class ReActPrompt {
   - Focus on information that is relevant to the user's original question.
   - Identify any sub-steps that were taken and include them in your summary.
   - Highlight important data points and conclusions from each agent's response.
+  - Include the important information from the agent responses in the summary, that an other agent can use to proceed with the next step.
   - The summary should be structured in a way that shows the logical progression of steps taken.
   - Include any action items or next steps that should be taken based on the agent responses.
   - If the agent responses include specific information such as course IDs, deadlines, or other actionable data, make sure to include these in your summary to enable proper next steps.

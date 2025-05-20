@@ -1,14 +1,19 @@
-import { AIProvider, AIProviderOptions, AIGenerateTextOptions } from './types';
 import OpenAI from 'openai';
 import { z } from 'zod';
 import { generateSchemaDescription } from '../../utils/schema';
+import { AIProvider, AIGenerateTextOptions } from './types';
 
 export class OpenAIProvider implements AIProvider {
   private readonly openai: OpenAI;
 
-  constructor(private readonly options: AIProviderOptions) {
+  constructor() {
+    const openaiApiKey = process.env['OPENAI_API_KEY'];
+    if (!openaiApiKey) {
+      throw new Error('OPENAI_API_KEY is not set');
+    }
+
     this.openai = new OpenAI({
-      apiKey: options.apiKey,
+      apiKey: openaiApiKey,
     });
   }
 

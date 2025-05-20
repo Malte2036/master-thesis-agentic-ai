@@ -14,7 +14,3 @@ export interface AIGenerateTextOptions {
     content: string;
   }[];
 }
-
-export interface AIProviderOptions {
-  apiKey: string;
-}
