@@ -9,6 +9,7 @@ import { LegacyRouter } from './legacy/router';
 import { ReActRouter } from './react/router';
 import { Router } from './router';
 import chalk from 'chalk';
+import { z } from 'zod';
 
 const agentFramework = createAgentFramework('routing-agent');
 
@@ -22,6 +23,12 @@ const getRouter = (router?: 'legacy' | 'react'): Router => {
   }
   return reActRouter;
 };
+
+const FriendlyResponseSchema = z.object({
+  friendlyResponse: z.string(),
+});
+
+type FriendlyResponse = z.infer<typeof FriendlyResponseSchema>;
 
 const askHandler: IAgentRequestHandler = async (payload, callback) => {
   try {
@@ -46,9 +53,36 @@ const askHandler: IAgentRequestHandler = async (payload, callback) => {
     console.log(chalk.cyan('--------------------------------'));
 
     const results = await getRouter(router).routeQuestion(prompt, moodle_token);
+
+    const friendlyResponse = await aiProvider.generateText<FriendlyResponse>(
+      prompt,
+      {
+        messages: [
+          {
+            role: 'system',
+            content: `You are a helpful assistant.
+          You are given a question and a list of the steps the agent took to answer the question.
+          You need to answer the question based on the results.
+
+          The steps are:
+          ${JSON.stringify(results, null, 2)}
+
+          `,
+          },
+        ],
+      },
+      FriendlyResponseSchema,
+    );
+
+    console.log(
+      chalk.green('Friendly response:'),
+      friendlyResponse.friendlyResponse,
+    );
+
     // console.log('Results are', results);
     callback(null, {
       router: router,
+      friendlyResponse: friendlyResponse.friendlyResponse,
       results: results,
     });
   } catch (error) {
