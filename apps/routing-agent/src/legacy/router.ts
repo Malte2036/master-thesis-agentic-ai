@@ -8,8 +8,6 @@ import { AgentCalls, AgentCallsSchema, AgentResponse } from '../agents/types';
 import { LegacyPrompt } from './prompt';
 import { Router } from '../router';
 
-const MAX_CALLS = 5;
-
 export class LegacyRouter implements Router {
   constructor(private readonly aiProvider: AIProvider) {}
 
@@ -49,12 +47,18 @@ export class LegacyRouter implements Router {
     question: string,
     moodle_token: string,
     remainingCalls: number,
+    maxIterations: number,
     intermediateAnswer?: string,
   ): Promise<AgentResponse[]> {
     console.log();
 
     console.log('--------------------------------');
-    console.log('Iteration', MAX_CALLS - remainingCalls, '/', MAX_CALLS);
+    console.log(
+      'Iteration',
+      maxIterations - remainingCalls,
+      '/',
+      maxIterations,
+    );
     console.log('--------------------------------');
 
     if (remainingCalls < 0) {
@@ -151,13 +155,14 @@ export class LegacyRouter implements Router {
       return answer;
     }
 
-    intermediateAnswer += `Iteration ${MAX_CALLS - remainingCalls}/${MAX_CALLS}: ${JSON.stringify(allResponses)}`;
+    intermediateAnswer += `Iteration ${maxIterations - remainingCalls}/${maxIterations}: ${JSON.stringify(allResponses)}`;
 
     // Recursively handle the next iteration with the current response
     return this.handleQuestion(
       question,
       moodle_token,
       remainingCalls - 1,
+      maxIterations,
       intermediateAnswer,
     );
   }
@@ -165,7 +170,13 @@ export class LegacyRouter implements Router {
   async routeQuestion(
     question: string,
     moodle_token: string,
+    maxIterations: number,
   ): Promise<AgentResponse[]> {
-    return this.handleQuestion(question, moodle_token, MAX_CALLS);
+    return this.handleQuestion(
+      question,
+      moodle_token,
+      maxIterations,
+      maxIterations,
+    );
   }
 }

@@ -15,13 +15,21 @@ import {
 import { callAgentsInParallel } from '../agents/agent';
 import { AgentResponse } from '../agents/types';
 
-const MAX_CALLS = 5;
-
 export class ReActRouter implements Router {
   constructor(private readonly aiProvider: AIProvider) {}
 
-  async routeQuestion(question: string, moodle_token: string): Promise<any> {
-    const result = await this.iterate(question, moodle_token, MAX_CALLS, []);
+  async routeQuestion(
+    question: string,
+    moodle_token: string,
+    maxIterations: number,
+  ): Promise<any> {
+    const result = await this.iterate(
+      question,
+      moodle_token,
+      maxIterations,
+      maxIterations,
+      [],
+    );
 
     return result;
   }
@@ -30,15 +38,16 @@ export class ReActRouter implements Router {
     question: string,
     moodle_token: string,
     remainingCalls: number,
+    maxIterations: number,
     previousAgentResponses: ReactActThinkAndFindActionsResponse[] = [],
     previousSummaries: ReactActObserveAndSummarizeAgentResponsesResponse[] = [],
   ): Promise<any> {
     console.log(chalk.magenta('--------------------------------'));
     console.log(
       chalk.cyan('Iteration'),
-      MAX_CALLS - remainingCalls,
+      maxIterations - remainingCalls,
       '/',
-      MAX_CALLS,
+      maxIterations,
     );
     console.log(chalk.magenta('--------------------------------'));
 
@@ -149,6 +158,7 @@ export class ReActRouter implements Router {
       question,
       moodle_token,
       remainingCalls - 1,
+      maxIterations,
       updatedPreviousAgentResponses,
       updatedPreviousSummaries,
     );

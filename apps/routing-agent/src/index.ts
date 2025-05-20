@@ -32,10 +32,16 @@ type FriendlyResponse = z.infer<typeof FriendlyResponseSchema>;
 
 const askHandler: IAgentRequestHandler = async (payload, callback) => {
   try {
-    const { prompt, moodle_token, router } = payload.body as {
+    const {
+      prompt,
+      moodle_token,
+      router,
+      max_iterations = 5,
+    } = payload.body as {
       prompt: string;
       moodle_token: string;
       router?: 'legacy' | 'react';
+      max_iterations?: number;
     };
 
     if (!prompt || !moodle_token) {
@@ -52,7 +58,11 @@ const askHandler: IAgentRequestHandler = async (payload, callback) => {
     console.log(chalk.cyan('User question:'), prompt);
     console.log(chalk.cyan('--------------------------------'));
 
-    const results = await getRouter(router).routeQuestion(prompt, moodle_token);
+    const results = await getRouter(router).routeQuestion(
+      prompt,
+      moodle_token,
+      max_iterations,
+    );
 
     const friendlyResponse = await aiProvider.generateText<FriendlyResponse>(
       prompt,
