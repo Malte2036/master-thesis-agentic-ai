@@ -67,10 +67,10 @@ export class OpenAIProvider implements AIProvider {
       throw new Error('Invalid JSON response');
     }
 
-    console.log(
-      'Response from LLM is:\n',
-      JSON.stringify(parsedResponse.data, null, 2),
-    );
+    // console.log(
+    //   'Response from LLM is:\n',
+    //   JSON.stringify(parsedResponse.data, null, 2),
+    // );
 
     return parsedResponse.data;
   }

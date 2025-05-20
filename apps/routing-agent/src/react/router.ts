@@ -2,6 +2,7 @@ import {
   AIProvider,
   getAgentConfigs,
 } from '@master-thesis-agentic-rag/agent-framework';
+import chalk from 'chalk';
 
 import { Router } from '../router';
 import { ReActPrompt } from './prompt';
@@ -14,11 +15,13 @@ import {
 import { callAgentsInParallel } from '../agents/agent';
 import { AgentResponse } from '../agents/types';
 
+const MAX_CALLS = 5;
+
 export class ReActRouter implements Router {
   constructor(private readonly aiProvider: AIProvider) {}
 
   async routeQuestion(question: string, moodle_token: string): Promise<any> {
-    const result = await this.iterate(question, moodle_token, 5, []);
+    const result = await this.iterate(question, moodle_token, MAX_CALLS, []);
 
     return result;
   }
@@ -30,7 +33,17 @@ export class ReActRouter implements Router {
     previousAgentResponses: ReactActThinkAndFindActionsResponse[] = [],
     previousSummaries: ReactActObserveAndSummarizeAgentResponsesResponse[] = [],
   ): Promise<any> {
+    console.log(chalk.magenta('--------------------------------'));
+    console.log(
+      chalk.cyan('Iteration'),
+      MAX_CALLS - remainingCalls,
+      '/',
+      MAX_CALLS,
+    );
+    console.log(chalk.magenta('--------------------------------'));
+
     if (remainingCalls <= 0) {
+      console.log(chalk.magenta('Maximum number of iterations reached.'));
       return {
         agent: 'default',
         response:
@@ -45,7 +58,13 @@ export class ReActRouter implements Router {
     );
     const { agentCalls, isFinished } = thinkAndFindResponse;
 
+    console.log(
+      chalk.magenta('Thought process:'),
+      chalk.yellow(thinkAndFindResponse.thought),
+    );
+
     if (isFinished) {
+      console.log(chalk.magenta('Finished'));
       return {
         previousSummaries: [...previousSummaries, { summary: 'Finished' }],
         previousAgentResponses: [
@@ -56,6 +75,7 @@ export class ReActRouter implements Router {
     }
 
     if (!agentCalls) {
+      console.log(chalk.magenta('No agent calls found.'));
       return {
         agent: 'default',
         response: 'No agent calls found. Please try rephrasing your question.',
@@ -84,6 +104,17 @@ export class ReActRouter implements Router {
       };
     }
 
+    console.log(chalk.cyan('Agent calls:'));
+    const flattenedCalls = agentCalls.flatMap(
+      (agentCall) =>
+        agentCall.functionsToCall?.map((functionCall) => ({
+          agent: agentCall.agentName,
+          function: functionCall.functionName,
+          parameters: JSON.stringify(functionCall.parameters, null, 2),
+        })) || [],
+    );
+    console.table(flattenedCalls);
+
     const agentResponses = await callAgentsInParallel(
       [{ agentCalls }],
       moodle_token,
@@ -96,7 +127,10 @@ export class ReActRouter implements Router {
       thinkAndFindResponse,
     );
 
-    console.log('Summary', summary);
+    console.log(
+      chalk.magenta('Summary of the current iteration:'),
+      chalk.yellow(summary),
+    );
 
     const updatedPreviousAgentResponses = [
       ...previousAgentResponses,
@@ -136,8 +170,7 @@ export class ReActRouter implements Router {
     agentResponses: AgentResponse[],
     thinkAndFindResponse?: ReactActThinkAndFindActionsResponse,
   ): Promise<ReactActObserveAndSummarizeAgentResponsesResponse> {
-    console.log('Observing and summarizing agent responses');
-    console.log(thinkAndFindResponse);
+    console.log(chalk.cyan('Observing and summarizing agent responses'));
 
     const systemPrompt = ReActPrompt.getObserveAndSummarizeAgentResponsesPrompt(
       agentResponses,

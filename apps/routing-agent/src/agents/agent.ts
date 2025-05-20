@@ -4,19 +4,11 @@ import {
 } from '@master-thesis-agentic-rag/agent-framework';
 import { AgentCallFunction, AgentCalls, AgentResponse } from './types';
 
-const MAX_CALLS = 5;
-
 export async function callAgentsInParallel(
   agentCalls: AgentCalls[],
   moodle_token: string,
   remainingCalls: number,
 ) {
-  console.log();
-
-  console.log('--------------------------------');
-  console.log('Iteration', MAX_CALLS - remainingCalls, '/', MAX_CALLS);
-  console.log('--------------------------------');
-
   if (remainingCalls < 0) {
     return [
       {

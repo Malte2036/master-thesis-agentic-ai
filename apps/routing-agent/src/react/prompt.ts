@@ -75,15 +75,24 @@ export class ReActPrompt {
   public static getObserveAndSummarizeAgentResponsesPrompt = (
     agentResponses: AgentResponse[],
     thinkAndFindResponse?: ReactActThinkAndFindActionsResponse,
-  ): AIGenerateTextOptions => ({
-    messages: [
-      ...this.BASE_PROMPTS.map((prompt) => ({
-        role: 'system' as const,
-        content: prompt,
+  ): AIGenerateTextOptions => {
+    const thinkAndFindAndAgentResponses = {
+      ...thinkAndFindResponse,
+      agentCalls: thinkAndFindResponse?.agentCalls?.map((agentCall, index) => ({
+        ...agentCall,
+        response: JSON.stringify(agentResponses[index].response, null, 2),
       })),
-      {
-        role: 'system' as const,
-        content: `You are a smart assistant that observes the responses of the agents and summarizes them.
+    };
+
+    return {
+      messages: [
+        ...this.BASE_PROMPTS.map((prompt) => ({
+          role: 'system' as const,
+          content: prompt,
+        })),
+        {
+          role: 'system' as const,
+          content: `You are a smart assistant that observes the responses of the agents and summarizes them.
   
   You must follow these rules strictly:
   
@@ -98,12 +107,16 @@ export class ReActPrompt {
   - If the agent responses include specific information such as course IDs, deadlines, or other actionable data, make sure to include these in your summary to enable proper next steps.
   - Avoid recommending actions that would lead to repeated/duplicate agent calls.
   - Your summary will be used to formulate the final response to the user's question.`,
-      },
-      {
-        role: 'system' as const,
-        content: `Agent responses: ${JSON.stringify(agentResponses, null, 2)}
-${thinkAndFindResponse ? `\nOriginal thought process: ${JSON.stringify(thinkAndFindResponse, null, 2)}` : ''}`,
-      },
-    ],
-  });
+        },
+        {
+          role: 'system' as const,
+          content: `Agent responses and previous thought process: ${JSON.stringify(
+            thinkAndFindAndAgentResponses,
+            null,
+            2,
+          )}`,
+        },
+      ],
+    };
+  };
 }
