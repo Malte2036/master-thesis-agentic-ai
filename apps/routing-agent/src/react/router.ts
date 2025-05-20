@@ -55,8 +55,11 @@ export class ReActRouter implements Router {
       console.log(chalk.magenta('Maximum number of iterations reached.'));
       return {
         agent: 'default',
-        response:
-          'Maximum number of iterations reached. Please try a more specific question. Here is the summary of the previous iterations: ',
+        previousSummaries: [
+          ...previousSummaries,
+          { summary: 'Error: Maximum number of iterations reached.' },
+        ],
+        previousAgentResponses,
         function: undefined,
       };
     }

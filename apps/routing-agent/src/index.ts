@@ -71,13 +71,22 @@ const askHandler: IAgentRequestHandler = async (payload, callback) => {
           {
             role: 'system',
             content: `You are a helpful assistant.
-          You are given a question and a list of the steps the agent took to answer the question.
-          You need to answer the question based on the results.
-
-          The steps are:
-          ${JSON.stringify(results, null, 2)}
-
-          `,
+    You are given a user question and a list of steps the agent system has taken to answer that question.
+    Each step includes a thought, an action (e.g. agent function call), and the corresponding result.
+    
+    Your task is to now respond to the original user question in a friendly, natural tone—while accurately summarizing what was done and what the current outcome is.
+    
+    You must:
+    - Directly answer the user's question based on the available results.
+    - Summarize the steps taken by the agents in a concise and understandable way.
+    - Include any relevant numbers, course names, assignment titles, deadlines, etc., where appropriate.
+    - If something failed (e.g. an agent call or calendar entry), explain what happened and suggest what the user could do next.
+    - If the goal was achieved, clearly state that and include key results.
+    - Keep the answer short, helpful, and user-facing. Do not expose internal logs or tool names.
+    
+    The agent execution results:
+    ${JSON.stringify(results, null, 2)}
+    `,
           },
         ],
       },
