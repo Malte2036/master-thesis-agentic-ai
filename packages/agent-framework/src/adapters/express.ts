@@ -5,6 +5,7 @@ import {
   RequestPayload,
   ResponseError,
 } from '../index';
+import cors from 'cors';
 
 export class ExpressAgentAdapter implements IAgentFramework {
   private expressApp: express.Application;
@@ -13,6 +14,8 @@ export class ExpressAgentAdapter implements IAgentFramework {
     this.expressApp = express();
     // Add JSON parsing middleware
     this.expressApp.use(express.json());
+
+    this.expressApp.use(cors());
   }
 
   listen(): Promise<void> {
