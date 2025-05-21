@@ -2,6 +2,7 @@ import {
   AgentConfig,
   AgentName,
   AIGenerateTextOptions,
+  RouterProcess,
 } from '@master-thesis-agentic-rag/agent-framework';
 import { AgentResponse } from '@master-thesis-agentic-rag/agent-framework';
 import {
@@ -24,7 +25,7 @@ export class ReActPrompt {
 
   public static getThinkAndFindActionPrompt = (
     agents: Record<AgentName, AgentConfig>,
-    previousSummaries: ReactActObserveAndSummarizeAgentResponsesResponse[],
+    routerProcess: RouterProcess,
   ): AIGenerateTextOptions => ({
     messages: [
       ...this.BASE_PROMPTS.map((prompt) => ({
@@ -65,7 +66,7 @@ export class ReActPrompt {
       {
         role: 'system' as const,
         content: `Previous summaries: ${JSON.stringify(
-          previousSummaries,
+          routerProcess.iterationHistory?.map((iteration) => iteration.summary),
           null,
           2,
         )}`,

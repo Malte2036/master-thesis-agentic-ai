@@ -5,7 +5,6 @@ import {
   AIProvider,
   getAgentConfigs,
   RouterResponse,
-  RouterResponseSchema,
 } from '@master-thesis-agentic-rag/agent-framework';
 import chalk from 'chalk';
 
@@ -36,7 +35,7 @@ export class ReActRouter implements Router {
       maxIterations,
       iterationHistory: [],
     };
-    const result = await this.iterate(routerProcess, moodle_token, []);
+    const result = await this.iterate(routerProcess, moodle_token);
 
     return result;
   }
@@ -44,8 +43,6 @@ export class ReActRouter implements Router {
   async iterate(
     routerProcess: RouterProcess,
     moodle_token: string,
-    previousAgentResponses: ReactActThinkAndFindActionsResponse[] = [],
-    previousSummaries: ReactActObserveAndSummarizeAgentResponsesResponse[] = [],
   ): Promise<RouterResponse> {
     const maxIterations = routerProcess.maxIterations;
     const remainingCalls =
@@ -64,10 +61,7 @@ export class ReActRouter implements Router {
       };
     }
 
-    const thinkAndFindResponse = await this.thinkAndFindActions(
-      routerProcess.question,
-      previousSummaries,
-    );
+    const thinkAndFindResponse = await this.thinkAndFindActions(routerProcess);
     const { agentCalls, isFinished } = thinkAndFindResponse;
 
     console.log(
@@ -108,14 +102,16 @@ export class ReActRouter implements Router {
     );
 
     // Check if we're repeating the same calls - detect loop
-    const hasDuplicateCalls = previousAgentResponses.some(
+    const hasDuplicateCalls = routerProcess.iterationHistory?.some(
       (response) =>
         JSON.stringify(response.agentCalls) === currentAgentCallsStr,
     );
 
     if (hasDuplicateCalls) {
       console.log(
-        'Detected loop with repeated agent calls. Breaking iteration.',
+        chalk.red(
+          'Detected loop with repeated agent calls. Breaking iteration.',
+        ),
       );
       return {
         process: routerProcess,
@@ -152,13 +148,6 @@ export class ReActRouter implements Router {
       chalk.yellow(summary),
     );
 
-    const updatedPreviousAgentResponses = [
-      ...previousAgentResponses,
-      thinkAndFindResponse,
-    ];
-
-    const updatedPreviousSummaries = [...previousSummaries, { summary }];
-
     routerProcess = addIterationToRouterProcess(
       routerProcess,
       currentIteration,
@@ -167,26 +156,20 @@ export class ReActRouter implements Router {
       agentCalls,
       isFinished,
     );
-    return this.iterate(
-      routerProcess,
-      moodle_token,
-      updatedPreviousAgentResponses,
-      updatedPreviousSummaries,
-    );
+    return this.iterate(routerProcess, moodle_token);
   }
 
   async thinkAndFindActions(
-    question: string,
-    previousSummaries: ReactActObserveAndSummarizeAgentResponsesResponse[],
+    routerProcess: RouterProcess,
   ): Promise<ReactActThinkAndFindActionsResponse> {
     const agents = getAgentConfigs(false);
     const systemPrompt = ReActPrompt.getThinkAndFindActionPrompt(
       agents,
-      previousSummaries,
+      routerProcess,
     );
 
     return await this.aiProvider.generateText<ReactActThinkAndFindActionsResponse>(
-      question,
+      routerProcess.question,
       systemPrompt,
       ReactActThinkAndFindActionsResponseSchema,
     );
