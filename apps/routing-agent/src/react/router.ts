@@ -25,138 +25,149 @@ import {
 export class ReActRouter implements Router {
   constructor(private readonly aiProvider: AIProvider) {}
 
-  async routeQuestion(
+  async *routeQuestion(
     question: string,
     moodle_token: string,
     maxIterations: number,
-  ): Promise<RouterResponse> {
+  ): AsyncGenerator<RouterProcess, RouterResponse, unknown> {
     const routerProcess: RouterProcess = {
       question,
       maxIterations,
       iterationHistory: [],
     };
-    const result = await this.iterate(routerProcess, moodle_token);
 
-    return result;
-  }
-
-  async iterate(
-    routerProcess: RouterProcess,
-    moodle_token: string,
-  ): Promise<RouterResponse> {
-    const maxIterations = routerProcess.maxIterations;
-    const remainingCalls =
-      maxIterations - (routerProcess.iterationHistory?.length ?? 0);
-    const currentIteration = maxIterations - remainingCalls;
-
-    console.log(chalk.magenta('--------------------------------'));
-    console.log(chalk.cyan('Iteration'), currentIteration, '/', maxIterations);
-    console.log(chalk.magenta('--------------------------------'));
-
-    if (remainingCalls <= 0) {
-      console.log(chalk.magenta('Maximum number of iterations reached.'));
-      return {
-        error: 'Maximum number of iterations reached.',
-        process: routerProcess,
-      };
+    for await (const process of this.iterate(routerProcess, moodle_token)) {
+      yield process;
     }
 
-    const thinkAndFindResponse = await this.thinkAndFindActions(routerProcess);
-    const { agentCalls, isFinished } = thinkAndFindResponse;
+    return {
+      process: routerProcess,
+    };
+  }
 
-    console.log(
-      chalk.magenta('Thought process:'),
-      chalk.yellow(thinkAndFindResponse.thought),
-    );
+  async *iterate(
+    routerProcess: RouterProcess,
+    moodle_token: string,
+  ): AsyncGenerator<RouterProcess, RouterResponse, unknown> {
+    const maxIterations = routerProcess.maxIterations;
+    let currentIteration = routerProcess.iterationHistory?.length ?? 0;
 
-    if (isFinished) {
-      console.log(chalk.magenta('Finished'));
+    while (currentIteration < maxIterations) {
+      console.log(chalk.magenta('--------------------------------'));
+      console.log(
+        chalk.cyan('Iteration'),
+        currentIteration + 1,
+        '/',
+        maxIterations,
+      );
+      console.log(chalk.magenta('--------------------------------'));
+
+      const thinkAndFindResponse =
+        await this.thinkAndFindActions(routerProcess);
+      const { agentCalls, isFinished } = thinkAndFindResponse;
+
+      console.log(
+        chalk.magenta('Thought process:'),
+        chalk.yellow(thinkAndFindResponse.thought),
+      );
+
+      if (isFinished) {
+        console.log(chalk.magenta('Finished'));
+
+        routerProcess = addIterationToRouterProcess(
+          routerProcess,
+          currentIteration,
+          thinkAndFindResponse.thought,
+          'Finished',
+          agentCalls,
+          isFinished,
+        );
+        return {
+          process: routerProcess,
+        };
+      }
+
+      if (!agentCalls) {
+        console.log(chalk.magenta('No agent calls found.'));
+        return {
+          process: routerProcess,
+          error: 'No agent calls found. Please try rephrasing your question.',
+        };
+      }
+
+      // Serialize current agent calls to check for duplicates
+      const currentAgentCallsStr = JSON.stringify(
+        agentCalls.map((a) => ({
+          ...a,
+          description: undefined,
+        })),
+      );
+
+      // Check if we're repeating the same calls - detect loop
+      const hasDuplicateCalls = routerProcess.iterationHistory?.some(
+        (response) =>
+          JSON.stringify(response.agentCalls) === currentAgentCallsStr,
+      );
+
+      if (hasDuplicateCalls) {
+        console.log(
+          chalk.red(
+            'Detected loop with repeated agent calls. Breaking iteration.',
+          ),
+        );
+        return {
+          process: routerProcess,
+          error:
+            'I noticed we were repeating the same queries without progress.',
+        };
+      }
+
+      console.log(chalk.cyan('Agent calls:'));
+      const flattenedCalls = agentCalls.flatMap(
+        (agentCall: AgentCall) =>
+          agentCall.functionsToCall?.map((functionCall: AgentCallFunction) => ({
+            agent: agentCall.agentName,
+            function: functionCall.functionName,
+            functionDescription: functionCall.description,
+            parameters: JSON.stringify(functionCall.parameters, null, 2),
+          })) || [],
+      );
+      console.table(flattenedCalls);
+
+      const agentResponses = await callAgentsInParallel(
+        [{ agentCalls }],
+        moodle_token,
+        maxIterations - currentIteration,
+      );
+
+      const { summary } = await this.observeAndSummarizeAgentResponses(
+        routerProcess.question,
+        agentResponses.filter(Boolean) as AgentResponse[],
+        thinkAndFindResponse,
+      );
+
+      console.log(
+        chalk.magenta('Summary of the current iteration:'),
+        chalk.yellow(summary),
+      );
 
       routerProcess = addIterationToRouterProcess(
         routerProcess,
         currentIteration,
         thinkAndFindResponse.thought,
-        'Finished',
+        summary,
         agentCalls,
         isFinished,
       );
-      return {
-        process: routerProcess,
-      };
+
+      yield routerProcess;
+      currentIteration++;
     }
 
-    if (!agentCalls) {
-      console.log(chalk.magenta('No agent calls found.'));
-      return {
-        process: routerProcess,
-        error: 'No agent calls found. Please try rephrasing your question.',
-      };
-    }
-
-    // Serialize current agent calls to check for duplicates
-    const currentAgentCallsStr = JSON.stringify(
-      agentCalls.map((a) => ({
-        ...a,
-        description: undefined,
-      })),
-    );
-
-    // Check if we're repeating the same calls - detect loop
-    const hasDuplicateCalls = routerProcess.iterationHistory?.some(
-      (response) =>
-        JSON.stringify(response.agentCalls) === currentAgentCallsStr,
-    );
-
-    if (hasDuplicateCalls) {
-      console.log(
-        chalk.red(
-          'Detected loop with repeated agent calls. Breaking iteration.',
-        ),
-      );
-      return {
-        process: routerProcess,
-        error: 'I noticed we were repeating the same queries without progress.',
-      };
-    }
-
-    console.log(chalk.cyan('Agent calls:'));
-    const flattenedCalls = agentCalls.flatMap(
-      (agentCall: AgentCall) =>
-        agentCall.functionsToCall?.map((functionCall: AgentCallFunction) => ({
-          agent: agentCall.agentName,
-          function: functionCall.functionName,
-          functionDescription: functionCall.description,
-          parameters: JSON.stringify(functionCall.parameters, null, 2),
-        })) || [],
-    );
-    console.table(flattenedCalls);
-
-    const agentResponses = await callAgentsInParallel(
-      [{ agentCalls }],
-      moodle_token,
-      remainingCalls,
-    );
-
-    const { summary } = await this.observeAndSummarizeAgentResponses(
-      routerProcess.question,
-      agentResponses.filter(Boolean) as AgentResponse[],
-      thinkAndFindResponse,
-    );
-
-    console.log(
-      chalk.magenta('Summary of the current iteration:'),
-      chalk.yellow(summary),
-    );
-
-    routerProcess = addIterationToRouterProcess(
-      routerProcess,
-      currentIteration,
-      thinkAndFindResponse.thought,
-      summary,
-      agentCalls,
-      isFinished,
-    );
-    return this.iterate(routerProcess, moodle_token);
+    return {
+      error: 'Maximum number of iterations reached.',
+      process: routerProcess,
+    };
   }
 
   async thinkAndFindActions(
