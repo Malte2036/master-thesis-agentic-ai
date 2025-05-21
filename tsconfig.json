@@ -18,6 +18,7 @@
       "@master-thesis-agentic-rag/agent-framework": [
         "packages/agent-framework/src/index.ts"
       ],
+      "@master-thesis-agentic-rag/frontend": ["apps/frontend/src/index.ts"],
       "@master-thesis-agentic-rag/routing-agent": [
         "apps/routing-agent/src/index.ts"
       ]
