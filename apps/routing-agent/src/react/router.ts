@@ -1,6 +1,11 @@
 import {
+  addIterationToRouterProcess,
+  AgentCall,
+  AgentCallFunction,
   AIProvider,
   getAgentConfigs,
+  RouterResponse,
+  RouterResponseSchema,
 } from '@master-thesis-agentic-rag/agent-framework';
 import chalk from 'chalk';
 
@@ -13,7 +18,10 @@ import {
   ReactActThinkAndFindActionsResponseSchema,
 } from './types';
 import { callAgentsInParallel } from '../agents/agent';
-import { AgentResponse } from '../agents/types';
+import {
+  AgentResponse,
+  RouterProcess,
+} from '@master-thesis-agentic-rag/agent-framework';
 
 export class ReActRouter implements Router {
   constructor(private readonly aiProvider: AIProvider) {}
@@ -22,50 +30,42 @@ export class ReActRouter implements Router {
     question: string,
     moodle_token: string,
     maxIterations: number,
-  ): Promise<any> {
-    const result = await this.iterate(
+  ): Promise<RouterResponse> {
+    const routerProcess: RouterProcess = {
       question,
-      moodle_token,
       maxIterations,
-      maxIterations,
-      [],
-    );
+      iterationHistory: [],
+    };
+    const result = await this.iterate(routerProcess, moodle_token, []);
 
     return result;
   }
 
   async iterate(
-    question: string,
+    routerProcess: RouterProcess,
     moodle_token: string,
-    remainingCalls: number,
-    maxIterations: number,
     previousAgentResponses: ReactActThinkAndFindActionsResponse[] = [],
     previousSummaries: ReactActObserveAndSummarizeAgentResponsesResponse[] = [],
-  ): Promise<any> {
+  ): Promise<RouterResponse> {
+    const maxIterations = routerProcess.maxIterations;
+    const remainingCalls =
+      maxIterations - (routerProcess.iterationHistory?.length ?? 0);
+    const currentIteration = maxIterations - remainingCalls;
+
     console.log(chalk.magenta('--------------------------------'));
-    console.log(
-      chalk.cyan('Iteration'),
-      maxIterations - remainingCalls,
-      '/',
-      maxIterations,
-    );
+    console.log(chalk.cyan('Iteration'), currentIteration, '/', maxIterations);
     console.log(chalk.magenta('--------------------------------'));
 
     if (remainingCalls <= 0) {
       console.log(chalk.magenta('Maximum number of iterations reached.'));
       return {
-        agent: 'default',
-        previousSummaries: [
-          ...previousSummaries,
-          { summary: 'Error: Maximum number of iterations reached.' },
-        ],
-        previousAgentResponses,
-        function: undefined,
+        error: 'Maximum number of iterations reached.',
+        process: routerProcess,
       };
     }
 
     const thinkAndFindResponse = await this.thinkAndFindActions(
-      question,
+      routerProcess.question,
       previousSummaries,
     );
     const { agentCalls, isFinished } = thinkAndFindResponse;
@@ -77,21 +77,25 @@ export class ReActRouter implements Router {
 
     if (isFinished) {
       console.log(chalk.magenta('Finished'));
+
+      routerProcess = addIterationToRouterProcess(
+        routerProcess,
+        currentIteration,
+        thinkAndFindResponse.thought,
+        'Finished',
+        agentCalls,
+        isFinished,
+      );
       return {
-        previousSummaries: [...previousSummaries, { summary: 'Finished' }],
-        previousAgentResponses: [
-          ...previousAgentResponses,
-          thinkAndFindResponse,
-        ],
+        process: routerProcess,
       };
     }
 
     if (!agentCalls) {
       console.log(chalk.magenta('No agent calls found.'));
       return {
-        agent: 'default',
-        response: 'No agent calls found. Please try rephrasing your question.',
-        function: undefined,
+        process: routerProcess,
+        error: 'No agent calls found. Please try rephrasing your question.',
       };
     }
 
@@ -114,17 +118,15 @@ export class ReActRouter implements Router {
         'Detected loop with repeated agent calls. Breaking iteration.',
       );
       return {
-        agent: 'default',
-        response:
-          'I noticed we were repeating the same queries without progress.',
-        function: undefined,
+        process: routerProcess,
+        error: 'I noticed we were repeating the same queries without progress.',
       };
     }
 
     console.log(chalk.cyan('Agent calls:'));
     const flattenedCalls = agentCalls.flatMap(
-      (agentCall) =>
-        agentCall.functionsToCall?.map((functionCall) => ({
+      (agentCall: AgentCall) =>
+        agentCall.functionsToCall?.map((functionCall: AgentCallFunction) => ({
           agent: agentCall.agentName,
           function: functionCall.functionName,
           functionDescription: functionCall.description,
@@ -140,7 +142,7 @@ export class ReActRouter implements Router {
     );
 
     const { summary } = await this.observeAndSummarizeAgentResponses(
-      question,
+      routerProcess.question,
       agentResponses.filter(Boolean) as AgentResponse[],
       thinkAndFindResponse,
     );
@@ -157,11 +159,17 @@ export class ReActRouter implements Router {
 
     const updatedPreviousSummaries = [...previousSummaries, { summary }];
 
+    routerProcess = addIterationToRouterProcess(
+      routerProcess,
+      currentIteration,
+      thinkAndFindResponse.thought,
+      summary,
+      agentCalls,
+      isFinished,
+    );
     return this.iterate(
-      question,
+      routerProcess,
       moodle_token,
-      remainingCalls - 1,
-      maxIterations,
       updatedPreviousAgentResponses,
       updatedPreviousSummaries,
     );

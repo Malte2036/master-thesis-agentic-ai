@@ -16,3 +16,4 @@ export * from './schemas/agent';
 export * from './schemas/request';
 export * from './services';
 export * from './utils/schema';
+export * from './schemas/router';

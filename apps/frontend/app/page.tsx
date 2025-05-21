@@ -7,6 +7,7 @@ import { ChatHeader } from './components/ChatHeader';
 import { ChatMessages } from './components/ChatMessages';
 import { ChatInput } from './components/ChatInput';
 import { SettingsModal } from './components/SettingsModal';
+import { safeValidateApiResponse } from './lib/validation';
 
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -21,9 +22,17 @@ export default function Home() {
     if (!input.trim()) return;
     setError(null);
     setLoading(true);
-    const userMessage: ChatMessage = { role: 'user', content: input };
-    setMessages((prev) => [...prev, userMessage]);
+
+    // Create user message with proper content structure
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: {
+        friendlyResponse: input,
+      },
+    };
+    setMessages(() => [userMessage]);
     setInput('');
+
     try {
       const res = await fetch('http://localhost:3000/ask', {
         method: 'POST',
@@ -33,20 +42,30 @@ export default function Home() {
           ...settings,
         }),
       });
+
       if (!res.ok) throw new Error('Failed to get response from agent');
+
       const data = await res.json();
+      const validatedResponse = safeValidateApiResponse(data);
+
+      if (!validatedResponse) {
+        throw new Error('Invalid response format from server');
+      }
+
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: data.friendlyResponse || 'No response.' },
+        { role: 'assistant', content: validatedResponse },
       ]);
     } catch (err: unknown) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          content: 'Sorry, there was an error. Please try again.',
+      // Create error message with proper content structure
+      const errorMessage: ChatMessage = {
+        role: 'assistant',
+        content: {
+          friendlyResponse: 'Sorry, there was an error. Please try again.',
+          error: err instanceof Error ? err.message : 'Unknown error',
         },
-      ]);
+      };
+      setMessages((prev) => [...prev, errorMessage]);
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
@@ -57,7 +76,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center font-sans">
-      <div className="w-full max-w-xl h-[80vh] bg-white rounded-xl shadow-lg flex flex-col overflow-hidden border border-gray-200">
+      <div className="w-full max-w-4xl h-[90vh] bg-white rounded-xl shadow-lg flex flex-col overflow-hidden border border-gray-200">
         <ChatHeader onOpenSettings={() => setShowSettings(true)} />
 
         {showSettings && (

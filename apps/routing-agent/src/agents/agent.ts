@@ -1,8 +1,11 @@
 import {
+  AgentCall,
+  AgentCallFunction,
+  AgentCalls,
   AgentConfig,
+  AgentResponse,
   getAgentConfig,
 } from '@master-thesis-agentic-rag/agent-framework';
-import { AgentCallFunction, AgentCalls, AgentResponse } from './types';
 
 export async function callAgentsInParallel(
   agentCalls: AgentCalls[],
@@ -21,7 +24,7 @@ export async function callAgentsInParallel(
   }
 
   const flattenedAgentCalls = agentCalls.flatMap((agentCall) =>
-    agentCall.agentCalls?.map((agentCall) => ({
+    agentCall.agentCalls?.map((agentCall: AgentCall) => ({
       agent: getAgentConfig(agentCall.agentName),
       functions: agentCall.functionsToCall ?? [],
     })),
@@ -49,7 +52,7 @@ export async function callAgentsInParallel(
 
   return await Promise.all(
     validAgents.flatMap((agent) =>
-      agent?.functions.map((agentFunction) =>
+      agent?.functions.map((agentFunction: AgentCallFunction) =>
         callAgent(agent.agent, agentFunction, moodle_token),
       ),
     ),

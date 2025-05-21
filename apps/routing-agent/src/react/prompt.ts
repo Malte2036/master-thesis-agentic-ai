@@ -3,7 +3,7 @@ import {
   AgentName,
   AIGenerateTextOptions,
 } from '@master-thesis-agentic-rag/agent-framework';
-import { AgentResponse } from '../agents/types';
+import { AgentResponse } from '@master-thesis-agentic-rag/agent-framework';
 import {
   ReactActObserveAndSummarizeAgentResponsesResponse,
   ReactActThinkAndFindActionsResponse,

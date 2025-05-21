@@ -4,8 +4,9 @@ import {
   IAgentRequestHandler,
   OpenAIProvider,
   ResponseError,
+  RouterResponseFriendly,
 } from '@master-thesis-agentic-rag/agent-framework';
-import { LegacyRouter } from './legacy/router';
+// import { LegacyRouter } from './legacy/router';
 import { ReActRouter } from './react/router';
 import { Router } from './router';
 import chalk from 'chalk';
@@ -14,13 +15,13 @@ import { z } from 'zod';
 const agentFramework = createAgentFramework('routing-agent');
 
 const aiProvider = new OpenAIProvider();
-const legacyRouter = new LegacyRouter(aiProvider);
+// const legacyRouter = new LegacyRouter(aiProvider);
 const reActRouter = new ReActRouter(aiProvider);
 
 const getRouter = (router?: 'legacy' | 'react'): Router => {
-  if (router === 'legacy') {
-    return legacyRouter;
-  }
+  // if (router === 'legacy') {
+  //   return legacyRouter;
+  // }
   return reActRouter;
 };
 
@@ -100,10 +101,10 @@ const askHandler: IAgentRequestHandler = async (payload, callback) => {
 
     // console.log('Results are', results);
     callback(null, {
-      router: router,
       friendlyResponse: friendlyResponse.friendlyResponse,
-      results: results,
-    });
+      process: results.process,
+      error: results.error,
+    } satisfies RouterResponseFriendly);
   } catch (error) {
     console.error('Error processing question:', error);
     if (error instanceof Error) {

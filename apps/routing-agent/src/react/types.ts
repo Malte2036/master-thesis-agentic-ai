@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AgentCallSchema } from '../agents/types';
+import { AgentCallSchema } from '@master-thesis-agentic-rag/agent-framework';
 
 export const ReactActThinkAndFindActionsResponseSchema = z.object({
   thought: z.string(),
