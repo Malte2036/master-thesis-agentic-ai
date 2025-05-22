@@ -2,7 +2,7 @@ import {
   createAgentFramework,
   createResponseError,
   IAgentRequestHandler,
-  OpenAIProvider,
+  OllamaProvider,
   ResponseError,
   RouterResponse,
   RouterResponseFriendly,
@@ -15,7 +15,11 @@ import { z } from 'zod';
 
 const agentFramework = createAgentFramework('routing-agent');
 
-const aiProvider = new OpenAIProvider();
+const aiProvider = new OllamaProvider({
+  baseUrl: 'http://10.50.60.153:11434',
+  model: 'mixtral:8x7b',
+  // model: 'llama3:8b',
+});
 // const legacyRouter = new LegacyRouter(aiProvider);
 const reActRouter = new ReActRouter(aiProvider);
 
@@ -75,6 +79,10 @@ const askHandler: IAgentRequestHandler = async (payload, callback) => {
       }
       // console.log(chalk.magenta('Received result:'), value);
     }
+
+    results.process?.iterationHistory?.sort(
+      (a, b) => a.iteration - b.iteration,
+    );
 
     const friendlyResponse = await aiProvider.generateText<FriendlyResponse>(
       prompt,
