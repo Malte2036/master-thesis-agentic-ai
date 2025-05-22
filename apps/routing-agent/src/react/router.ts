@@ -36,13 +36,15 @@ export class ReActRouter implements Router {
       iterationHistory: [],
     };
 
-    for await (const process of this.iterate(routerProcess, moodle_token)) {
-      yield process;
-    }
+    const generator = this.iterate(routerProcess, moodle_token);
 
-    return {
-      process: routerProcess,
-    };
+    while (true) {
+      const { done, value } = await generator.next();
+      if (done) {
+        return value satisfies RouterResponse;
+      }
+      yield value satisfies RouterProcess;
+    }
   }
 
   async *iterate(
