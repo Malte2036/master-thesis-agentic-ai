@@ -3,6 +3,7 @@ import {
   createResponseError,
   IAgentRequestHandler,
   OllamaProvider,
+  OpenAIProvider,
   ResponseError,
   RouterResponse,
   RouterResponseFriendly,
@@ -17,9 +18,11 @@ const agentFramework = createAgentFramework('routing-agent');
 
 const aiProvider = new OllamaProvider({
   baseUrl: 'http://10.50.60.153:11434',
-  model: 'mixtral:8x7b',
+  // model: 'mixtral:8x7b',
   // model: 'llama3:8b',
+  model: 'llama3.1:8b',
 });
+// const aiProvider = new OpenAIProvider();
 // const legacyRouter = new LegacyRouter(aiProvider);
 const reActRouter = new ReActRouter(aiProvider);
 

@@ -34,10 +34,21 @@ export function generateSchemaDescription(schema: z.ZodTypeAny): string {
         typeDescription = baseType._def.typeName;
       }
 
-      return `"${key}": ${typeDescription}${isOptional ? ' (optional)' : ''}`;
+      // Make required/optional status more explicit
+      const status = isOptional ? '(optional)' : '(required)';
+      return `"${key}": ${typeDescription} ${status}`;
     });
 
-    return `{\n  ${entries.join(',\n  ')}\n}`;
+    // Add a note about required fields at the top of the object description
+    const requiredFields = Object.entries(shape)
+      .filter(([_, value]) => !(value instanceof z.ZodOptional))
+      .map(([key]) => `"${key}"`)
+      .join(', ');
+
+    const requiredNote =
+      requiredFields.length > 0 ? `Required fields: ${requiredFields}\n` : '';
+
+    return `{\n  ${requiredNote}  ${entries.join(',\n  ')}\n}`;
   }
   if (schema instanceof z.ZodUnknown) {
     return 'unknown';

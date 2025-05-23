@@ -13,6 +13,7 @@
     "build:moodle-agent": "nx build moodle-agent",
     "build:calendar-agent": "nx build calendar-agent",
     "build:frontend": "nx build frontend",
+    "build:agent-framework": "nx build agent-framework",
     "lint": "nx run-many -t lint",
     "test": "nx run-many -t test",
     "clean": "nx run-many -t clean && rm -rf node_modules",
