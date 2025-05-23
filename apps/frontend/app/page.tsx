@@ -77,7 +77,10 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center font-sans">
       <div className="w-full max-w-4xl h-[90vh] bg-white rounded-xl shadow-lg flex flex-col overflow-hidden border border-gray-200">
-        <ChatHeader onOpenSettings={() => setShowSettings(true)} />
+        <ChatHeader
+          onOpenSettings={() => setShowSettings(true)}
+          router={settings.router}
+        />
 
         {showSettings && (
           <SettingsModal

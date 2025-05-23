@@ -1,6 +1,49 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { ChatMessage } from './types';
 import { safeValidateApiResponse } from '../lib/validation';
+import {
+  Bot,
+  User,
+  Brain,
+  ChevronRight,
+  Target,
+  Zap,
+  AlertCircle,
+} from 'lucide-react';
+
+type JsonValue = string | number | boolean | null | JsonObject;
+interface JsonObject {
+  [key: string]: JsonValue;
+}
+
+interface JsonDisplayProps {
+  data: {
+    [key: string]: unknown;
+  };
+}
+
+function JsonDisplay({ data }: JsonDisplayProps) {
+  return (
+    <div className="text-xs">
+      {'{'}
+      {Object.entries(data).map(([key, value], index, array) => (
+        <div key={key} className="ml-4">
+          <span className="text-blue-600">{`"${key}"`}</span>
+          <span className="text-gray-600">: </span>
+          <span className="text-gray-800">
+            {typeof value === 'object' && value !== null
+              ? JSON.stringify(value, null, 2)
+              : typeof value === 'string'
+                ? `"${value}"`
+                : String(value)}
+          </span>
+          {index < array.length - 1 && <span className="text-gray-600">,</span>}
+        </div>
+      ))}
+      {'}'}
+    </div>
+  );
+}
 
 interface ChatMessagesProps {
   messages: ChatMessage[];
@@ -9,12 +52,22 @@ interface ChatMessagesProps {
 
 export function ChatMessages({ messages, loading }: ChatMessagesProps) {
   const chatRef = useRef<HTMLDivElement>(null);
+  const [showProcess, setShowProcess] = useState<{ [key: number]: boolean }>(
+    {},
+  );
 
   useEffect(() => {
     if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
   }, [messages, loading]);
+
+  const toggleProcess = (messageIndex: number) => {
+    setShowProcess((prev) => ({
+      ...prev,
+      [messageIndex]: !prev[messageIndex],
+    }));
+  };
 
   return (
     <main
@@ -26,9 +79,33 @@ export function ChatMessages({ messages, loading }: ChatMessagesProps) {
           // For user messages, we know the content structure is simple
           if (msg.role === 'user') {
             return (
-              <div key={idx} className="flex flex-col gap-2">
-                <div className="self-end bg-primary text-white px-4 py-2 rounded-2xl rounded-br-none max-w-[80%] whitespace-pre-line">
-                  {msg.content.friendlyResponse}
+              <div key={idx} className="flex justify-end mr-16">
+                <div className="flex items-end space-x-3 group">
+                  <div className="flex-1 text-right">
+                    {/* Message Header */}
+                    <div className="flex items-center space-x-2 mb-2 justify-end">
+                      <span className="text-sm font-medium text-gray-700">
+                        You
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {new Date().toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+
+                    {/* Message Content */}
+                    <div className="prose prose-sm max-w-none p-5 shadow-sm bg-gradient-to-r from-slate-100 to-slate-200 text-slate-800 rounded-2xl rounded-br-md border border-slate-300">
+                      <div className="whitespace-pre-line leading-relaxed font-medium">
+                        {msg.content.friendlyResponse}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="w-10 h-10 bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl flex items-center justify-center shadow-md flex-shrink-0 mb-1">
+                    <User className="w-5 h-5 text-white" />
+                  </div>
                 </div>
               </div>
             );
@@ -39,211 +116,299 @@ export function ChatMessages({ messages, loading }: ChatMessagesProps) {
           if (!validatedContent) {
             console.error('Invalid message content:', msg.content);
             return (
-              <div key={idx} className="flex flex-col gap-2">
-                <div className="self-start bg-gray-200 text-gray-900 px-4 py-2 rounded-2xl rounded-bl-none max-w-[80%] whitespace-pre-line">
-                  {msg.content.friendlyResponse}
+              <div key={idx} className="flex justify-start ml-16">
+                <div className="flex items-start space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md flex-shrink-0 mb-1">
+                    <Bot className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    {/* Message Header */}
+                    <div className="flex items-center space-x-2 mb-2">
+                      <span className="text-sm font-medium text-gray-700">
+                        HSD Assistant
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {new Date().toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+
+                    {/* Message Content */}
+                    <div className="prose prose-sm max-w-none p-5 shadow-sm bg-white border border-gray-200 text-gray-800 rounded-2xl rounded-bl-md">
+                      <div className="whitespace-pre-line leading-relaxed font-medium">
+                        {msg.content.friendlyResponse}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             );
           }
 
           return (
-            <div key={idx} className="flex flex-col gap-3">
-              {/* Main Response */}
-              <div className="self-start bg-white text-gray-900 px-4 py-3 rounded-2xl rounded-bl-none max-w-[80%] shadow-sm border border-gray-100">
-                <div className="whitespace-pre-line">
-                  {validatedContent.friendlyResponse}
+            <div key={idx} className="flex justify-start ml-16">
+              <div className="flex items-start space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md flex-shrink-0 mb-1">
+                  <Bot className="w-5 h-5 text-white" />
                 </div>
-              </div>
+                <div className="flex-1">
+                  {/* Message Header */}
+                  <div className="flex items-center space-x-2 mb-2">
+                    <span className="text-sm font-medium text-gray-700">
+                      HSD Assistant
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {new Date().toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                  </div>
 
-              {/* Error Message */}
-              {validatedContent.error && (
-                <div className="self-start text-red-500 text-sm mt-1">
-                  {validatedContent.error}
-                </div>
-              )}
+                  {/* Message Content */}
+                  <div className="prose prose-sm max-w-none p-5 shadow-sm bg-white border border-gray-200 text-gray-800 rounded-2xl rounded-bl-md">
+                    <div className="whitespace-pre-line leading-relaxed font-medium">
+                      {validatedContent.friendlyResponse}
+                    </div>
+                  </div>
 
-              {/* Agent Process */}
-              {validatedContent.process?.iterationHistory &&
-                msg.role === 'assistant' && (
-                  <div className="self-start max-w-[80%] space-y-3">
-                    {validatedContent.process.iterationHistory.map(
-                      (iteration, iterIdx) => (
-                        <div
-                          key={iterIdx}
-                          className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden"
-                        >
-                          {/* Step Header */}
-                          <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-4 py-2.5 border-b border-gray-100">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <span className="bg-primary/10 text-primary px-2.5 py-1 rounded-full text-sm font-medium">
-                                  Step {iteration.iteration}
-                                </span>
-                                {iteration.isFinished && (
-                                  <span className="text-xs text-green-700 bg-green-50 px-2 py-1 rounded-full font-medium">
-                                    Completed
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="p-4 space-y-4">
-                            {/* Thought */}
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  viewBox="0 0 20 20"
-                                  fill="currentColor"
-                                  className="w-4 h-4 text-slate-500"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M10 3a7 7 0 100 14 7 7 0 000-14zM6.39 6.39a.75.75 0 011.064-1.064l1.494 1.494a.75.75 0 01.21 1.285l-2.28 1.71a.75.75 0 01-1.022-.24l-.75-1.5a.75.75 0 01.22-.986l1.058-.7zM13.61 6.39a.75.75 0 00-1.064-1.064L11.052 6.82a.75.75 0 00-.21 1.285l2.28 1.71a.75.75 0 001.022-.24l.75-1.5a.75.75 0 00-.22-.986l-1.058-.7zM9.25 12a.75.75 0 01.75-.75h0a.75.75 0 01.75.75v2.25a.75.75 0 01-.75.75h0a.75.75 0 01-.75-.75V12z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                                Thought
-                              </div>
-                              <p className="text-slate-600 text-sm pl-6 whitespace-pre-line">
-                                {iteration.thought}
-                              </p>
-                            </div>
-
-                            {/* Agent Calls */}
-                            {iteration.agentCalls &&
-                              iteration.agentCalls.length > 0 && (
-                                <div className="space-y-3">
-                                  <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      className="h-4 w-4 text-slate-500"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
-                                      strokeWidth={2}
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                      />
-                                    </svg>
-                                    Actions
-                                  </div>
-                                  <div className="pl-6 space-y-3">
-                                    {iteration.agentCalls.map(
-                                      (call, callIdx) => (
-                                        <div
-                                          key={callIdx}
-                                          className="bg-slate-50 rounded-lg p-3 border border-slate-200"
-                                        >
-                                          <div className="font-medium text-slate-800 mb-2">
-                                            {call.agentName}
-                                          </div>
-                                          {call.functionsToCall &&
-                                            call.functionsToCall.length > 0 && (
-                                              <div className="space-y-2">
-                                                {call.functionsToCall.map(
-                                                  (func, funcIdx) => (
-                                                    <div
-                                                      key={funcIdx}
-                                                      className="border-l-2 border-primary/30 pl-3"
-                                                    >
-                                                      <div className="text-slate-700 font-medium">
-                                                        {func.functionName}
-                                                      </div>
-                                                      <div className="text-slate-500 text-xs mt-0.5">
-                                                        {func.description}
-                                                      </div>
-                                                      {func.parameters &&
-                                                        Object.keys(
-                                                          func.parameters,
-                                                        ).length > 0 && (
-                                                          <div className="mt-2">
-                                                            <div className="text-slate-600 text-xs font-medium">
-                                                              Parameters:
-                                                            </div>
-                                                            <pre className="mt-1 text-xs bg-white p-2 rounded-md overflow-x-auto border border-slate-200">
-                                                              {JSON.stringify(
-                                                                func.parameters,
-                                                                null,
-                                                                2,
-                                                              )}
-                                                            </pre>
-                                                          </div>
-                                                        )}
-                                                    </div>
-                                                  ),
-                                                )}
-                                              </div>
-                                            )}
-                                        </div>
-                                      ),
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-
-                            {/* Observation */}
-                            {iteration.summary && (
-                              <div className="space-y-2">
-                                <div className="flex items-center gap-2 text-sm font-medium text-sky-700">
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                    className="w-4 h-4 text-sky-500"
-                                  >
-                                    <path
-                                      fillRule="evenodd"
-                                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z"
-                                      clipRule="evenodd"
-                                    />
-                                  </svg>
-                                  Observation
-                                </div>
-                                <p className="text-sky-600 text-sm pl-6 whitespace-pre-line">
-                                  {iteration.summary}
-                                </p>
-                              </div>
-                            )}
+                  {/* Error Message */}
+                  {validatedContent.error && (
+                    <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-4">
+                      <div className="flex items-start space-x-3">
+                        <div className="flex-shrink-0">
+                          <AlertCircle className="w-5 h-5 text-red-500" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-sm font-medium text-red-800 mb-1">
+                            Es gab ein Problem
+                          </h4>
+                          <p className="text-sm text-red-700">
+                            {validatedContent.error}
+                          </p>
+                          <div className="mt-2 text-xs text-red-600">
+                            Bitte versuche es erneut oder kontaktiere den
+                            Support, wenn das Problem weiterhin besteht.
                           </div>
                         </div>
-                      ),
-                    )}
-                  </div>
-                )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Agent Process */}
+                  {validatedContent.process?.iterationHistory && (
+                    <div className="mt-3">
+                      <button
+                        onClick={() => toggleProcess(idx)}
+                        className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-red-600 bg-white hover:bg-red-50 rounded-lg border border-gray-200 hover:border-red-200 transition-all duration-200 shadow-sm"
+                      >
+                        <ChevronRight
+                          className={`w-4 h-4 transition-transform duration-200 ${showProcess[idx] ? 'rotate-90' : ''}`}
+                        />
+                        <Brain className="w-4 h-4" />
+                        <span className="font-medium">KI-Prozess anzeigen</span>
+                        <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">
+                          {validatedContent.process.iterationHistory.length}{' '}
+                          Iterationen
+                        </span>
+                      </button>
+
+                      {/* Detailed Process View */}
+                      {showProcess[idx] && (
+                        <div className="mt-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200 p-6 shadow-sm">
+                          <div className="mb-4">
+                            <h4 className="font-semibold text-gray-800 flex items-center">
+                              <Target className="w-4 h-4 mr-2 text-blue-600" />
+                              Verarbeitete Anfrage: &ldquo;
+                              {validatedContent.process.question}&rdquo;
+                            </h4>
+                            <p className="text-sm text-gray-600 mt-1">
+                              Maximale Iterationen:{' '}
+                              {validatedContent.process.maxIterations}
+                            </p>
+                          </div>
+
+                          {validatedContent.process.iterationHistory && (
+                            <div className="space-y-4">
+                              {validatedContent.process.iterationHistory.map(
+                                (iteration, index) => (
+                                  <div
+                                    key={index}
+                                    className="bg-white rounded-lg p-4 border border-gray-200"
+                                  >
+                                    <div className="flex items-center justify-between mb-3">
+                                      <div className="flex items-center space-x-2">
+                                        <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                                          {iteration.iteration}
+                                        </div>
+                                        <span className="font-medium text-gray-800">
+                                          Iteration {iteration.iteration}
+                                        </span>
+                                        {iteration.isFinished && (
+                                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                                            Abgeschlossen
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                      <div>
+                                        <h5 className="text-sm font-medium text-gray-700 mb-1">
+                                          Gedankengang:
+                                        </h5>
+                                        <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg whitespace-pre-wrap break-words">
+                                          {iteration.thought}
+                                        </p>
+                                      </div>
+
+                                      {iteration.agentCalls &&
+                                        iteration.agentCalls.length > 0 && (
+                                          <div>
+                                            <h5 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                              <Zap className="w-4 h-4 mr-1" />
+                                              Agent-Aufrufe:
+                                            </h5>
+                                            <div className="space-y-3">
+                                              {Object.entries(
+                                                iteration.agentCalls.reduce(
+                                                  (acc, call) => {
+                                                    if (!acc[call.agentName]) {
+                                                      acc[call.agentName] = [];
+                                                    }
+                                                    acc[call.agentName].push(
+                                                      call,
+                                                    );
+                                                    return acc;
+                                                  },
+                                                  {} as Record<
+                                                    string,
+                                                    typeof iteration.agentCalls
+                                                  >,
+                                                ),
+                                              ).map(([agentName, calls]) => (
+                                                <div
+                                                  key={agentName}
+                                                  className="bg-gradient-to-r from-gray-50 to-blue-50 p-4 rounded-lg border border-blue-100"
+                                                >
+                                                  <div className="flex items-center space-x-2 mb-3">
+                                                    <div className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium">
+                                                      {agentName}
+                                                    </div>
+                                                    <span className="text-xs text-gray-500">
+                                                      {calls.reduce(
+                                                        (total, call) =>
+                                                          total +
+                                                          (call.functionsToCall
+                                                            ?.length || 0),
+                                                        0,
+                                                      )}{' '}
+                                                      Funktionen
+                                                    </span>
+                                                  </div>
+                                                  <div className="space-y-3">
+                                                    {calls.map(
+                                                      (call, callIndex) => (
+                                                        <div key={callIndex}>
+                                                          {call.functionsToCall &&
+                                                            call.functionsToCall.map(
+                                                              (
+                                                                func,
+                                                                funcIdx,
+                                                              ) => (
+                                                                <div
+                                                                  key={funcIdx}
+                                                                  className="mt-3 first:mt-0 bg-white rounded-lg p-3 border border-gray-100"
+                                                                >
+                                                                  <h6 className="text-sm font-medium text-gray-900 mb-1">
+                                                                    {
+                                                                      func.functionName
+                                                                    }
+                                                                  </h6>
+                                                                  <p className="text-xs text-gray-600 mb-2">
+                                                                    {
+                                                                      func.description
+                                                                    }
+                                                                  </p>
+                                                                  {func.parameters &&
+                                                                    Object.keys(
+                                                                      func.parameters,
+                                                                    ).length >
+                                                                      0 && (
+                                                                      <div className="mt-2">
+                                                                        <p className="text-xs font-medium text-gray-700 mb-1">
+                                                                          Parameter:
+                                                                        </p>
+                                                                        <div className="bg-gray-50 p-3 rounded-md border border-gray-100 font-mono">
+                                                                          <JsonDisplay
+                                                                            data={
+                                                                              func.parameters
+                                                                            }
+                                                                          />
+                                                                        </div>
+                                                                      </div>
+                                                                    )}
+                                                                </div>
+                                                              ),
+                                                            )}
+                                                        </div>
+                                                      ),
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
+
+                                      <div>
+                                        <h5 className="text-sm font-medium text-gray-700 mb-1">
+                                          Zusammenfassung:
+                                        </h5>
+                                        <p className="text-sm text-gray-600">
+                                          {iteration.summary}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ),
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           );
         })}
         {loading && (
-          <div className="self-start bg-white text-gray-400 px-4 py-2 rounded-2xl rounded-bl-none max-w-[80%] shadow-sm border border-gray-100">
-            <span className="loading-dots">Thinking</span>
-            <style jsx>{`
-              .loading-dots::after {
-                content: '';
-                animation: dots 1.5s steps(4, end) infinite;
-              }
-              @keyframes dots {
-                0%,
-                20% {
-                  content: '';
-                }
-                40% {
-                  content: '.';
-                }
-                60% {
-                  content: '..';
-                }
-                80%,
-                100% {
-                  content: '...';
-                }
-              }
-            `}</style>
+          <div className="flex justify-start ml-16">
+            <div className="flex items-start space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-700 rounded-xl flex items-center justify-center shadow-md">
+                <Bot className="w-5 h-5 text-white" />
+              </div>
+              <div className="bg-white rounded-2xl px-6 py-4 shadow-sm border border-gray-200 flex items-center space-x-3">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce"></div>
+                  <div
+                    className="w-2 h-2 bg-red-500 rounded-full animate-bounce"
+                    style={{ animationDelay: '0.1s' }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 bg-red-500 rounded-full animate-bounce"
+                    style={{ animationDelay: '0.2s' }}
+                  ></div>
+                </div>
+                <span className="text-gray-700 font-medium">
+                  Verarbeite deine Anfrage...
+                </span>
+              </div>
+            </div>
           </div>
         )}
       </div>

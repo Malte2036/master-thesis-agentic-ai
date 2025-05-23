@@ -19,23 +19,17 @@ export const DEFAULT_SETTINGS: Settings = {
 
 export const EXAMPLE_MESSAGES: ChatMessage[] = [
   {
-    role: 'assistant',
-    content: {
-      friendlyResponse:
-        'Hello! How can I help you with your university tasks today?',
-    },
-  },
-  {
     role: 'user',
     content: {
-      friendlyResponse: 'Show me my upcoming assignments.',
+      friendlyResponse:
+        'Finde die nächste Abgabe in Digital Health und erstelle einen Kalendereintrag für die nächste Abgabe.',
     },
   },
   {
     role: 'assistant',
     content: {
       friendlyResponse:
-        'You have 2 assignments due this week:\n• Math Homework (due Thursday)\n• Design Project (due Friday)',
+        'Ich habe die nächste Abgabe in Digital Health gefunden:\n\n• Projektabgabe: "KI in der Gesundheitsversorgung"\n• Fällig am: 15. Juni 2024\n\nIch habe einen Kalendereintrag für dich erstellt. Du kannst die Details in deinem Kalender überprüfen.',
     },
   },
 ];

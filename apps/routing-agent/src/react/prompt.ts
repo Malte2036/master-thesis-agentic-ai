@@ -1,14 +1,11 @@
 import {
   AgentConfig,
   AgentName,
+  AgentResponse,
   AIGenerateTextOptions,
   RouterProcess,
 } from '@master-thesis-agentic-rag/agent-framework';
-import { AgentResponse } from '@master-thesis-agentic-rag/agent-framework';
-import {
-  ReactActObserveAndSummarizeAgentResponsesResponse,
-  ReactActThinkAndFindActionsResponse,
-} from './types';
+import { ReactActThinkAndFindActionsResponse } from './types';
 
 export class ReActPrompt {
   public static readonly BASE_PROMPTS: string[] = [
@@ -48,21 +45,6 @@ export class ReActPrompt {
    - Do **not** call a function that needs unknown input like \`course_id\` unless it is already available.
    - Do **not** plan multiple steps at once.
    - If multiple known calls are possible in parallel, list them.
-
-✅ Output Format:
-{
-  agentCalls: [
-    {
-      agent: "moodle-agent",
-      function: "find_courses_by_name",
-      functionDescription: "Find course ID for course Digital Health.",
-      parameters: {
-        course_name: "Digital Health"
-      }
-    }
-  ],
-  isFinished: false
-}
 
 🧠 Reason step-by-step and choose **only actions ready to execute now**.
 Avoid assumptions or speculative parameters.
@@ -123,9 +105,9 @@ You can asume, that the recent agent responses are still up-to-date.
 
 ✅ Example summary format:
 Summary:
-- The course "Digital Health" was found with course_id 1392.
+- The course "abc" was found with course_id xy.
 - No assignments were found yet.
-- The next step is to retrieve the assignments for this course using its ID.
+- The next step is to retrieve the assignments for this course using its course_id (including the real course_id here).
 
 ⚠️ Do not:
 - Repeat agent calls already made.

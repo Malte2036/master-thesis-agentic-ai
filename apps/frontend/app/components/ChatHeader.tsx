@@ -1,41 +1,68 @@
+import { Settings, Activity, MessageCircle } from 'lucide-react';
+
 interface ChatHeaderProps {
   onOpenSettings: () => void;
+  router: 'legacy' | 'react';
 }
 
-export function ChatHeader({ onOpenSettings }: ChatHeaderProps) {
+export function ChatHeader({ onOpenSettings, router }: ChatHeaderProps) {
+  const getRouterColor = (type: 'legacy' | 'react') => {
+    switch (type) {
+      case 'react':
+        return 'bg-red-50 border-red-100 text-red-700';
+      case 'legacy':
+        return 'bg-purple-50 border-purple-100 text-purple-700';
+      default:
+        return 'bg-red-50 border-red-100 text-red-700';
+    }
+  };
+
+  const getRouterLabel = (type: 'legacy' | 'react') => {
+    switch (type) {
+      case 'react':
+        return 'ReAct Router';
+      case 'legacy':
+        return 'Legacy Router';
+      default:
+        return 'Unknown Router';
+    }
+  };
+
   return (
-    <header className="px-6 py-4 border-b border-gray-100 bg-white flex justify-between items-center">
-      <div>
-        <h1 className="text-2xl font-bold text-primary">HSD AI Chat</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Chat with your university LLM assistant
-        </p>
+    <header className="bg-white border-b border-gray-200 shadow-sm">
+      <div className="max-w-6xl mx-auto px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-red-600 to-red-700 rounded-xl flex items-center justify-center shadow-lg">
+              <MessageCircle className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900">
+                HSD AI Assistant
+              </h1>
+              <p className="text-sm text-gray-600">
+                Hochschule Düsseldorf • Intelligent Support System
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3">
+            <div
+              className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg border ${getRouterColor(router)}`}
+            >
+              <Activity className="w-4 h-4" />
+              <span className="text-sm font-medium">
+                {getRouterLabel(router)}
+              </span>
+            </div>
+            <button
+              onClick={onOpenSettings}
+              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
       </div>
-      <button
-        onClick={onOpenSettings}
-        className="p-2 text-gray-500 hover:text-primary transition-colors"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-          />
-        </svg>
-      </button>
     </header>
   );
 }
