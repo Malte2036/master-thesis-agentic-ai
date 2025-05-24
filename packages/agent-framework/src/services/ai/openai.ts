@@ -5,7 +5,7 @@ import { AIProvider, AIGenerateTextOptions } from './types';
 
 export class OpenAIProvider implements AIProvider {
   private readonly openai: OpenAI;
-
+  public readonly model: string;
   constructor() {
     const openaiApiKey = process.env['OPENAI_API_KEY'];
     if (!openaiApiKey) {
@@ -15,6 +15,7 @@ export class OpenAIProvider implements AIProvider {
     this.openai = new OpenAI({
       apiKey: openaiApiKey,
     });
+    this.model = 'gpt-4.1-mini';
   }
 
   async generateText<T>(
@@ -23,7 +24,7 @@ export class OpenAIProvider implements AIProvider {
     jsonSchema?: z.ZodSchema,
   ): Promise<T> {
     const response = await this.openai.chat.completions.create({
-      model: 'gpt-4.1-mini',
+      model: this.model,
       // model: 'gpt-4o-mini',
       messages: [
         ...(jsonSchema

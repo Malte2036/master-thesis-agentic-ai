@@ -13,7 +13,7 @@ export function validateApiResponse(response: unknown): ApiResponse {
 }
 
 // Safe validation function that returns null instead of throwing
-export function safeValidateApiResponse(data: unknown) {
+export function safeValidateApiResponse(data: unknown): ApiResponse | null {
   try {
     return apiResponseSchema.parse(data);
   } catch (error) {

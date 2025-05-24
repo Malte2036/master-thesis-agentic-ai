@@ -29,6 +29,7 @@ export type RouterResponse = z.infer<typeof RouterResponseSchema>;
 
 export const RouterResponseFriendlySchema = RouterResponseSchema.extend({
   friendlyResponse: z.string(),
+  ai_model: z.string().optional(),
 });
 
 export type RouterResponseFriendly = z.infer<

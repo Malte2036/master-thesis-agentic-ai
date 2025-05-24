@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { generateSchemaDescription } from '../../utils/schema';
 export class GroqProvider implements AIProvider {
   private readonly groq: Groq;
+  public readonly model: string;
 
   constructor() {
     const groqApiKey = process.env['GROQ_API_KEY'];
@@ -13,6 +14,7 @@ export class GroqProvider implements AIProvider {
     this.groq = new Groq({
       apiKey: groqApiKey,
     });
+    this.model = 'gemma2-9b-it';
   }
 
   async generateText<T>(
@@ -24,7 +26,7 @@ export class GroqProvider implements AIProvider {
       // model: 'llama-3.1-8b-instant',
       // model: 'deepseek-r1-distill-llama-70b',
       // model: 'llama3-70b-8192',
-      model: 'gemma2-9b-it',
+      model: this.model,
       messages: [
         ...(jsonSchema
           ? [

@@ -127,6 +127,11 @@ export function ChatMessages({ messages, loading }: ChatMessagesProps) {
                       <span className="text-sm font-medium text-gray-700">
                         HSD Assistant
                       </span>
+                      {msg.content.ai_model && (
+                        <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
+                          {msg.content.ai_model}
+                        </span>
+                      )}
                       <span className="text-xs text-gray-500">
                         {new Date().toLocaleTimeString([], {
                           hour: '2-digit',
@@ -159,6 +164,11 @@ export function ChatMessages({ messages, loading }: ChatMessagesProps) {
                     <span className="text-sm font-medium text-gray-700">
                       HSD Assistant
                     </span>
+                    {msg.content.ai_model && (
+                      <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
+                        {msg.content.ai_model}
+                      </span>
+                    )}
                     <span className="text-xs text-gray-500">
                       {new Date().toLocaleTimeString([], {
                         hour: '2-digit',

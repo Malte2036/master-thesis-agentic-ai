@@ -6,6 +6,8 @@ export interface AIProvider {
     options?: AIGenerateTextOptions,
     jsonSchema?: z.ZodSchema,
   ): Promise<T>;
+
+  model: string;
 }
 
 export interface AIGenerateTextOptions {

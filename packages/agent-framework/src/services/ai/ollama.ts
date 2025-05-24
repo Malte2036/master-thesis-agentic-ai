@@ -4,7 +4,7 @@ import { AIProvider, AIGenerateTextOptions } from './types';
 
 export class OllamaProvider implements AIProvider {
   private readonly baseUrl: string;
-  private readonly model: string;
+  public readonly model: string;
 
   constructor(options?: { baseUrl?: string; model?: string }) {
     this.baseUrl = options?.baseUrl || 'http://localhost:11434';

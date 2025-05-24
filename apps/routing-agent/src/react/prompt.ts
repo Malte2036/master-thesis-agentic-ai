@@ -60,6 +60,7 @@ export class ReActPrompt {
 - Set isFinished: true in the same step as calling a function.
 - Gather more information than needed to answer the request.
 - Ignore information that is already present in responses.
+- Translate the user's request into a different language.
 
 📋 The available agents and their functions are listed next.`,
       },
