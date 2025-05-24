@@ -139,21 +139,11 @@ export class ReActRouter implements Router {
 
       this.logAgentCalls(agentCalls);
 
-      let agentResponses: CallToolResult[] = [];
-      try {
-        agentResponses = await callMcpAgentsInParallel(
-          agents,
-          agentCalls,
-          maxIterations - currentIteration,
-        );
-      } catch (error) {
-        console.error(error);
-        return {
-          process: routerProcess,
-          error:
-            'Error calling agent functions. Please try rephrasing your question.',
-        };
-      }
+      const agentResponses = await callMcpAgentsInParallel(
+        agents,
+        agentCalls,
+        maxIterations - currentIteration,
+      );
 
       const { summary } = await this.observeAndSummarizeAgentResponses(
         routerProcess.question,

@@ -66,7 +66,7 @@ export class ReActPrompt {
       },
       {
         role: 'system',
-        content: `Available agents and their functions: ${JSON.stringify(
+        content: `Available agents and their functions (you can only call functions of the agents listed here): ${JSON.stringify(
           agentTools,
           null,
           2,

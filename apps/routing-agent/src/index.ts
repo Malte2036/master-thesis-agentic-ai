@@ -1,4 +1,5 @@
 import {
+  OpenAIProvider,
   OllamaProvider,
   ResponseError,
   RouterResponse,
@@ -10,13 +11,12 @@ import express from 'express';
 import { z } from 'zod';
 import { ReActRouter } from './react/router';
 import { Router } from './router';
-import { getAllAgentsMcpClients } from './agents/agent';
 
 const aiProvider = new OllamaProvider({
   baseUrl: 'http://10.50.60.153:11434',
-  // model: 'mixtral:8x7b',
+  model: 'mixtral:8x7b',
   // model: 'llama3:8b',
-  model: 'llama3.1:8b',
+  // model: 'llama3.1:8b',
 });
 // const aiProvider = new OpenAIProvider();
 // const legacyRouter = new LegacyRouter(aiProvider);
@@ -97,12 +97,23 @@ expressApp.post('/ask', async (req, res) => {
     Your task is to now respond to the original user question in a friendly, natural tone—while accurately summarizing what was done and what the current outcome is.
     
     You must:
+    - Answer in the language of the user's question.
+    - Do not include id's, or other internal information, which are not relevant to the user.
     - Directly answer the user's question based on the available results.
     - Summarize the steps taken by the agents in a concise and understandable way.
     - Include any relevant numbers, course names, assignment titles, deadlines, etc., where appropriate.
     - If something failed (e.g. an agent call or calendar entry), explain what happened and suggest what the user could do next.
     - If the goal was achieved, clearly state that and include key results.
     - Keep the answer short, helpful, and user-facing. Do not expose internal logs or tool names.
+
+    Format:
+    - Use markdown formatting for your response.
+    - Use bullet points for lists.
+    - Use bold for important information.
+    - Use italic for emphasis.
+    - Use code blocks for code.
+    - Use links for external resources.
+    - Use tables for structured data.
     
     The agent execution results:
     ${JSON.stringify(results, null, 2)}

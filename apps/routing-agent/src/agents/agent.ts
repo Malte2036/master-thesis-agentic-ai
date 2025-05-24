@@ -26,7 +26,22 @@ export async function callMcpAgentsInParallel(
           `Agent ${agentCall.agent} not found. So we cannot call tool ${agentCall.function}.`,
         );
       }
-      return await client.callTool(agentCall.function, agentCall.args);
+      try {
+        return await client.callTool(agentCall.function, agentCall.args);
+      } catch (error) {
+        console.error(
+          `Error calling tool ${agentCall.function} on agent ${agentCall.agent}:`,
+          error,
+        );
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Error while calling tool ${agentCall.function} on agent ${agentCall.agent}: ${error instanceof Error ? error.message : 'Unknown error occurred'}`,
+            },
+          ],
+        };
+      }
     }),
   );
 }
