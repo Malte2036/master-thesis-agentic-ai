@@ -56,7 +56,10 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: input,
-          ...settings,
+          moodle_token: settings.moodle_token,
+          router: settings.router,
+          max_iterations: settings.max_iterations,
+          model: settings.model,
         }),
       });
 

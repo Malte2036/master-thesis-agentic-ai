@@ -12,21 +12,16 @@ import { z } from 'zod';
 import { ReActRouter } from './react/router';
 import { Router } from './router';
 
-const aiProvider = new OllamaProvider({
-  baseUrl: 'http://10.50.60.153:11434',
-  model: 'mixtral:8x7b',
-  // model: 'llama3:8b',
-  // model: 'llama3.1:8b',
-});
-// const aiProvider = new OpenAIProvider();
-// const legacyRouter = new LegacyRouter(aiProvider);
-const reActRouter = new ReActRouter(aiProvider);
+const getAIProvider = (model: string) => {
+  return new OllamaProvider({
+    baseUrl: 'http://10.50.60.153:11434',
+    model,
+  });
+};
 
-const getRouter = (router?: 'legacy' | 'react'): Router => {
-  // if (router === 'legacy') {
-  //   return legacyRouter;
-  // }
-  return reActRouter;
+const getRouter = (model: string, router?: 'legacy' | 'react'): Router => {
+  const aiProvider = getAIProvider(model);
+  return new ReActRouter(aiProvider);
 };
 
 const FriendlyResponseSchema = z.object({
@@ -43,17 +38,17 @@ expressApp.post('/ask', async (req, res) => {
   try {
     const {
       prompt,
-      moodle_token,
       router,
       max_iterations = 5,
+      model = 'mixtral:8x7b',
     } = req.body as {
       prompt: string;
-      moodle_token: string;
       router?: 'legacy' | 'react';
       max_iterations?: number;
+      model?: string;
     };
 
-    if (!prompt || !moodle_token) {
+    if (!prompt) {
       res.status(400).json({
         error: 'Missing required fields: prompt and moodle_token',
       });
@@ -62,11 +57,11 @@ expressApp.post('/ask', async (req, res) => {
 
     console.log(chalk.cyan('--------------------------------'));
     console.log(chalk.cyan('User question:'), prompt);
+    console.log(chalk.cyan('Using model:'), model);
     console.log(chalk.cyan('--------------------------------'));
 
-    const generator = getRouter(router).routeQuestion(
+    const generator = getRouter(model, router).routeQuestion(
       prompt,
-      moodle_token,
       max_iterations,
     );
 
@@ -77,13 +72,13 @@ expressApp.post('/ask', async (req, res) => {
         results = value;
         break;
       }
-      // console.log(chalk.magenta('Received result:'), value);
     }
 
     results.process?.iterationHistory?.sort(
       (a, b) => a.iteration - b.iteration,
     );
 
+    const aiProvider = getAIProvider(model);
     const friendlyResponse = await aiProvider.generateText<FriendlyResponse>(
       prompt,
       {
@@ -131,7 +126,7 @@ expressApp.post('/ask', async (req, res) => {
 
     res.json({
       friendlyResponse: friendlyResponse.friendlyResponse,
-      ai_model: aiProvider.model,
+      ai_model: model,
       process: results.process,
       error: results.error,
     } satisfies RouterResponseFriendly);

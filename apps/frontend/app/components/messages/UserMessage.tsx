@@ -20,8 +20,8 @@ export function UserMessage({ message, index }: UserMessageProps) {
               })}
             </span>
           </div>
-          <div className="prose prose-sm max-w-none px-5 shadow-sm bg-gradient-to-r from-slate-100 to-slate-200 text-slate-800 rounded-2xl rounded-br-md border border-slate-300">
-            <div className="whitespace-pre-line leading-relaxed font-medium">
+          <div className="prose prose-sm max-w-none p-5 shadow-sm bg-gradient-to-r from-slate-100 to-slate-200 text-slate-800 rounded-2xl rounded-br-md border border-slate-300">
+            <div className="whitespace-pre-line leading-relaxed">
               {message.content.friendlyResponse}
             </div>
           </div>

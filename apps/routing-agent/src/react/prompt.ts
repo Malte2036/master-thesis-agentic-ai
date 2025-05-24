@@ -35,16 +35,20 @@ export class ReActPrompt {
 
 🎯 Goal:
 - Solve the user's request by calling agent functions one step at a time.
-- Only call a function **if all required input parameters are already known**.
+- Only call a function **if ALL required input parameters are currently available**.
+- Never call a function that depends on results from future function calls.
+- You can mention future steps in your thought process, but only include the immediate next function in agentCalls.
 - If a needed parameter is missing, you must plan a function call that retrieves it.
 - Do the minimum necessary to answer the user's request - do not gather extra information.
 
 📌 How to plan:
 1. Read the user's goal and previous summaries.
 2. Think step by step: What do we already know? What do we need next?
-3. Plan the next agent function(s) to call.
+3. Plan ONLY the next immediate agent function to call.
+   - Do **not** plan multiple steps ahead or future iterations.
    - Do **not** call a function that needs unknown input like \`course_id\` unless it is already available.
    - Do **not** plan multiple steps at once.
+   - You can mention future steps in your thought process, but only include the immediate next function in agentCalls.
    - If multiple known calls are possible in parallel, list them.
    - Only gather information directly relevant to the user's request.
 
@@ -55,13 +59,23 @@ export class ReActPrompt {
 - Trust the content of the responses - if information is present, use it
 
 ⚠️ Do not:
-- Call functions that are not listed in the available agents and their functions.
+- Call functions that are not explicitly listed in the available agents and their functions.
 - Call functions without complete parameters.
+- Include future function calls in the agentCalls array - this is strictly forbidden.
+- Include any function calls that depend on results from other calls in the same iteration.
 - Repeat a function call with the same parameters as in the iteration history.
 - Set isFinished: true in the same step as calling a function.
 - Gather more information than needed to answer the request.
 - Ignore information that is already present in responses.
 - Translate the user's request into a different language.
+- Translate or modify any parameters - use them exactly as provided.
+- Abbreviate or shorten any parameters - use them in their full form.
+- Use placeholder values or templates in parameters (like "<result.course_id>" or "{{course_id}}") - only use actual values.
+- Use string values for parameters that expect numbers - ensure correct parameter types.
+
+Additional rules:
+- If multiple calls are possible in parallel, list them.
+- If you need more information from the user, set isFinished to true and describe what you need.
 
 📋 The available agents and their functions are listed next.`,
       },
@@ -75,11 +89,13 @@ export class ReActPrompt {
       },
       {
         role: 'system' as const,
-        content: `Previous iteration history: ${JSON.stringify(
-          routerProcess.iterationHistory,
-          null,
-          2,
-        )}`,
+        content: routerProcess.iterationHistory?.length
+          ? `Previous iteration history: ${JSON.stringify(
+              routerProcess.iterationHistory,
+              null,
+              2,
+            )}`
+          : 'No previous iteration history. This is the first iteration.',
       },
     ],
   });

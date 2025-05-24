@@ -27,7 +27,7 @@ export async function callMcpAgentsInParallel(
         );
       }
       try {
-        return await client.callTool(agentCall.function, agentCall.args);
+        return await client.callTool(agentCall.function, agentCall.args ?? {});
       } catch (error) {
         console.error(
           `Error calling tool ${agentCall.function} on agent ${agentCall.agent}:`,
@@ -49,7 +49,7 @@ export async function callMcpAgentsInParallel(
 export const getAllAgentsMcpClients = async (): Promise<MCPClient[]> => {
   const allAgents = getAgentConfigs(false);
 
-  return Object.entries(allAgents).map(([_, agent]) => {
+  return Object.entries(allAgents).map(([, agent]) => {
     const client = new MCPClient(agent);
     client.connect();
     return client;

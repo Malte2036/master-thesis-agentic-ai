@@ -1,4 +1,5 @@
 import { Settings } from './types';
+import { AVAILABLE_MODELS } from '../lib/constants';
 
 interface SettingsModalProps {
   settings: Settings;
@@ -48,6 +49,27 @@ export function SettingsModal({
             >
               <option value="legacy">Legacy</option>
               <option value="react">ReAct</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Model
+            </label>
+            <select
+              value={settings.model}
+              onChange={(e) =>
+                onUpdateSettings({
+                  ...settings,
+                  model: e.target.value,
+                })
+              }
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {AVAILABLE_MODELS.map((model) => (
+                <option key={model.value} value={model.value}>
+                  {model.label} ({model.size})
+                </option>
+              ))}
             </select>
           </div>
           <div>

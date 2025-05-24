@@ -29,7 +29,6 @@ export class ReActRouter implements Router {
 
   async *routeQuestion(
     question: string,
-    moodle_token: string,
     maxIterations: number,
   ): AsyncGenerator<RouterProcess, RouterResponse, unknown> {
     const agents = await getAllAgentsMcpClients();

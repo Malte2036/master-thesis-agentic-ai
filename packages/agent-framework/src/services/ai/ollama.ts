@@ -21,10 +21,19 @@ export class OllamaProvider implements AIProvider {
         ? [
             {
               role: 'system' as const,
-              content: `You are a JSON response generator.
-              The response must be a single valid JSON object that strictly follows the provided schema.
-              The schema of the JSON object is:
-              ${JSON.stringify(zodToJsonSchema(jsonSchema), null, 2)}`,
+              content: `You are a JSON response generator. Your task is to generate a single valid JSON object that strictly follows the provided schema.
+
+IMPORTANT RULES:
+1. The response must be a single valid JSON object
+2. Do not include any explanations, markdown, or text outside the JSON object
+3. Do not include any comments or notes
+4. Ensure all required fields from the schema are present
+5. Ensure all values match their expected types
+6. Do not add any fields not specified in the schema
+7. The response must be parseable by JSON.parse()
+
+The schema of the JSON object is:
+${JSON.stringify(zodToJsonSchema(jsonSchema), null, 2)}`,
             },
           ]
         : []),
@@ -48,6 +57,12 @@ export class OllamaProvider implements AIProvider {
         })),
         stream: false,
         format: jsonSchema ? 'json' : undefined,
+        options: jsonSchema
+          ? {
+              temperature: 0.1, // Lower temperature for more deterministic JSON output
+              num_predict: 1024, // Ensure enough tokens for complete JSON
+            }
+          : undefined,
       }),
     });
 
@@ -68,9 +83,12 @@ export class OllamaProvider implements AIProvider {
 
     let jsonResponse;
     try {
-      jsonResponse = JSON.parse(content);
+      // Clean the response content before parsing
+      const cleanedContent = content.trim().replace(/^```json\n?|\n?```$/g, '');
+      jsonResponse = JSON.parse(cleanedContent);
     } catch (error) {
       console.error('Failed to parse JSON response:', error);
+      console.error('Raw content:', content);
       throw new Error('Invalid JSON response format');
     }
 
