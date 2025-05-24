@@ -1,8 +1,8 @@
 import {
-  AgentConfig,
-  AgentName,
-  AgentResponse,
   AIGenerateTextOptions,
+  CallToolResult,
+  ListToolsResult,
+  McpAgentCall,
   RouterProcess,
 } from '@master-thesis-agentic-rag/agent-framework';
 import { ReactActThinkAndFindActionsResponse } from './types';
@@ -21,7 +21,7 @@ export class ReActPrompt {
   ];
 
   public static getThinkAndFindActionPrompt = (
-    agents: Record<AgentName, AgentConfig>,
+    agentTools: Record<string, ListToolsResult>,
     routerProcess: RouterProcess,
   ): AIGenerateTextOptions => ({
     messages: [
@@ -31,12 +31,13 @@ export class ReActPrompt {
       })),
       {
         role: 'system' as const,
-        content: `You are a ReAct planning agent. You must carefully plan only the **next agent call(s)** based on available information.
+        content: `You are a task planning agent. You must carefully plan only the **next agent call(s)** based on available information.
 
 🎯 Goal:
 - Solve the user's request by calling agent functions one step at a time.
 - Only call a function **if all required input parameters are already known**.
 - If a needed parameter is missing, you must plan a function call that retrieves it.
+- Do the minimum necessary to answer the user's request - do not gather extra information.
 
 📌 How to plan:
 1. Read the user's goal and previous summaries.
@@ -45,30 +46,35 @@ export class ReActPrompt {
    - Do **not** call a function that needs unknown input like \`course_id\` unless it is already available.
    - Do **not** plan multiple steps at once.
    - If multiple known calls are possible in parallel, list them.
+   - Only gather information directly relevant to the user's request.
 
-🧠 Reason step-by-step and choose **only actions ready to execute now**.
-Avoid assumptions or speculative parameters.
-You can asume, that the recent agent responses are still up-to-date. 
+🧠 Response Processing:
+- If a response contains the requested information and you can answer the user's request, set isFinished: true
+- If a response is empty or doesn't contain the needed information, plan the next step
+- Do not repeat the same function call with the same parameters
+- Trust the content of the responses - if information is present, use it
 
 ⚠️ Do not:
 - Call functions without complete parameters.
-- Repeat a call with the same parameters.
+- Repeat a function call with the same parameters as in the iteration history.
 - Set isFinished: true in the same step as calling a function.
+- Gather more information than needed to answer the request.
+- Ignore information that is already present in responses.
 
 📋 The available agents and their functions are listed next.`,
       },
       {
         role: 'system',
         content: `Available agents and their functions: ${JSON.stringify(
-          agents,
+          agentTools,
           null,
           2,
         )}`,
       },
       {
         role: 'system' as const,
-        content: `Previous summaries: ${JSON.stringify(
-          routerProcess.iterationHistory?.map((iteration) => iteration.summary),
+        content: `Previous iteration history: ${JSON.stringify(
+          routerProcess.iterationHistory,
           null,
           2,
         )}`,
@@ -77,14 +83,19 @@ You can asume, that the recent agent responses are still up-to-date.
   });
 
   public static getObserveAndSummarizeAgentResponsesPrompt = (
-    agentResponses: AgentResponse[],
+    agentCalls: McpAgentCall[],
+    agentResponses: CallToolResult[],
     thinkAndFindResponse?: ReactActThinkAndFindActionsResponse,
   ): AIGenerateTextOptions => {
     const thinkAndFindAndAgentResponses = {
       ...thinkAndFindResponse,
-      agentCalls: thinkAndFindResponse?.agentCalls?.map((agentCall, index) => ({
+      agentCalls: agentCalls.map((agentCall, index) => ({
         ...agentCall,
-        response: JSON.stringify(agentResponses[index].response, null, 2),
+        response: {
+          isError: agentResponses[index].isError ?? false,
+          content: agentResponses[index].content,
+          structuredContent: agentResponses[index].structuredContent,
+        },
       })),
     };
 

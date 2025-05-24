@@ -13,9 +13,9 @@ export function validateApiResponse(response: unknown): ApiResponse {
 }
 
 // Safe validation function that returns null instead of throwing
-export function safeValidateApiResponse(response: unknown): ApiResponse | null {
+export function safeValidateApiResponse(data: unknown) {
   try {
-    return apiResponseSchema.parse(response);
+    return apiResponseSchema.parse(data);
   } catch (error) {
     console.error('Failed to validate API response:', error);
     return null;

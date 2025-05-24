@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AgentCall, AgentCallSchema } from './agent';
+import { McpAgentCall, McpAgentCallSchema } from './agent';
 
 export const RouterProcessSchema = z.object({
   question: z.string(),
@@ -11,7 +11,7 @@ export const RouterProcessSchema = z.object({
         iteration: z.number(),
         thought: z.string(),
         summary: z.string(),
-        agentCalls: z.array(AgentCallSchema).optional(),
+        agentCalls: z.array(McpAgentCallSchema).optional(),
         isFinished: z.boolean(),
       }),
     )
@@ -40,14 +40,20 @@ export const addIterationToRouterProcess = (
   iteration: number,
   thought: string,
   summary: string,
-  agentCalls: AgentCall[],
+  agentCalls: McpAgentCall[],
   isFinished: boolean,
 ): RouterProcess => {
   return {
     ...routerProcess,
     iterationHistory: [
       ...(routerProcess.iterationHistory || []),
-      { iteration, thought, summary, agentCalls, isFinished },
+      {
+        iteration,
+        thought,
+        summary,
+        agentCalls: agentCalls,
+        isFinished,
+      },
     ],
   };
 };

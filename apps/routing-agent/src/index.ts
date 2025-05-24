@@ -1,20 +1,16 @@
 import {
-  createAgentFramework,
-  createResponseError,
-  IAgentRequestHandler,
   OllamaProvider,
-  OpenAIProvider,
   ResponseError,
   RouterResponse,
   RouterResponseFriendly,
 } from '@master-thesis-agentic-rag/agent-framework';
-// import { LegacyRouter } from './legacy/router';
+import chalk from 'chalk';
+import cors from 'cors';
+import express from 'express';
+import { z } from 'zod';
 import { ReActRouter } from './react/router';
 import { Router } from './router';
-import chalk from 'chalk';
-import { z } from 'zod';
-
-const agentFramework = createAgentFramework('routing-agent');
+import { getAllAgentsMcpClients } from './agents/agent';
 
 const aiProvider = new OllamaProvider({
   baseUrl: 'http://10.50.60.153:11434',
@@ -39,14 +35,18 @@ const FriendlyResponseSchema = z.object({
 
 type FriendlyResponse = z.infer<typeof FriendlyResponseSchema>;
 
-const askHandler: IAgentRequestHandler = async (payload, callback) => {
+const expressApp = express();
+expressApp.use(cors());
+expressApp.use(express.json());
+
+expressApp.post('/ask', async (req, res) => {
   try {
     const {
       prompt,
       moodle_token,
       router,
       max_iterations = 5,
-    } = payload.body as {
+    } = req.body as {
       prompt: string;
       moodle_token: string;
       router?: 'legacy' | 'react';
@@ -54,12 +54,9 @@ const askHandler: IAgentRequestHandler = async (payload, callback) => {
     };
 
     if (!prompt || !moodle_token) {
-      callback(
-        createResponseError(
-          'Missing required fields: prompt and moodle_token',
-          400,
-        ),
-      );
+      res.status(400).json({
+        error: 'Missing required fields: prompt and moodle_token',
+      });
       return;
     }
 
@@ -121,8 +118,7 @@ const askHandler: IAgentRequestHandler = async (payload, callback) => {
       friendlyResponse.friendlyResponse,
     );
 
-    // console.log('Results are', results);
-    callback(null, {
+    res.json({
       friendlyResponse: friendlyResponse.friendlyResponse,
       process: results.process,
       error: results.error,
@@ -131,25 +127,20 @@ const askHandler: IAgentRequestHandler = async (payload, callback) => {
     console.error('Error processing question:', error);
     if (error instanceof Error) {
       const responseError = error as ResponseError;
-      if (!responseError.statusCode) {
-        responseError.statusCode = 500;
-      }
-      callback(error);
-    } else {
-      callback(
-        createResponseError(
+      res.status(responseError.statusCode || 500).json({
+        error:
+          responseError.message ||
           'An error occurred while processing your question.',
-          500,
-        ),
-      );
+      });
+    } else {
+      res.status(500).json({
+        error: 'An error occurred while processing your question.',
+      });
     }
   }
-};
-
-agentFramework.registerEndpoint('ask', askHandler);
+});
 
 // Start the server and keep it running
-agentFramework.listen().catch((error) => {
-  console.error('Failed to start server:', error);
-  process.exit(1);
+expressApp.listen(3000, () => {
+  console.log(`Server is running on port 3000`);
 });

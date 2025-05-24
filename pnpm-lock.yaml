@@ -170,6 +170,9 @@ importers:
       '@master-thesis-agentic-rag/agent-framework':
         specifier: workspace:*
         version: link:../../packages/agent-framework
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.12.0
+        version: 1.12.0
       dotenv:
         specifier: ^16.5.0
         version: 16.5.0
@@ -192,6 +195,9 @@ importers:
 
   apps/routing-agent:
     dependencies:
+      cors:
+        specifier: ^2.8.5
+        version: 2.8.5
       express:
         specifier: ^5.1.0
         version: 5.1.0
@@ -220,9 +226,9 @@ importers:
 
   packages/agent-framework:
     dependencies:
-      cors:
-        specifier: ^2.8.5
-        version: 2.8.5
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.12.0
+        version: 1.12.0
       express:
         specifier: ^5.1.0
         version: 5.1.0
@@ -1343,8 +1349,8 @@ packages:
   '@leichtgewicht/ip-codec@2.0.5':
     resolution: {integrity: sha512-Vo+PSpZG2/fmgmiNzYK9qWRh8h/CHrwD0mo1h1DzL4yzHNSfWYujGTYsWGreD000gcgmZ7K4Ys6Tx9TxtsKdDw==}
 
-  '@modelcontextprotocol/sdk@1.11.0':
-    resolution: {integrity: sha512-k/1pb70eD638anoi0e8wUGAlbMJXyvdV4p62Ko+EZ7eBe1xMx8Uhak1R5DgfoofsK5IBBnRwsYGTaLZl+6/+RQ==}
+  '@modelcontextprotocol/sdk@1.12.0':
+    resolution: {integrity: sha512-m//7RlINx1F3sz3KqwY1WWzVgTcYX52HYk4bJ1hkBXV3zccAEth+jRvG8DBRrdaQuRsPAJOx2MH3zaHNCKL7Zg==}
     engines: {node: '>=18'}
 
   '@modern-js/node-bundle-require@2.65.1':
@@ -8218,8 +8224,9 @@ snapshots:
 
   '@leichtgewicht/ip-codec@2.0.5': {}
 
-  '@modelcontextprotocol/sdk@1.11.0':
+  '@modelcontextprotocol/sdk@1.12.0':
     dependencies:
+      ajv: 6.12.6
       content-type: 1.0.5
       cors: 2.8.5
       cross-spawn: 7.0.6
@@ -11409,7 +11416,7 @@ snapshots:
       '@humanfs/node': 0.16.6
       '@humanwhocodes/module-importer': 1.0.1
       '@humanwhocodes/retry': 0.4.2
-      '@modelcontextprotocol/sdk': 1.11.0
+      '@modelcontextprotocol/sdk': 1.12.0
       '@types/estree': 1.0.7
       '@types/json-schema': 7.0.15
       ajv: 6.12.6

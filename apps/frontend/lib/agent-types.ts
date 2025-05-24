@@ -1,20 +1,19 @@
 import { z } from 'zod';
 
-// Copied from packages/agent-framework/src/schemas/agent.ts
-export const AgentCallFunctionSchema = z.object({
-  functionName: z.string(),
-  description: z.string(),
-  parameters: z.record(z.string(), z.unknown()).optional(),
+// MCP Agent Call Types
+export const McpAgentCallSchema = z.object({
+  agent: z.string().describe('The name of the agent to call'),
+  function: z.string().describe('The name of the function to call'),
+  args: z.record(z.string(), z.unknown()),
 });
-export type AgentCallFunction = z.infer<typeof AgentCallFunctionSchema>;
 
-export const AgentCallSchema = z.object({
-  agentName: z.string(),
-  functionsToCall: z.array(AgentCallFunctionSchema).optional(),
+export type McpAgentCall = z.infer<typeof McpAgentCallSchema>;
+
+export const McpAgentCallsSchema = z.object({
+  agentCalls: z.array(McpAgentCallSchema).optional(),
 });
-export type AgentCall = z.infer<typeof AgentCallSchema>;
 
-// Copied from packages/agent-framework/src/schemas/router.ts
+// Router Types
 export const RouterProcessSchema = z.object({
   question: z.string(),
   maxIterations: z.number(),
@@ -25,7 +24,7 @@ export const RouterProcessSchema = z.object({
         iteration: z.number(),
         thought: z.string(),
         summary: z.string(),
-        agentCalls: z.array(AgentCallSchema).optional(),
+        agentCalls: z.array(McpAgentCallSchema).optional(),
         isFinished: z.boolean(),
       }),
     )

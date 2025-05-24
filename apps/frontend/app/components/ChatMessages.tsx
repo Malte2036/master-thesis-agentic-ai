@@ -275,12 +275,10 @@ export function ChatMessages({ messages, loading }: ChatMessagesProps) {
                                               {Object.entries(
                                                 iteration.agentCalls.reduce(
                                                   (acc, call) => {
-                                                    if (!acc[call.agentName]) {
-                                                      acc[call.agentName] = [];
+                                                    if (!acc[call.agent]) {
+                                                      acc[call.agent] = [];
                                                     }
-                                                    acc[call.agentName].push(
-                                                      call,
-                                                    );
+                                                    acc[call.agent].push(call);
                                                     return acc;
                                                   },
                                                   {} as Record<
@@ -298,60 +296,35 @@ export function ChatMessages({ messages, loading }: ChatMessagesProps) {
                                                       {agentName}
                                                     </div>
                                                     <span className="text-xs text-gray-500">
-                                                      {calls.reduce(
-                                                        (total, call) =>
-                                                          total +
-                                                          (call.functionsToCall
-                                                            ?.length || 0),
-                                                        0,
-                                                      )}{' '}
-                                                      Funktionen
+                                                      {calls.length} Funktionen
                                                     </span>
                                                   </div>
                                                   <div className="space-y-3">
                                                     {calls.map(
                                                       (call, callIndex) => (
-                                                        <div key={callIndex}>
-                                                          {call.functionsToCall &&
-                                                            call.functionsToCall.map(
-                                                              (
-                                                                func,
-                                                                funcIdx,
-                                                              ) => (
-                                                                <div
-                                                                  key={funcIdx}
-                                                                  className="mt-3 first:mt-0 bg-white rounded-lg p-3 border border-gray-100"
-                                                                >
-                                                                  <h6 className="text-sm font-medium text-gray-900 mb-1">
-                                                                    {
-                                                                      func.functionName
+                                                        <div
+                                                          key={callIndex}
+                                                          className="mt-3 first:mt-0 bg-white rounded-lg p-3 border border-gray-100"
+                                                        >
+                                                          <h6 className="text-sm font-medium text-gray-900 mb-1">
+                                                            {call.function}
+                                                          </h6>
+                                                          {call.args &&
+                                                            Object.keys(
+                                                              call.args,
+                                                            ).length > 0 && (
+                                                              <div className="mt-2">
+                                                                <p className="text-xs font-medium text-gray-700 mb-1">
+                                                                  Parameter:
+                                                                </p>
+                                                                <div className="bg-gray-50 p-3 rounded-md border border-gray-100 font-mono">
+                                                                  <JsonDisplay
+                                                                    data={
+                                                                      call.args
                                                                     }
-                                                                  </h6>
-                                                                  <p className="text-xs text-gray-600 mb-2">
-                                                                    {
-                                                                      func.description
-                                                                    }
-                                                                  </p>
-                                                                  {func.parameters &&
-                                                                    Object.keys(
-                                                                      func.parameters,
-                                                                    ).length >
-                                                                      0 && (
-                                                                      <div className="mt-2">
-                                                                        <p className="text-xs font-medium text-gray-700 mb-1">
-                                                                          Parameter:
-                                                                        </p>
-                                                                        <div className="bg-gray-50 p-3 rounded-md border border-gray-100 font-mono">
-                                                                          <JsonDisplay
-                                                                            data={
-                                                                              func.parameters
-                                                                            }
-                                                                          />
-                                                                        </div>
-                                                                      </div>
-                                                                    )}
+                                                                  />
                                                                 </div>
-                                                              ),
+                                                              </div>
                                                             )}
                                                         </div>
                                                       ),

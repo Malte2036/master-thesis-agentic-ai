@@ -1,13 +1,20 @@
 import {
   addIterationToRouterProcess,
-  AgentCall,
-  AgentCallFunction,
   AIProvider,
+  CallToolResult,
   getAgentConfigs,
+  ListToolsResult,
+  McpAgentCall,
+  MCPClient,
   RouterResponse,
 } from '@master-thesis-agentic-rag/agent-framework';
 import chalk from 'chalk';
 
+import { RouterProcess } from '@master-thesis-agentic-rag/agent-framework';
+import {
+  callMcpAgentsInParallel,
+  getAllAgentsMcpClients,
+} from '../agents/agent';
 import { Router } from '../router';
 import { ReActPrompt } from './prompt';
 import {
@@ -16,11 +23,6 @@ import {
   ReactActThinkAndFindActionsResponse,
   ReactActThinkAndFindActionsResponseSchema,
 } from './types';
-import { callAgentsInParallel } from '../agents/agent';
-import {
-  AgentResponse,
-  RouterProcess,
-} from '@master-thesis-agentic-rag/agent-framework';
 
 export class ReActRouter implements Router {
   constructor(private readonly aiProvider: AIProvider) {}
@@ -30,17 +32,25 @@ export class ReActRouter implements Router {
     moodle_token: string,
     maxIterations: number,
   ): AsyncGenerator<RouterProcess, RouterResponse, unknown> {
+    const agents = await getAllAgentsMcpClients();
+
     const routerProcess: RouterProcess = {
       question,
       maxIterations,
       iterationHistory: [],
     };
 
-    const generator = this.iterate(routerProcess, moodle_token);
+    const generator = this.iterate(agents, routerProcess);
 
     while (true) {
       const { done, value } = await generator.next();
       if (done) {
+        await Promise.all(
+          agents.map((agent) =>
+            agent.terminateSession().then(() => agent.disconnect()),
+          ),
+        );
+
         return value satisfies RouterResponse;
       }
       yield value satisfies RouterProcess;
@@ -48,8 +58,8 @@ export class ReActRouter implements Router {
   }
 
   async *iterate(
+    agents: MCPClient[],
     routerProcess: RouterProcess,
-    moodle_token: string,
   ): AsyncGenerator<RouterProcess, RouterResponse, unknown> {
     const maxIterations = routerProcess.maxIterations;
     let currentIteration = routerProcess.iterationHistory?.length ?? 0;
@@ -64,8 +74,10 @@ export class ReActRouter implements Router {
       );
       console.log(chalk.magenta('--------------------------------'));
 
-      const thinkAndFindResponse =
-        await this.thinkAndFindActions(routerProcess);
+      const thinkAndFindResponse = await this.thinkAndFindActions(
+        agents,
+        routerProcess,
+      );
       const { agentCalls, isFinished } = thinkAndFindResponse;
 
       console.log(
@@ -114,8 +126,9 @@ export class ReActRouter implements Router {
       if (hasDuplicateCalls) {
         console.log(
           chalk.red(
-            'Detected loop with repeated agent calls. Breaking iteration.',
+            'Detected loop with repeated agent calls. Breaking iteration. Wanted to call:',
           ),
+          JSON.stringify(agentCalls, null, 2),
         );
         return {
           process: routerProcess,
@@ -124,27 +137,28 @@ export class ReActRouter implements Router {
         };
       }
 
-      console.log(chalk.cyan('Agent calls:'));
-      const flattenedCalls = agentCalls.flatMap(
-        (agentCall: AgentCall) =>
-          agentCall.functionsToCall?.map((functionCall: AgentCallFunction) => ({
-            agent: agentCall.agentName,
-            function: functionCall.functionName,
-            functionDescription: functionCall.description,
-            parameters: JSON.stringify(functionCall.parameters, null, 2),
-          })) || [],
-      );
-      console.table(flattenedCalls);
+      this.logAgentCalls(agentCalls);
 
-      const agentResponses = await callAgentsInParallel(
-        [{ agentCalls }],
-        moodle_token,
-        maxIterations - currentIteration,
-      );
+      let agentResponses: CallToolResult[] = [];
+      try {
+        agentResponses = await callMcpAgentsInParallel(
+          agents,
+          agentCalls,
+          maxIterations - currentIteration,
+        );
+      } catch (error) {
+        console.error(error);
+        return {
+          process: routerProcess,
+          error:
+            'Error calling agent functions. Please try rephrasing your question.',
+        };
+      }
 
       const { summary } = await this.observeAndSummarizeAgentResponses(
         routerProcess.question,
-        agentResponses.filter(Boolean) as AgentResponse[],
+        agentCalls,
+        agentResponses,
         thinkAndFindResponse,
       );
 
@@ -173,11 +187,17 @@ export class ReActRouter implements Router {
   }
 
   async thinkAndFindActions(
+    agents: MCPClient[],
     routerProcess: RouterProcess,
   ): Promise<ReactActThinkAndFindActionsResponse> {
-    const agents = getAgentConfigs(false);
+    const agentTools: Record<string, ListToolsResult> = {};
+    for (const agent of agents) {
+      const tools = await agent.listTools();
+      agentTools[agent.name] = tools;
+    }
+
     const systemPrompt = ReActPrompt.getThinkAndFindActionPrompt(
-      agents,
+      agentTools,
       routerProcess,
     );
 
@@ -190,12 +210,14 @@ export class ReActRouter implements Router {
 
   async observeAndSummarizeAgentResponses(
     question: string,
-    agentResponses: AgentResponse[],
+    agentCalls: McpAgentCall[],
+    agentResponses: CallToolResult[],
     thinkAndFindResponse?: ReactActThinkAndFindActionsResponse,
   ): Promise<ReactActObserveAndSummarizeAgentResponsesResponse> {
     console.log(chalk.cyan('Observing and summarizing agent responses'));
 
     const systemPrompt = ReActPrompt.getObserveAndSummarizeAgentResponsesPrompt(
+      agentCalls,
       agentResponses,
       thinkAndFindResponse,
     );
@@ -205,5 +227,17 @@ export class ReActRouter implements Router {
       systemPrompt,
       ReactActObserveAndSummarizeAgentResponsesResponseSchema,
     );
+  }
+
+  private logAgentCalls(agentCalls: McpAgentCall[]) {
+    console.log(chalk.cyan('Agent calls:'));
+    const flattenedCalls = agentCalls.flatMap((agentCall) => [
+      {
+        agent: agentCall.agent,
+        function: agentCall.function,
+        parameters: JSON.stringify(agentCall.args, null, 2),
+      },
+    ]);
+    console.table(flattenedCalls);
   }
 }

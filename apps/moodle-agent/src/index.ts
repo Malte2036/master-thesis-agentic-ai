@@ -1,12 +1,10 @@
-import dotenv from 'dotenv';
-import { MoodleProvider } from './providers/moodleProvider';
-import { RequestData, RequestDataSchema } from './schemas/request/request';
 import {
   createAgentFramework,
-  IAgentRequestHandler,
-  ResponseError,
   createResponseError,
 } from '@master-thesis-agentic-rag/agent-framework';
+import dotenv from 'dotenv';
+import { MoodleProvider } from './providers/moodleProvider';
+import { z } from 'zod';
 
 dotenv.config();
 
@@ -19,67 +17,56 @@ if (!moodleBaseUrl) {
 const moodleProvider = new MoodleProvider(moodleBaseUrl);
 
 const agentFramework = createAgentFramework('moodle-agent');
+const mcpServer = agentFramework.getServer();
 
-const parseRequest = (body: unknown): RequestData => {
-  const parsed = RequestDataSchema.safeParse(body);
-  if (!parsed.success) {
-    console.error('Invalid request data:', parsed.error.flatten());
-    throw createResponseError('Invalid request data', 400);
-  }
-  return parsed.data;
-};
+const moodleToken = process.env.MOODLE_TOKEN;
+if (!moodleToken) {
+  throw new Error('MOODLE_TOKEN is not set');
+}
 
-const coursesHandler: IAgentRequestHandler = async (payload, callback) => {
-  try {
-    const requestData = parseRequest(payload.body);
-    const userInfo = await moodleProvider.getUserInfo(requestData.moodle_token);
+mcpServer.tool(
+  'get_all_courses',
+  'Get all courses that the user is enrolled in.', //Important: Prefer "find_courses_by_name" if you need to get courses by name.',
+  {},
+  async () => {
+    const userInfo = await moodleProvider.getUserInfo(moodleToken);
     if (!userInfo) {
-      callback(createResponseError('User info not found', 400));
-      return;
+      throw createResponseError('User info not found', 400);
     }
 
     const courses = await moodleProvider.getEnrolledCourses(
-      requestData.moodle_token,
+      moodleToken,
       userInfo.userid,
     );
-    callback(null, courses);
-  } catch (error) {
-    if (error instanceof Error) {
-      const responseError = error as ResponseError;
-      if (!responseError.statusCode) {
-        responseError.statusCode = 500;
-      }
-      callback(error);
-    } else {
-      callback(createResponseError('Unknown error occurred', 500));
-    }
-  }
-};
+    return { content: [{ type: 'text', text: JSON.stringify(courses) }] };
+  },
+);
 
-const findCoursesByName: IAgentRequestHandler = async (payload, callback) => {
-  try {
-    const requestData = parseRequest(payload.body);
-    if (!requestData.course_name) {
-      console.error('Course name is required');
-      callback(createResponseError('Course name is required', 400));
-      return;
+mcpServer.tool(
+  'find_courses_by_name',
+  'Find courses by a search query for the course name. If there are multiple courses, return all of them. Important: Prefer this over "courses" if you need to get courses by name.',
+  {
+    course_name: z.string().describe('Name of the course to search for'),
+  },
+  async ({ course_name }) => {
+    console.log(
+      `find_courses_by_name: ${JSON.stringify({ course_name }, null, 2)}`,
+    );
+
+    if (!course_name) {
+      throw createResponseError('Course name is required', 400);
     }
 
     const [searchResponse, enrolledCourses] = await Promise.all([
-      moodleProvider.findCoursesByName(
-        requestData.moodle_token,
-        requestData.course_name,
-      ),
+      moodleProvider.findCoursesByName(moodleToken, course_name),
       (async () => {
-        const userInfo = await moodleProvider.getUserInfo(
-          requestData.moodle_token,
-        );
+        const userInfo = await moodleProvider.getUserInfo(moodleToken);
         if (!userInfo) {
           throw createResponseError('User info not found', 400);
         }
 
         return await moodleProvider.getEnrolledCourses(
-          requestData.moodle_token,
+          moodleToken,
           userInfo.userid,
         );
       })(),
@@ -90,139 +77,79 @@ const findCoursesByName: IAgentRequestHandler = async (payload, callback) => {
     );
 
     if (searchedEnrolledCourses.length === 0) {
-      callback(createResponseError('Course not found', 404));
-      return;
+      throw createResponseError('Course not found', 404);
     }
 
-    callback(null, searchedEnrolledCourses);
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error('Error:', error);
-      const responseError = error as ResponseError;
-      if (!responseError.statusCode) {
-        responseError.statusCode = 500;
-      }
-      callback(error);
-    } else {
-      callback(createResponseError('Unknown error occurred', 500));
-    }
-  }
-};
+    return {
+      content: [
+        { type: 'text', text: JSON.stringify(searchedEnrolledCourses) },
+      ],
+    };
+  },
+);
 
-const courseContentsHandler: IAgentRequestHandler = async (
-  payload,
-  callback,
-) => {
-  try {
-    const requestData = parseRequest(payload.body);
-
-    if (!requestData.course_id) {
-      callback(createResponseError('Course ID is required', 400));
-      return;
+mcpServer.tool(
+  'get_course_contents',
+  'Get contents of a specific course. The course is identified by the course_id parameter. Maybe you need to call find_course_id_by_name first to get the course_id.',
+  {
+    course_id: z.number().describe('ID of the course to get contents for'),
+  },
+  async ({ course_id }) => {
+    if (!course_id) {
+      throw createResponseError('Course ID is required', 400);
     }
 
     const courseContents = await moodleProvider.getCourseContents(
-      requestData.moodle_token,
-      requestData.course_id,
+      moodleToken,
+      course_id,
     );
-    callback(null, courseContents);
-  } catch (error) {
-    if (error instanceof Error) {
-      const responseError = error as ResponseError;
-      if (!responseError.statusCode) {
-        responseError.statusCode = 500;
-      }
-      callback(error);
-    } else {
-      callback(createResponseError('Unknown error occurred', 500));
-    }
-  }
-};
+    return {
+      content: [{ type: 'text', text: JSON.stringify(courseContents) }],
+    };
+  },
+);
 
-const assignmentsHandler: IAgentRequestHandler = async (payload, callback) => {
-  try {
-    const requestData = parseRequest(payload.body);
-    const assignments = await moodleProvider.getAssignments(
-      requestData.moodle_token,
-    );
-    callback(null, assignments);
-  } catch (error) {
-    if (error instanceof Error) {
-      const responseError = error as ResponseError;
-      if (!responseError.statusCode) {
-        responseError.statusCode = 500;
-      }
-      callback(error);
-    } else {
-      callback(createResponseError('Unknown error occurred', 500));
-    }
-  }
-};
+mcpServer.tool(
+  'get_all_assignments_for_all_courses',
+  'Get all assignments the user has access to. Prefer "assignments_for_course" if you need to get assignments for a specific course.',
+  {},
+  async () => {
+    const assignments = await moodleProvider.getAssignments(moodleToken);
+    return { content: [{ type: 'text', text: JSON.stringify(assignments) }] };
+  },
+);
 
-const assignmentsForCourseHandler: IAgentRequestHandler = async (
-  payload,
-  callback,
-) => {
-  try {
-    const requestData = parseRequest(payload.body);
-
-    if (!requestData.course_id) {
-      callback(createResponseError('Course ID is required', 400));
-      return;
+mcpServer.tool(
+  'get_assignments_for_course',
+  'Get all assignments for a specific course. Prefer this over "assignments" if you need to get assignments for a specific course.',
+  {
+    course_id: z.number().describe('ID of the course to get assignments for'),
+  },
+  async ({ course_id }) => {
+    if (!course_id) {
+      throw createResponseError('Course ID is required', 400);
     }
 
     const assignments = await moodleProvider.getAssignmentsForCourse(
-      requestData.moodle_token,
-      requestData.course_id,
+      moodleToken,
+      course_id,
     );
-    callback(null, assignments);
-  } catch (error) {
-    if (error instanceof Error) {
-      const responseError = error as ResponseError;
-      if (!responseError.statusCode) {
-        responseError.statusCode = 500;
-      }
-      callback(error);
-    } else {
-      callback(createResponseError('Unknown error occurred', 500));
-    }
-  }
-};
+    return { content: [{ type: 'text', text: JSON.stringify(assignments) }] };
+  },
+);
 
-const userHandler: IAgentRequestHandler = async (payload, callback) => {
-  try {
-    const requestData = parseRequest(payload.body);
-    const userInfo = await moodleProvider.getUserInfo(requestData.moodle_token);
+mcpServer.tool(
+  'get_user_info',
+  'Get personal information about the user',
+  {},
+  async () => {
+    const userInfo = await moodleProvider.getUserInfo(moodleToken);
     if (!userInfo) {
-      callback(createResponseError('User info not found', 400));
-      return;
+      throw createResponseError('User info not found', 400);
     }
-    callback(null, userInfo);
-  } catch (error) {
-    if (error instanceof Error) {
-      const responseError = error as ResponseError;
-      if (!responseError.statusCode) {
-        responseError.statusCode = 500;
-      }
-      callback(error);
-    } else {
-      callback(createResponseError('Unknown error occurred', 500));
-    }
-  }
-};
-
-agentFramework.registerEndpoint('get_all_courses', coursesHandler);
-agentFramework.registerEndpoint('find_courses_by_name', findCoursesByName);
-agentFramework.registerEndpoint(
-  'get_all_assignments_for_all_courses',
-  assignmentsHandler,
+    return { content: [{ type: 'text', text: JSON.stringify(userInfo) }] };
+  },
 );
-agentFramework.registerEndpoint(
-  'get_assignments_for_course',
-  assignmentsForCourseHandler,
-);
-agentFramework.registerEndpoint('get_course_contents', courseContentsHandler);
-agentFramework.registerEndpoint('get_user_info', userHandler);
 
 // Start the server and keep it running
 agentFramework.listen().catch((error) => {
