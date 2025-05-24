@@ -1,11 +1,16 @@
-import { Settings, Activity, MessageCircle } from 'lucide-react';
+import { Settings, Activity, MessageCircle, Trash2 } from 'lucide-react';
 
 interface ChatHeaderProps {
   onOpenSettings: () => void;
   router: 'legacy' | 'react';
+  onClearChat: () => void;
 }
 
-export function ChatHeader({ onOpenSettings, router }: ChatHeaderProps) {
+export function ChatHeader({
+  onOpenSettings,
+  router,
+  onClearChat,
+}: ChatHeaderProps) {
   const getRouterColor = (type: 'legacy' | 'react') => {
     switch (type) {
       case 'react':
@@ -55,8 +60,16 @@ export function ChatHeader({ onOpenSettings, router }: ChatHeaderProps) {
               </span>
             </div>
             <button
+              onClick={onClearChat}
+              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              title="Clear chat history"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+            <button
               onClick={onOpenSettings}
               className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              title="Settings"
             >
               <Settings className="w-5 h-5" />
             </button>
