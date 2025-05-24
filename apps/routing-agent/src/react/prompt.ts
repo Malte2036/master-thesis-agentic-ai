@@ -55,6 +55,7 @@ export class ReActPrompt {
 - Trust the content of the responses - if information is present, use it
 
 ⚠️ Do not:
+- Call functions that are not listed in the available agents and their functions.
 - Call functions without complete parameters.
 - Repeat a function call with the same parameters as in the iteration history.
 - Set isFinished: true in the same step as calling a function.
@@ -66,7 +67,7 @@ export class ReActPrompt {
       },
       {
         role: 'system',
-        content: `Available agents and their functions (you can only call functions of the agents listed here): ${JSON.stringify(
+        content: `Available agents and their functions: ${JSON.stringify(
           agentTools,
           null,
           2,

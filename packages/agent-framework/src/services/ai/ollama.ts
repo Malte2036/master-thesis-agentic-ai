@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { generateSchemaDescription } from '../../utils/schema';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 import { AIProvider, AIGenerateTextOptions } from './types';
 
 export class OllamaProvider implements AIProvider {
@@ -24,7 +24,7 @@ export class OllamaProvider implements AIProvider {
               content: `You are a JSON response generator.
               The response must be a single valid JSON object that strictly follows the provided schema.
               The schema of the JSON object is:
-              ${generateSchemaDescription(jsonSchema)}`,
+              ${JSON.stringify(zodToJsonSchema(jsonSchema), null, 2)}`,
             },
           ]
         : []),

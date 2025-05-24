@@ -97,7 +97,7 @@ expressApp.post('/ask', async (req, res) => {
     Your task is to now respond to the original user question in a friendly, natural tone—while accurately summarizing what was done and what the current outcome is.
     
     You must:
-    - Answer in the language of the user's question.
+    - Detect the language of the user's original question and answer in the same language.
     - Do not include id's, or other internal information, which are not relevant to the user.
     - Directly answer the user's question based on the available results.
     - Summarize the steps taken by the agents in a concise and understandable way.
