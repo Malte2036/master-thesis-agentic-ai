@@ -1,9 +1,9 @@
 import {
   CallToolResult,
   getAgentConfigs,
-  McpAgentCall,
   MCPClient,
 } from '@master-thesis-agentic-rag/agent-framework';
+import { McpAgentCall } from '@master-thesis-agentic-rag/types';
 
 export async function callMcpAgentsInParallel(
   mcpClients: MCPClient[],

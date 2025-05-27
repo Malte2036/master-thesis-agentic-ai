@@ -20,6 +20,10 @@
     ],
     "paths": {
       "@/*": ["./*"]
+      // "@master-thesis-agentic-rag/types": [
+      //   "../../dist/packages/types/src/index.js"
+      // ],
+      // "@master-thesis-agentic-rag/types/*": ["../../dist/packages/types/src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

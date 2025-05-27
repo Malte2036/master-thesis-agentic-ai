@@ -1,7 +1,7 @@
 import {
   RouterResponse,
   RouterProcess,
-} from '@master-thesis-agentic-rag/agent-framework';
+} from '@master-thesis-agentic-rag/types';
 
 export interface Router {
   routeQuestion(

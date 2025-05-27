@@ -2,9 +2,8 @@ import {
   AIGenerateTextOptions,
   CallToolResult,
   ListToolsResult,
-  McpAgentCall,
-  RouterProcess,
 } from '@master-thesis-agentic-rag/agent-framework';
+import { McpAgentCall, RouterProcess } from '@master-thesis-agentic-rag/types';
 import { ReactActThinkAndFindActionsResponse } from './types';
 
 export class ReActPrompt {

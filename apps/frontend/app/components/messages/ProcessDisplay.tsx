@@ -1,6 +1,6 @@
 import { Brain, ChevronRight, Target, Zap } from 'lucide-react';
 import { JsonDisplay } from '../JsonDisplay';
-import { RouterProcess } from '@/lib/agent-types';
+import { RouterProcess } from '@master-thesis-agentic-rag/types';
 
 interface ProcessDisplayProps {
   process: RouterProcess | undefined;

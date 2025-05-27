@@ -1,4 +1,4 @@
-import { McpAgentCallSchema } from '@master-thesis-agentic-rag/agent-framework';
+import { McpAgentCallSchema } from '@master-thesis-agentic-rag/types';
 import { z } from 'zod';
 
 export const ReactActThinkAndFindActionsResponseSchema = z.object({

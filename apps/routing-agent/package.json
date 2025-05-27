@@ -13,11 +13,12 @@
     "test": "nx test routing-agent"
   },
   "dependencies": {
+    "@master-thesis-agentic-rag/agent-framework": "workspace:*",
+    "@master-thesis-agentic-rag/types": "workspace:*",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "tslib": "^2.3.0",
     "zod": "^3.22.4",
-    "@master-thesis-agentic-rag/agent-framework": "workspace:*",
     "chalk": "^5.4.1"
   },
   "devDependencies": {

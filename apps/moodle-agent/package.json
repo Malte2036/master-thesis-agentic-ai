@@ -15,7 +15,7 @@
   "packageManager": "pnpm@10.5.0",
   "dependencies": {
     "@master-thesis-agentic-rag/agent-framework": "workspace:*",
-    "@modelcontextprotocol/sdk": "^1.12.0",
+    "@master-thesis-agentic-rag/types": "workspace:*",
     "dotenv": "^16.5.0",
     "zod": "^3.22.4"
   },

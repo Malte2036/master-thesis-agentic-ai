@@ -1,4 +1,4 @@
-import { RouterResponseFriendly } from '../../lib/agent-types';
+import { RouterResponseFriendly } from '@master-thesis-agentic-rag/types';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';

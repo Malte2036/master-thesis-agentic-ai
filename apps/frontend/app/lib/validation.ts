@@ -1,6 +1,5 @@
+import { RouterResponseFriendlySchema } from '@master-thesis-agentic-rag/types';
 import { z } from 'zod';
-// import { RouterResponseFriendlySchema } from '@master-thesis-agentic-rag/agent-framework';
-import { RouterResponseFriendlySchema } from '../../lib/agent-types';
 
 // Re-export the schema for use in other files
 export const apiResponseSchema = RouterResponseFriendlySchema;

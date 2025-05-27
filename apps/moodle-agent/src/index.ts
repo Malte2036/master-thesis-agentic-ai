@@ -1,7 +1,5 @@
-import {
-  createAgentFramework,
-  createResponseError,
-} from '@master-thesis-agentic-rag/agent-framework';
+import { createAgentFramework } from '@master-thesis-agentic-rag/agent-framework';
+import { createResponseError } from '@master-thesis-agentic-rag/types';
 import dotenv from 'dotenv';
 import { MoodleProvider } from './providers/moodleProvider';
 import { z } from 'zod';

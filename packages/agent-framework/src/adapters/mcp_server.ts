@@ -2,7 +2,6 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { AgentConfig } from '../config';
 import express, { Request, Response } from 'express';
-import { z } from 'zod';
 
 export class McpServerAgentAdapter {
   private expressApp: express.Application;

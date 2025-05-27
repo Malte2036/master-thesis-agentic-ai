@@ -1,16 +1,17 @@
 import {
   addIterationToRouterProcess,
+  RouterResponse,
+  McpAgentCall,
+  RouterProcess,
+} from '@master-thesis-agentic-rag/types';
+import {
   AIProvider,
   CallToolResult,
-  getAgentConfigs,
   ListToolsResult,
-  McpAgentCall,
   MCPClient,
-  RouterResponse,
 } from '@master-thesis-agentic-rag/agent-framework';
 import chalk from 'chalk';
 
-import { RouterProcess } from '@master-thesis-agentic-rag/agent-framework';
 import {
   callMcpAgentsInParallel,
   getAllAgentsMcpClients,

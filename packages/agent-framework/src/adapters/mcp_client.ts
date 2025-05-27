@@ -15,7 +15,6 @@ import {
   LoggingMessageNotificationSchema,
   ResourceListChangedNotificationSchema,
   CallToolResult,
-  ServerCapabilities,
   ListToolsResult,
 } from '@modelcontextprotocol/sdk/types.js';
 

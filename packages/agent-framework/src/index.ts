@@ -11,13 +11,8 @@ export function createAgentFramework(agentName: AgentName) {
 }
 
 export * from './config';
-export * from './schemas/agent';
-export * from './schemas/request';
 export * from './services';
-export * from './utils/schema';
-export * from './schemas/router';
-export * from './adapters/mcp_client';
-export * from './adapters/mcp_server';
+export * from './adapters';
 
 export {
   CallToolResult,
