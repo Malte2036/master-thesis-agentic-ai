@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "@master-thesis-agentic-rag/frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {

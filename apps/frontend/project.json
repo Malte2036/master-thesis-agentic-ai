@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "@master-thesis-agentic-rag/frontend",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/frontend",
   "projectType": "application",
@@ -22,16 +22,16 @@
       "executor": "@nx/next:server",
       "defaultConfiguration": "development",
       "options": {
-        "buildTarget": "frontend:build",
+        "buildTarget": "@master-thesis-agentic-rag/frontend:build",
         "dev": true
       },
       "configurations": {
         "development": {
-          "buildTarget": "frontend:build:development",
+          "buildTarget": "@master-thesis-agentic-rag/frontend:build:development",
           "dev": true
         },
         "production": {
-          "buildTarget": "frontend:build:production",
+          "buildTarget": "@master-thesis-agentic-rag/frontend:build:production",
           "dev": false
         }
       }
