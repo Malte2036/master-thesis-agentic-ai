@@ -1,6 +1,8 @@
 # Copyright Broadcom, Inc. All Rights Reserved.
 # SPDX-License-Identifier: APACHE-2.0
 
+version: '3.8'
+
 services:
   # MariaDB for Moodle
   mariadb:
@@ -13,13 +15,13 @@ services:
       - MARIADB_CHARACTER_SET=utf8mb4
       - MARIADB_COLLATE=utf8mb4_unicode_ci
     volumes:
-      - "./docker_data/moodle/mariadb_data:/bitnami/mariadb"
+      - './docker_data/moodle/mariadb_data:/bitnami/mariadb'
   # Moodle
   moodle:
     image: docker.io/bitnami/moodle:5.0
     ports:
-      - "8080:8080"
-      - "8443:8443"
+      - '8080:8080'
+      - '8443:8443'
     environment:
       - MOODLE_DATABASE_HOST=mariadb
       - MOODLE_DATABASE_PORT_NUMBER=3306
@@ -28,7 +30,37 @@ services:
       # ALLOW_EMPTY_PASSWORD is recommended only for development.
       - ALLOW_EMPTY_PASSWORD=yes
     volumes:
-      - "./docker_data/moodle/moodle_app_data:/bitnami/moodle"
-      - "./docker_data/moodle/moodle_content_data:/bitnami/moodledata"
+      - './docker_data/moodle/moodle_app_data:/bitnami/moodle'
+      - './docker_data/moodle/moodle_content_data:/bitnami/moodledata'
     depends_on:
       - mariadb
+  # MongoDB
+  mongo:
+    image: mongo:6.0
+    container_name: test-mongo
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: testuser
+      MONGO_INITDB_ROOT_PASSWORD: testpass
+      MONGO_INITDB_DATABASE: testdb
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'mongo',
+          '--username',
+          'testuser',
+          '--password',
+          'testpass',
+          '--eval',
+          "db.adminCommand('ping')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo-data:

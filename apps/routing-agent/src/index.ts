@@ -13,6 +13,8 @@ import express from 'express';
 import { z } from 'zod';
 import { ReActRouter } from './react/router';
 import { Router } from './router';
+import { MongoDBService } from './services/mongodb.service';
+import { ObjectId } from 'mongodb';
 
 const getAIProvider = (model: string) => {
   return new OllamaProvider({
@@ -32,39 +34,78 @@ const FriendlyResponseSchema = z.object({
 
 type FriendlyResponse = z.infer<typeof FriendlyResponseSchema>;
 
+const RequestBodySchema = z.object({
+  prompt: z.string(),
+  router: z.enum(['legacy', 'react']).optional().default('react'),
+  max_iterations: z.number().optional().default(5),
+  model: z.string().optional().default('mixtral:8x7b'),
+});
+type RequestBody = z.infer<typeof RequestBodySchema>;
+
 const expressApp = express();
 expressApp.use(cors());
 expressApp.use(express.json());
 
 expressApp.post('/ask', async (req, res) => {
+  let body: RequestBody;
   try {
-    const {
-      prompt,
-      router,
-      max_iterations = 5,
-      model = 'mixtral:8x7b',
-    } = req.body as {
-      prompt: string;
-      router?: 'legacy' | 'react';
-      max_iterations?: number;
-      model?: string;
-    };
+    const parsed = RequestBodySchema.safeParse(req.body);
 
-    if (!prompt) {
+    if (!parsed.success) {
       res.status(400).json({
-        error: 'Missing required fields: prompt and moodle_token',
+        error: 'Missing required fields in request body',
       });
       return;
     }
 
-    console.log(chalk.cyan('--------------------------------'));
-    console.log(chalk.cyan('User question:'), prompt);
-    console.log(chalk.cyan('Using model:'), model);
-    console.log(chalk.cyan('--------------------------------'));
+    body = parsed.data;
+  } catch (error) {
+    console.error('Error parsing request body:', error);
+    res.status(400).json({
+      error: 'Invalid request body',
+    });
+    return;
+  }
 
-    const generator = getRouter(model, router).routeQuestion(
-      prompt,
-      max_iterations,
+  console.log(chalk.cyan('--------------------------------'));
+  console.log(chalk.cyan('User question:'), body.prompt);
+  console.log(chalk.cyan('Using model:'), body.model);
+  console.log(chalk.cyan('Using router:'), body.router);
+  console.log(chalk.cyan('Using max iterations:'), body.max_iterations);
+  console.log(chalk.cyan('--------------------------------'));
+
+  const routerResponseFriendly: RouterResponseFriendly = {
+    friendlyResponse: '',
+    process: {
+      question: body.prompt,
+      maxIterations: body.max_iterations,
+      iterationHistory: [],
+    },
+    ai_model: body.model,
+    error: undefined,
+  };
+
+  let database: MongoDBService;
+  let databaseItemId: ObjectId;
+  try {
+    database = MongoDBService.getInstance();
+    await database.connect();
+    const { insertedId } = await database.createRouterResponseFriendly(
+      routerResponseFriendly,
+    );
+    databaseItemId = insertedId;
+  } catch (error) {
+    console.error('Error connecting to database:', error);
+    res.status(500).json({
+      error: 'An error occurred while connecting to the database.',
+    });
+    return;
+  }
+
+  try {
+    const generator = getRouter(body.model, body.router).routeQuestion(
+      body.prompt,
+      body.max_iterations,
     );
 
     let results: RouterResponse;
@@ -74,15 +115,29 @@ expressApp.post('/ask', async (req, res) => {
         results = value;
         break;
       }
+
+      routerResponseFriendly.process = value;
+      await database.updateRouterResponseFriendly(
+        databaseItemId,
+        routerResponseFriendly,
+      );
     }
 
     results.process?.iterationHistory?.sort(
       (a, b) => a.iteration - b.iteration,
     );
 
-    const aiProvider = getAIProvider(model);
+    routerResponseFriendly.process = results.process;
+    routerResponseFriendly.error = results.error;
+
+    await database.updateRouterResponseFriendly(
+      databaseItemId,
+      routerResponseFriendly,
+    );
+
+    const aiProvider = getAIProvider(body.model);
     const friendlyResponse = await aiProvider.generateText<FriendlyResponse>(
-      prompt,
+      body.prompt,
       {
         messages: [
           {
@@ -98,7 +153,7 @@ expressApp.post('/ask', async (req, res) => {
     - Do not include id's, or other internal information, which are not relevant to the user.
     - Directly answer the user's question based on the available results.
     - Summarize the steps taken by the agents in a concise and understandable way.
-    - Include any relevant numbers, course names, assignment titles, deadlines, etc., where appropriate.
+    - Include any relevant numbers, course names, assignment titles, deadlines, etc., where appropriate. Do not make up any information.
     - If something failed (e.g. an agent call or calendar entry), explain what happened and suggest what the user could do next.
     - If the goal was achieved, clearly state that and include key results.
     - Keep the answer short, helpful, and user-facing. Do not expose internal logs or tool names.
@@ -125,15 +180,26 @@ expressApp.post('/ask', async (req, res) => {
       chalk.green('Friendly response:'),
       friendlyResponse.friendlyResponse,
     );
+    routerResponseFriendly.friendlyResponse = friendlyResponse.friendlyResponse;
 
-    res.json({
-      friendlyResponse: friendlyResponse.friendlyResponse,
-      ai_model: model,
-      process: results.process,
-      error: results.error,
-    } satisfies RouterResponseFriendly);
+    await database.updateRouterResponseFriendly(
+      databaseItemId,
+      routerResponseFriendly,
+    );
+
+    res.json(routerResponseFriendly);
   } catch (error) {
     console.error('Error processing question:', error);
+    routerResponseFriendly.error =
+      error instanceof Error
+        ? error.message
+        : 'An error occurred while processing your question.';
+
+    await database.updateRouterResponseFriendly(
+      databaseItemId,
+      routerResponseFriendly,
+    );
+
     if (error instanceof Error) {
       const responseError = error as ResponseError;
       res.status(responseError.statusCode || 500).json({
