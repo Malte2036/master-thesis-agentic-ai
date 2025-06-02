@@ -104,7 +104,6 @@ export class MCPClient {
   async listTools(): Promise<ListToolsResult> {
     const toolsRequest: ListToolsRequest = {
       method: 'tools/list',
-      params: {},
     };
     return this.client.request(toolsRequest, ListToolsResultSchema);
   }

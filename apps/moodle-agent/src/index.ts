@@ -2,7 +2,7 @@ import { createAgentFramework } from '@master-thesis-agentic-rag/agent-framework
 import { createResponseError } from '@master-thesis-agentic-rag/types';
 import dotenv from 'dotenv';
 import { MoodleProvider } from './providers/moodleProvider';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 dotenv.config();
 
@@ -21,6 +21,8 @@ const moodleToken = process.env.MOODLE_TOKEN;
 if (!moodleToken) {
   throw new Error('MOODLE_TOKEN is not set');
 }
+
+console.log('moodleToken', moodleToken);
 
 mcpServer.tool(
   'get_all_courses',
@@ -124,6 +126,10 @@ mcpServer.tool(
     course_id: z.number().describe('ID of the course to get assignments for'),
   },
   async ({ course_id }) => {
+    console.log(
+      `get_assignments_for_course: ${JSON.stringify({ course_id }, null, 2)}`,
+    );
+
     if (!course_id) {
       throw createResponseError('Course ID is required', 400);
     }

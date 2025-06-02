@@ -1,15 +1,15 @@
 import {
-  addIterationToRouterProcess,
-  RouterResponse,
-  McpAgentCall,
-  RouterProcess,
-} from '@master-thesis-agentic-rag/types';
-import {
   AIProvider,
   CallToolResult,
   ListToolsResult,
   MCPClient,
 } from '@master-thesis-agentic-rag/agent-framework';
+import {
+  addIterationToRouterProcess,
+  McpAgentCall,
+  RouterProcess,
+  RouterResponse,
+} from '@master-thesis-agentic-rag/types';
 import chalk from 'chalk';
 
 import {
@@ -19,29 +19,28 @@ import {
 import { Router } from '../router';
 import { ReActPrompt } from './prompt';
 import {
-  ReactActObserveAndSummarizeAgentResponsesResponse,
-  ReactActObserveAndSummarizeAgentResponsesResponseSchema,
   ReactActThinkAndFindActionsResponse,
-  ReactActThinkAndFindActionsResponseSchema,
+  StrukturedThoughtResponse,
+  StrukturedThoughtResponseSchema,
 } from './types';
 
 export class ReActRouter implements Router {
-  constructor(private readonly aiProvider: AIProvider) {}
+  constructor(
+    private readonly aiProvider: AIProvider,
+    private readonly structuredAiProvider: AIProvider,
+  ) {}
 
   async *routeQuestion(
     question: string,
     maxIterations: number,
   ): AsyncGenerator<RouterProcess, RouterResponse, unknown> {
     const agents = await getAllAgentsMcpClients();
-
     const routerProcess: RouterProcess = {
       question,
       maxIterations,
       iterationHistory: [],
     };
-
     const generator = this.iterate(agents, routerProcess);
-
     while (true) {
       const { done, value } = await generator.next();
       if (done) {
@@ -50,7 +49,6 @@ export class ReActRouter implements Router {
             agent.terminateSession().then(() => agent.disconnect()),
           ),
         );
-
         return value satisfies RouterResponse;
       }
       yield value satisfies RouterProcess;
@@ -79,11 +77,6 @@ export class ReActRouter implements Router {
         routerProcess,
       );
       const { agentCalls, isFinished } = thinkAndFindResponse;
-
-      console.log(
-        chalk.magenta('Thought process:'),
-        chalk.yellow(thinkAndFindResponse.thought),
-      );
 
       if (isFinished) {
         console.log(chalk.magenta('Finished'));
@@ -145,7 +138,7 @@ export class ReActRouter implements Router {
         maxIterations - currentIteration,
       );
 
-      const { summary } = await this.observeAndSummarizeAgentResponses(
+      const summary = await this.observeAndSummarizeAgentResponses(
         routerProcess.question,
         agentCalls,
         agentResponses,
@@ -186,24 +179,79 @@ export class ReActRouter implements Router {
       agentTools[agent.name] = tools;
     }
 
+    const responseString = await this.getNaturalLanguageThought(
+      agents,
+      routerProcess,
+    );
+
+    const structuredResponse = await this.getStructuredThought(
+      responseString,
+      agentTools,
+    );
+
+    return {
+      thought: responseString,
+      agentCalls: structuredResponse.agentCalls,
+      isFinished: structuredResponse.isFinished,
+    };
+  }
+
+  async getNaturalLanguageThought(
+    agents: MCPClient[],
+    routerProcess: RouterProcess,
+  ): Promise<string> {
+    const agentTools: Record<string, ListToolsResult> = {};
+    for (const agent of agents) {
+      const tools = await agent.listTools();
+      agentTools[agent.name] = tools;
+    }
+
     const systemPrompt = ReActPrompt.getThinkAndFindActionPrompt(
       agentTools,
       routerProcess,
     );
 
-    return await this.aiProvider.generateText<ReactActThinkAndFindActionsResponse>(
+    console.log(chalk.magenta('Generating natural language thought...'));
+
+    const responseString = await this.aiProvider.generateText?.(
       routerProcess.question,
       systemPrompt,
-      ReactActThinkAndFindActionsResponseSchema,
     );
+
+    if (!responseString) {
+      throw new Error('No response from AI provider');
+    }
+
+    console.log(chalk.magenta('Natural language thought:'), responseString);
+
+    return responseString;
+  }
+
+  async getStructuredThought(
+    responseString: string,
+    agentTools: Record<string, ListToolsResult>,
+  ): Promise<StrukturedThoughtResponse> {
+    console.log(chalk.magenta('Generating structured thought...'));
+    const structuredSystemPrompt =
+      ReActPrompt.getThinkAndFindActionToToolCallPrompt(agentTools);
+
+    const structuredResponse =
+      await this.structuredAiProvider.generateJson<StrukturedThoughtResponse>(
+        responseString,
+        structuredSystemPrompt,
+        StrukturedThoughtResponseSchema,
+      );
+
+    console.log(chalk.magenta('Structured thought:'), structuredResponse);
+    return structuredResponse;
   }
 
   async observeAndSummarizeAgentResponses(
     question: string,
     agentCalls: McpAgentCall[],
     agentResponses: CallToolResult[],
-    thinkAndFindResponse?: ReactActThinkAndFindActionsResponse,
-  ): Promise<ReactActObserveAndSummarizeAgentResponsesResponse> {
+    thinkAndFindResponse?: StrukturedThoughtResponse,
+  ): Promise<string> {
     console.log(chalk.cyan('Observing and summarizing agent responses'));
 
     const systemPrompt = ReActPrompt.getObserveAndSummarizeAgentResponsesPrompt(
@@ -212,11 +260,16 @@ export class ReActRouter implements Router {
       thinkAndFindResponse,
     );
 
-    return await this.aiProvider.generateText<ReactActObserveAndSummarizeAgentResponsesResponse>(
+    const response = await this.aiProvider.generateText?.(
       question,
       systemPrompt,
-      ReactActObserveAndSummarizeAgentResponsesResponseSchema,
     );
+
+    if (!response) {
+      throw new Error('No response from AI provider');
+    }
+
+    return response;
   }
 
   private logAgentCalls(agentCalls: McpAgentCall[]) {

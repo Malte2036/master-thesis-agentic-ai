@@ -1,8 +1,7 @@
 import { McpAgentCallSchema } from '@master-thesis-agentic-rag/types';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
-export const ReactActThinkAndFindActionsResponseSchema = z.object({
-  thought: z.string().describe('The thought process of the agent.'),
+export const StrukturedThoughtResponseSchema = z.object({
   agentCalls: z
     .array(McpAgentCallSchema)
     .describe(
@@ -14,16 +13,15 @@ export const ReactActThinkAndFindActionsResponseSchema = z.object({
     .default(false),
 });
 
-export type ReactActThinkAndFindActionsResponse = z.infer<
-  typeof ReactActThinkAndFindActionsResponseSchema
+export type StrukturedThoughtResponse = z.infer<
+  typeof StrukturedThoughtResponseSchema
 >;
 
-export const ReactActObserveAndSummarizeAgentResponsesResponseSchema = z.object(
-  {
-    summary: z.string(),
-  },
-);
+export const ReactActThinkAndFindActionsResponseSchema =
+  StrukturedThoughtResponseSchema.extend({
+    thought: z.string().describe('The thought process of the agent.'),
+  });
 
-export type ReactActObserveAndSummarizeAgentResponsesResponse = z.infer<
-  typeof ReactActObserveAndSummarizeAgentResponsesResponseSchema
+export type ReactActThinkAndFindActionsResponse = z.infer<
+  typeof ReactActThinkAndFindActionsResponseSchema
 >;

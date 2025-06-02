@@ -3,8 +3,13 @@ import {
   CallToolResult,
   ListToolsResult,
 } from '@master-thesis-agentic-rag/agent-framework';
-import { McpAgentCall, RouterProcess } from '@master-thesis-agentic-rag/types';
-import { ReactActThinkAndFindActionsResponse } from './types';
+import {
+  McpAgentCall,
+  McpAgentCallsSchema,
+  RouterProcess,
+} from '@master-thesis-agentic-rag/types';
+import { StrukturedThoughtResponse } from './types';
+import z from 'zod/v4';
 
 export class ReActPrompt {
   public static readonly BASE_PROMPTS: string[] = [
@@ -16,7 +21,12 @@ export class ReActPrompt {
       hour: '2-digit',
       minute: '2-digit',
       timeZoneName: 'short',
-    })}`,
+    })}
+    
+    Important rules: 
+    - Speak in the first person. Speak professionally.
+    - Do everything in english.
+    `,
   ];
 
   public static getThinkAndFindActionPrompt = (
@@ -36,51 +46,71 @@ export class ReActPrompt {
 - Solve the user's request by calling agent functions one step at a time.
 - Only call a function **if ALL required input parameters are currently available**.
 - Never call a function that depends on results from future function calls.
-- You can mention future steps in your thought process, but only include the immediate next function in agentCalls.
 - If a needed parameter is missing, you must plan a function call that retrieves it.
-- Do the minimum necessary to answer the user's request - do not gather extra information.
 
 📌 How to plan:
-1. Read the user's goal and previous summaries.
+1. Read the user's goal and the previous iteration history. We do not want to repeat the same calls.
 2. Think step by step: What do we already know? What do we need next?
-3. Plan ONLY the next immediate agent function to call.
+3. IMPORTANT: Plan ONLY the next immediate agent function to call.
    - Do **not** plan multiple steps ahead or future iterations.
    - Do **not** call a function that needs unknown input like \`course_id\` unless it is already available.
    - Do **not** plan multiple steps at once.
-   - You can mention future steps in your thought process, but only include the immediate next function in agentCalls.
    - If multiple known calls are possible in parallel, list them.
    - Only gather information directly relevant to the user's request.
 
 🧠 Response Processing:
-- If a response contains the requested information and you can answer the user's request, set isFinished: true
-- If a response is empty or doesn't contain the needed information, plan the next step
+- If a response contains the requested information and you can answer the user's request, say that you have finished.
+- If a response is empty or doesn't contain the needed information, plan the next step.
 - Do not repeat the same function call with the same parameters
 - Trust the content of the responses - if information is present, use it
+- We do only have the information that I gave you.
+
+🔍 Do: 
+- Ensure correct parameter types.
+- Include every parameter in your response, which is needed to answer the user's request or call the next function(s).
+- Include the agent name in your response.
+- Include your full and detailed thought process in your response.
 
 ⚠️ Do not:
 - Call functions that are not explicitly listed in the available agents and their functions.
 - Call functions without complete parameters.
-- Include future function calls in the agentCalls array - this is strictly forbidden.
 - Include any function calls that depend on results from other calls in the same iteration.
 - Repeat a function call with the same parameters as in the iteration history.
-- Set isFinished: true in the same step as calling a function.
 - Gather more information than needed to answer the request.
 - Ignore information that is already present in responses.
-- Translate the user's request into a different language.
 - Translate or modify any parameters - use them exactly as provided.
 - Abbreviate or shorten any parameters - use them in their full form.
 - Use placeholder values or templates in parameters (like "<result.course_id>" or "{{course_id}}") - only use actual values.
-- Use string values for parameters that expect numbers - ensure correct parameter types.
+
 
 Additional rules:
 - If multiple calls are possible in parallel, list them.
-- If you need more information from the user, set isFinished to true and describe what you need.
+- If you need more information from the user, describe what you need.
 
-📋 The available agents and their functions are listed next.`,
+📚 While planing your next step, consider the following iteration history. This is the history of the previous iterations you did before to solve the user's request: ${JSON.stringify(
+          routerProcess.iterationHistory,
+          null,
+          2,
+        )}
+
+📋 The available agents and their functions are listed next: ${JSON.stringify(
+          agentTools,
+          null,
+          2,
+        )}
+        
+`,
       },
+    ],
+  });
+
+  public static getThinkAndFindActionToToolCallPrompt = (
+    agentTools: Record<string, ListToolsResult>,
+  ): AIGenerateTextOptions => ({
+    messages: [
       {
-        role: 'system',
-        content: `Available agents and their functions: ${JSON.stringify(
+        role: 'system' as const,
+        content: `We have the following possible agents and their functions: ${JSON.stringify(
           agentTools,
           null,
           2,
@@ -88,13 +118,8 @@ Additional rules:
       },
       {
         role: 'system' as const,
-        content: routerProcess.iterationHistory?.length
-          ? `Previous iteration history: ${JSON.stringify(
-              routerProcess.iterationHistory,
-              null,
-              2,
-            )}`
-          : 'No previous iteration history. This is the first iteration.',
+        content: `You are a helpful assistant that understands and translates text to JSON format according to the following schema (ensure correct parameter types): 
+        ${JSON.stringify(z.toJSONSchema(McpAgentCallsSchema), null, 2)}`,
       },
     ],
   });
@@ -102,7 +127,7 @@ Additional rules:
   public static getObserveAndSummarizeAgentResponsesPrompt = (
     agentCalls: McpAgentCall[],
     agentResponses: CallToolResult[],
-    thinkAndFindResponse?: ReactActThinkAndFindActionsResponse,
+    thinkAndFindResponse?: StrukturedThoughtResponse,
   ): AIGenerateTextOptions => {
     const thinkAndFindAndAgentResponses = {
       ...thinkAndFindResponse,
@@ -128,19 +153,17 @@ Additional rules:
 
 📌 Your goal:
 - Extract useful facts, values, IDs, and other actionable information.
-- Present them in a structured way so the next action can be planned efficiently.
-- Highlight new data that unlocks further agent function calls.
+- Just observe the agent responses and do not make any assumptions.
 
 ✅ Example summary format:
 Summary:
 - The course "abc" was found with course_id xy.
 - No assignments were found yet.
-- The next step is to retrieve the assignments for this course using its course_id (including the real course_id here).
+- The assignment "xyz" is due on 2025-06-01 and has the id 123.
 
-⚠️ Do not:
-- Repeat agent calls already made.
-- Include uncertain or inferred data not in the response.
-- Recommend actions that lack sufficient input data.
+Do: 
+- Include every information from the agent responses in your summary, which may be relevant to the user's request or the next steps.
+
 
 📋 Agent responses and earlier plan are shown next.`,
         },

@@ -1,7 +1,6 @@
 import { AIProvider, AIGenerateTextOptions } from './types';
 import Groq from 'groq-sdk';
-import { z } from 'zod';
-import { generateSchemaDescription } from '../../utils/schema';
+import { z } from 'zod/v4';
 export class GroqProvider implements AIProvider {
   private readonly groq: Groq;
   public readonly model: string;
@@ -17,7 +16,7 @@ export class GroqProvider implements AIProvider {
     this.model = 'gemma2-9b-it';
   }
 
-  async generateText<T>(
+  async generateJson<T>(
     prompt: string,
     options?: AIGenerateTextOptions,
     jsonSchema?: z.ZodSchema,
@@ -35,7 +34,7 @@ export class GroqProvider implements AIProvider {
                 content: `You are a JSON response generator. 
                 The response must be a single valid JSON object that strictly follows the provided schema.
                 The schema of the JSON object is:
-                ${generateSchemaDescription(jsonSchema)}`,
+                ${JSON.stringify(z.toJSONSchema(jsonSchema), null, 2)}`,
               },
             ]
           : []),
@@ -76,6 +75,6 @@ export class GroqProvider implements AIProvider {
       throw new Error('Invalid JSON response');
     }
 
-    return parsedResponse.data;
+    return parsedResponse.data as T;
   }
 }

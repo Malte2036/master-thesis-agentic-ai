@@ -21,6 +21,24 @@
         "buildTarget": "@master-thesis-agentic-rag/routing-agent:build",
         "watch": true
       }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/routing-agent/jest.config.ts",
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "codeCoverage": true
+        },
+        "no-cache": {
+          "cache": false,
+          "args": ["--clearCache"]
+        }
+      }
     }
   }
 }

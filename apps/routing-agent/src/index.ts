@@ -10,22 +10,32 @@ import {
 import chalk from 'chalk';
 import cors from 'cors';
 import express from 'express';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { ReActRouter } from './react/router';
 import { Router } from './router';
 import { MongoDBService } from './services/mongodb.service';
 import { ObjectId } from 'mongodb';
 
+const OllamaBaseUrl = 'http://10.50.60.153:11434';
+
 const getAIProvider = (model: string) => {
   return new OllamaProvider({
-    baseUrl: 'http://10.50.60.153:11434',
+    baseUrl: OllamaBaseUrl,
     model,
   });
 };
 
+// const getStructuredAIProvider = (model: string) => {
+//   return new OllamaProvider({
+//     baseUrl: 'http://localhost:11434',
+//     model: 'Osmosis/Osmosis-Structure-0.6B:latest',
+//   });
+// };
+
 const getRouter = (model: string, router?: 'legacy' | 'react'): Router => {
   const aiProvider = getAIProvider(model);
-  return new ReActRouter(aiProvider);
+  const structuredAiProvider = aiProvider; //getStructuredAIProvider(model);
+  return new ReActRouter(aiProvider, structuredAiProvider);
 };
 
 const FriendlyResponseSchema = z.object({
@@ -88,12 +98,18 @@ expressApp.post('/ask', async (req, res) => {
   let database: MongoDBService;
   let databaseItemId: ObjectId;
   try {
+    console.log(chalk.magenta('Connecting to database:'));
     database = MongoDBService.getInstance();
     await database.connect();
+    console.log(chalk.magenta('Creating router response friendly:'));
     const { insertedId } = await database.createRouterResponseFriendly(
       routerResponseFriendly,
     );
     databaseItemId = insertedId;
+    console.log(
+      chalk.magenta('Router response friendly created:'),
+      databaseItemId,
+    );
   } catch (error) {
     console.error('Error connecting to database:', error);
     res.status(500).json({
@@ -103,6 +119,7 @@ expressApp.post('/ask', async (req, res) => {
   }
 
   try {
+    console.log(chalk.magenta('Routing question:'));
     const generator = getRouter(body.model, body.router).routeQuestion(
       body.prompt,
       body.max_iterations,
@@ -136,7 +153,7 @@ expressApp.post('/ask', async (req, res) => {
     );
 
     const aiProvider = getAIProvider(body.model);
-    const friendlyResponse = await aiProvider.generateText<FriendlyResponse>(
+    const friendlyResponse = await aiProvider.generateJson<FriendlyResponse>(
       body.prompt,
       {
         messages: [
@@ -195,10 +212,11 @@ expressApp.post('/ask', async (req, res) => {
         ? error.message
         : 'An error occurred while processing your question.';
 
-    await database.updateRouterResponseFriendly(
-      databaseItemId,
-      routerResponseFriendly,
-    );
+    await database
+      .updateRouterResponseFriendly(databaseItemId, routerResponseFriendly)
+      .catch((error) => {
+        console.error('Error updating router response friendly:', error);
+      });
 
     if (error instanceof Error) {
       const responseError = error as ResponseError;

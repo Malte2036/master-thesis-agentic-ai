@@ -1,17 +1,56 @@
-import { z } from 'zod';
-import { zodToJsonSchema } from 'zod-to-json-schema';
+import { z } from 'zod/v4';
 import { AIProvider, AIGenerateTextOptions } from './types';
+import { Ollama } from 'ollama';
 
 export class OllamaProvider implements AIProvider {
-  private readonly baseUrl: string;
+  private readonly client: Ollama;
   public readonly model: string;
 
   constructor(options?: { baseUrl?: string; model?: string }) {
-    this.baseUrl = options?.baseUrl || 'http://localhost:11434';
+    this.client = new Ollama({
+      host: options?.baseUrl || 'http://localhost:11434',
+    });
     this.model = options?.model || 'mistral:instruct';
   }
 
-  async generateText<T>(
+  private async makeApiCall(
+    messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+    isJson = false,
+    jsonSchema?: z.ZodSchema,
+  ) {
+    const response = await this.client.chat({
+      model: this.model,
+      messages: messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      })),
+      stream: false,
+      format: isJson && jsonSchema ? z.toJSONSchema(jsonSchema) : undefined,
+    });
+
+    if (!response.message?.content) {
+      throw new Error('No response from Ollama');
+    }
+
+    return response.message.content;
+  }
+
+  async generateText(
+    prompt: string,
+    options?: AIGenerateTextOptions,
+  ): Promise<string> {
+    const messages = [
+      ...(options?.messages || []),
+      {
+        role: 'user' as const,
+        content: prompt,
+      },
+    ];
+
+    return this.makeApiCall(messages);
+  }
+
+  async generateJson<T>(
     prompt: string,
     options?: AIGenerateTextOptions,
     jsonSchema?: z.ZodSchema,
@@ -33,7 +72,7 @@ IMPORTANT RULES:
 7. The response must be parseable by JSON.parse()
 
 The schema of the JSON object is:
-${JSON.stringify(zodToJsonSchema(jsonSchema), null, 2)}`,
+${JSON.stringify(z.toJSONSchema(jsonSchema), null, 2)}`,
             },
           ]
         : []),
@@ -44,38 +83,7 @@ ${JSON.stringify(zodToJsonSchema(jsonSchema), null, 2)}`,
       },
     ];
 
-    const response = await fetch(`${this.baseUrl}/api/chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: this.model,
-        messages: messages.map((msg) => ({
-          role: msg.role,
-          content: msg.content,
-        })),
-        stream: false,
-        format: jsonSchema ? 'json' : undefined,
-        options: jsonSchema
-          ? {
-              temperature: 0.1, // Lower temperature for more deterministic JSON output
-              num_predict: 1024, // Ensure enough tokens for complete JSON
-            }
-          : undefined,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Ollama API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    const content = data.message?.content;
-
-    if (!content) {
-      throw new Error('No response from Ollama');
-    }
+    const content = await this.makeApiCall(messages, true, jsonSchema);
 
     if (!jsonSchema) {
       return content as T;
@@ -98,6 +106,6 @@ ${JSON.stringify(zodToJsonSchema(jsonSchema), null, 2)}`,
       throw new Error('Invalid JSON response');
     }
 
-    return parsedResponse.data;
+    return parsedResponse.data as T;
   }
 }

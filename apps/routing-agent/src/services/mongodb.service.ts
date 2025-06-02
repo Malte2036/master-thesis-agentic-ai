@@ -12,6 +12,7 @@ import {
 } from '@master-thesis-agentic-rag/types';
 
 const COLLECTION_ROUTER_RESPONSE_FRIENDLY = 'router_response_friendly';
+const CONNECTION_TIMEOUT_MS = 2000; // 2 seconds timeout
 
 export class MongoDBService {
   private client: MongoClient;
@@ -23,7 +24,11 @@ export class MongoDBService {
     if (!uri) {
       throw new Error('MONGODB_URI is not set');
     }
-    this.client = new MongoClient(uri);
+    this.client = new MongoClient(uri, {
+      serverSelectionTimeoutMS: CONNECTION_TIMEOUT_MS,
+      connectTimeoutMS: CONNECTION_TIMEOUT_MS,
+      socketTimeoutMS: CONNECTION_TIMEOUT_MS,
+    });
   }
 
   public static getInstance(): MongoDBService {

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { McpAgentCall, McpAgentCallSchema } from './agent';
 
 export const RouterProcessSchema = z.object({

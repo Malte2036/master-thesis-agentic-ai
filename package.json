@@ -18,6 +18,7 @@
     "build:types": "nx build types",
     "lint": "nx run-many -t lint",
     "test": "nx run-many -t test",
+    "test:routing-agent": "NX_SKIP_NX_CACHE=true nx test routing-agent",
     "clean": "nx run-many -t clean && rm -rf node_modules",
     "format": "prettier --write \"**/*.{ts,tsx,md,js,jsx,json}\"",
     "graph": "nx graph"
@@ -51,6 +52,6 @@
     "typescript-eslint": "^8.19.0"
   },
   "dependencies": {
-    "zod": "^3.22.4"
+    "zod": "^3.25.48"
   }
 }

@@ -1,5 +1,5 @@
 import { RouterResponseFriendlySchema } from '@master-thesis-agentic-rag/types';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 // Re-export the schema for use in other files
 export const apiResponseSchema = RouterResponseFriendlySchema;

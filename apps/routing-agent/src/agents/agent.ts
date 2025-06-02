@@ -27,7 +27,15 @@ export async function callMcpAgentsInParallel(
         );
       }
       try {
-        return await client.callTool(agentCall.function, agentCall.args ?? {});
+        console.log(
+          `Calling tool ${agentCall.function} on agent ${agentCall.agent} with args: ${JSON.stringify(
+            agentCall.args,
+            null,
+            2,
+          )}`,
+        );
+
+        return await client.callTool(agentCall.function, agentCall.args);
       } catch (error) {
         console.error(
           `Error calling tool ${agentCall.function} on agent ${agentCall.agent}:`,
