@@ -11,6 +11,28 @@ export class OllamaProvider implements AIProvider {
       host: options?.baseUrl || 'http://localhost:11434',
     });
     this.model = options?.model || 'mistral:instruct';
+
+    this.healthCheck().then((isAvailable) => {
+      if (!isAvailable) {
+        throw new Error(`Model ${this.model} is not available`);
+      }
+      console.log(`Model ${this.model} is available`);
+    });
+  }
+
+  async healthCheck(): Promise<boolean> {
+    return this.isModelAvailable(this.model);
+  }
+
+  private async isModelAvailable(model: string): Promise<boolean> {
+    try {
+      console.log('Checking if model is available:', model);
+      await this.client.show({ model: model });
+      return true;
+    } catch (error) {
+      console.error('Ollama model is not available:', model, error);
+      return false;
+    }
   }
 
   private async makeApiCall(
