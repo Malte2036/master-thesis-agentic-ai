@@ -1,6 +1,7 @@
 import {
   AIProvider,
   CallToolResult,
+  getAgentTools,
   ListToolsResult,
   MCPClient,
 } from '@master-thesis-agentic-rag/agent-framework';
@@ -9,6 +10,8 @@ import {
   McpAgentCall,
   RouterProcess,
   RouterResponse,
+  StructuredThoughtResponse,
+  StructuredThoughtResponseSchema,
 } from '@master-thesis-agentic-rag/types';
 import chalk from 'chalk';
 
@@ -18,11 +21,6 @@ import {
 } from '../agents/agent';
 import { Router } from '../router';
 import { ReActPrompt } from './prompt';
-import {
-  ReactActThinkAndFindActionsResponse,
-  StrukturedThoughtResponse,
-  StrukturedThoughtResponseSchema,
-} from './types';
 
 export class ReActRouter implements Router {
   constructor(
@@ -59,6 +57,8 @@ export class ReActRouter implements Router {
     agents: MCPClient[],
     routerProcess: RouterProcess,
   ): AsyncGenerator<RouterProcess, RouterResponse, unknown> {
+    const agentTools = await getAgentTools(agents);
+
     const maxIterations = routerProcess.maxIterations;
     let currentIteration = routerProcess.iterationHistory?.length ?? 0;
 
@@ -72,29 +72,32 @@ export class ReActRouter implements Router {
       );
       console.log(chalk.magenta('--------------------------------'));
 
-      const thinkAndFindResponse = await this.thinkAndFindActions(
+      const naturalLanguageThought = await this.getNaturalLanguageThought(
         agents,
         routerProcess,
       );
-      const { agentCalls, isFinished } = thinkAndFindResponse;
 
-      if (isFinished) {
+      const structuredThought = await this.getStructuredThought(
+        naturalLanguageThought,
+        agentTools,
+      );
+
+      if (structuredThought.isFinished) {
         console.log(chalk.magenta('Finished'));
 
         routerProcess = addIterationToRouterProcess(
           routerProcess,
           currentIteration,
-          thinkAndFindResponse.thought,
+          naturalLanguageThought,
+          structuredThought,
           'Finished',
-          agentCalls,
-          isFinished,
         );
         return {
           process: routerProcess,
         };
       }
 
-      if (!agentCalls) {
+      if (!structuredThought.agentCalls) {
         console.log(chalk.magenta('No agent calls found.'));
         return {
           process: routerProcess,
@@ -102,26 +105,14 @@ export class ReActRouter implements Router {
         };
       }
 
-      // Serialize current agent calls to check for duplicates
-      const currentAgentCallsStr = JSON.stringify(
-        agentCalls.map((a) => ({
-          ...a,
-          description: undefined,
-        })),
-      );
-
-      // Check if we're repeating the same calls - detect loop
-      const hasDuplicateCalls = routerProcess.iterationHistory?.some(
-        (response) =>
-          JSON.stringify(response.agentCalls) === currentAgentCallsStr,
-      );
-
-      if (hasDuplicateCalls) {
+      if (
+        this.hasDuplicateAgentCalls(routerProcess, structuredThought.agentCalls)
+      ) {
         console.log(
           chalk.red(
             'Detected loop with repeated agent calls. Breaking iteration. Wanted to call:',
           ),
-          JSON.stringify(agentCalls, null, 2),
+          JSON.stringify(structuredThought.agentCalls, null, 2),
         );
         return {
           process: routerProcess,
@@ -130,33 +121,32 @@ export class ReActRouter implements Router {
         };
       }
 
-      this.logAgentCalls(agentCalls);
+      this.logAgentCalls(structuredThought.agentCalls);
 
       const agentResponses = await callMcpAgentsInParallel(
         agents,
-        agentCalls,
+        structuredThought.agentCalls,
         maxIterations - currentIteration,
       );
 
-      const summary = await this.observeAndSummarizeAgentResponses(
+      const observation = await this.observeAndSummarizeAgentResponses(
         routerProcess.question,
-        agentCalls,
+        structuredThought.agentCalls,
         agentResponses,
-        thinkAndFindResponse,
+        structuredThought,
       );
 
       console.log(
-        chalk.magenta('Summary of the current iteration:'),
-        chalk.yellow(summary),
+        chalk.magenta('Observation of the current iteration:'),
+        chalk.yellow(observation),
       );
 
       routerProcess = addIterationToRouterProcess(
         routerProcess,
         currentIteration,
-        thinkAndFindResponse.thought,
-        summary,
-        agentCalls,
-        isFinished,
+        naturalLanguageThought,
+        structuredThought,
+        observation,
       );
 
       yield routerProcess;
@@ -166,33 +156,6 @@ export class ReActRouter implements Router {
     return {
       error: 'Maximum number of iterations reached.',
       process: routerProcess,
-    };
-  }
-
-  async thinkAndFindActions(
-    agents: MCPClient[],
-    routerProcess: RouterProcess,
-  ): Promise<ReactActThinkAndFindActionsResponse> {
-    const agentTools: Record<string, ListToolsResult> = {};
-    for (const agent of agents) {
-      const tools = await agent.listTools();
-      agentTools[agent.name] = tools;
-    }
-
-    const responseString = await this.getNaturalLanguageThought(
-      agents,
-      routerProcess,
-    );
-
-    const structuredResponse = await this.getStructuredThought(
-      responseString,
-      agentTools,
-    );
-
-    return {
-      thought: responseString,
-      agentCalls: structuredResponse.agentCalls,
-      isFinished: structuredResponse.isFinished,
     };
   }
 
@@ -206,7 +169,7 @@ export class ReActRouter implements Router {
       agentTools[agent.name] = tools;
     }
 
-    const systemPrompt = ReActPrompt.getThinkAndFindActionPrompt(
+    const systemPrompt = ReActPrompt.getNaturalLanguageThoughtPrompt(
       agentTools,
       routerProcess,
     );
@@ -230,16 +193,16 @@ export class ReActRouter implements Router {
   async getStructuredThought(
     responseString: string,
     agentTools: Record<string, ListToolsResult>,
-  ): Promise<StrukturedThoughtResponse> {
+  ): Promise<StructuredThoughtResponse> {
     console.log(chalk.magenta('Generating structured thought...'));
     const structuredSystemPrompt =
-      ReActPrompt.getThinkAndFindActionToToolCallPrompt(agentTools);
+      ReActPrompt.getStructuredThoughtPrompt(agentTools);
 
     const structuredResponse =
-      await this.structuredAiProvider.generateJson<StrukturedThoughtResponse>(
+      await this.structuredAiProvider.generateJson<StructuredThoughtResponse>(
         responseString,
         structuredSystemPrompt,
-        StrukturedThoughtResponseSchema,
+        StructuredThoughtResponseSchema,
       );
 
     console.log(chalk.magenta('Structured thought:'), structuredResponse);
@@ -250,14 +213,14 @@ export class ReActRouter implements Router {
     question: string,
     agentCalls: McpAgentCall[],
     agentResponses: CallToolResult[],
-    thinkAndFindResponse?: StrukturedThoughtResponse,
+    structuredThought?: StructuredThoughtResponse,
   ): Promise<string> {
     console.log(chalk.cyan('Observing and summarizing agent responses'));
 
-    const systemPrompt = ReActPrompt.getObserveAndSummarizeAgentResponsesPrompt(
+    const systemPrompt = ReActPrompt.getNaturalLanguageObservationPrompt(
       agentCalls,
       agentResponses,
-      thinkAndFindResponse,
+      structuredThought,
     );
 
     const response = await this.aiProvider.generateText?.(
@@ -282,5 +245,26 @@ export class ReActRouter implements Router {
       },
     ]);
     console.table(flattenedCalls);
+  }
+
+  private hasDuplicateAgentCalls(
+    routerProcess: RouterProcess,
+    agentCalls: McpAgentCall[],
+  ): boolean {
+    // Serialize current agent calls to check for duplicates
+    const currentAgentCallsStr = JSON.stringify(
+      agentCalls.map((a) => ({
+        ...a,
+        description: undefined,
+      })),
+    );
+    // Check if we're repeating the same calls - detect loop
+    return (
+      routerProcess.iterationHistory?.some(
+        (response) =>
+          JSON.stringify(response.structuredThought.agentCalls) ===
+          currentAgentCallsStr,
+      ) ?? false
+    );
   }
 }

@@ -1,2 +1,18 @@
+import { ListToolsResult } from '@modelcontextprotocol/sdk/types';
+import { MCPClient } from './mcp_client';
+
+export type AgentTools = Record<string, ListToolsResult>;
+
+export const getAgentTools = async (
+  agents: MCPClient[],
+): Promise<AgentTools> => {
+  const agentTools: AgentTools = {};
+  for (const agent of agents) {
+    const tools = await agent.listTools();
+    agentTools[agent.name] = tools;
+  }
+  return agentTools;
+};
+
 export * from './mcp_client';
 export * from './mcp_server';

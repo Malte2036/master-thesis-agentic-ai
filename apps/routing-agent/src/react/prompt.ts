@@ -7,8 +7,8 @@ import {
   McpAgentCall,
   McpAgentCallsSchema,
   RouterProcess,
+  StructuredThoughtResponse,
 } from '@master-thesis-agentic-rag/types';
-import { StrukturedThoughtResponse } from './types';
 import z from 'zod/v4';
 
 export class ReActPrompt {
@@ -29,7 +29,7 @@ export class ReActPrompt {
     `,
   ];
 
-  public static getThinkAndFindActionPrompt = (
+  public static getNaturalLanguageThoughtPrompt = (
     agentTools: Record<string, ListToolsResult>,
     routerProcess: RouterProcess,
   ): AIGenerateTextOptions => ({
@@ -104,7 +104,7 @@ Additional rules:
     ],
   });
 
-  public static getThinkAndFindActionToToolCallPrompt = (
+  public static getStructuredThoughtPrompt = (
     agentTools: Record<string, ListToolsResult>,
   ): AIGenerateTextOptions => ({
     messages: [
@@ -124,13 +124,13 @@ Additional rules:
     ],
   });
 
-  public static getObserveAndSummarizeAgentResponsesPrompt = (
+  public static getNaturalLanguageObservationPrompt = (
     agentCalls: McpAgentCall[],
     agentResponses: CallToolResult[],
-    thinkAndFindResponse?: StrukturedThoughtResponse,
+    structuredThought?: StructuredThoughtResponse,
   ): AIGenerateTextOptions => {
-    const thinkAndFindAndAgentResponses = {
-      ...thinkAndFindResponse,
+    const structuredThoughtAndAgentResponses = {
+      ...structuredThought,
       agentCalls: agentCalls.map((agentCall, index) => ({
         ...agentCall,
         response: {
@@ -170,7 +170,7 @@ Do:
         {
           role: 'system' as const,
           content: `Agent responses and prior thought process: ${JSON.stringify(
-            thinkAndFindAndAgentResponses,
+            structuredThoughtAndAgentResponses,
             null,
             2,
           )}`,

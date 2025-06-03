@@ -33,15 +33,16 @@ describe('ReActRouter', () => {
   beforeEach(() => {
     aiProvider = new OllamaProvider({
       baseUrl: OllamaBaseUrl,
-      // model: 'llama3.1:8b',
-      model: 'mistral:instruct',
+      model: 'llama3.1:8b',
+      // model: 'mistral:instruct',
     });
-    structuredAiProvider = new OllamaProvider({
-      baseUrl: OllamaBaseUrl,
-      // model: 'Osmosis/Osmosis-Structure-0.6B:latest',
-      // model: 'llama3.1:8b',
-      model: 'mistral:instruct',
-    });
+    structuredAiProvider = aiProvider;
+    // structuredAiProvider = new OllamaProvider({
+    //   baseUrl: OllamaBaseUrl,
+    //   // model: 'Osmosis/Osmosis-Structure-0.6B:latest',
+    //   model: 'llama3.1:8b',
+    //   // model: 'mistral:instruct',
+    // });
 
     mockAgents = createMockAgents(jest);
     agentTools = createAgentTools();
@@ -145,6 +146,59 @@ describe('ReActRouter', () => {
       expect(lowerResult).toMatch(/find.?course.?id/);
 
       expect(lowerResult).toMatch(/computer science/);
+    });
+  });
+
+  describe('observeAndSummarizeAgentResponses', () => {
+    it.skip('should convert unix timestamps to readable format in agent response summaries', async () => {
+      const question = 'What assignments are due soon?';
+
+      const agentCalls = [
+        {
+          agent: 'moodle-agent',
+          function: 'get-assignments',
+          args: { courseId: 12345 },
+        },
+      ];
+
+      const agentResponses = [
+        {
+          content: [
+            {
+              type: 'text' as const,
+              text: JSON.stringify({
+                assignments: [
+                  {
+                    id: 1,
+                    name: 'Math Homework',
+                    duedate: 1735689600, // January 1, 2025, 00:00:00 UTC
+                  },
+                ],
+              }),
+            },
+          ],
+          isError: false,
+        },
+      ];
+
+      const thinkAndFindResponse = {
+        agentCalls: agentCalls,
+        isFinished: false,
+      };
+
+      const summary = await router.observeAndSummarizeAgentResponses(
+        question,
+        agentCalls,
+        agentResponses,
+        thinkAndFindResponse,
+      );
+
+      expect(summary).toBeDefined();
+      expect(typeof summary).toBe('string');
+      expect(summary.length).toBeGreaterThan(0);
+
+      const lowerSummary = summary.toLowerCase();
+      expect(lowerSummary).toMatch(/january 01, 2025/);
     });
   });
 });

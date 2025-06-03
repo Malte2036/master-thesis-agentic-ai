@@ -1,5 +1,21 @@
 import { z } from 'zod/v4';
-import { McpAgentCall, McpAgentCallSchema } from './agent';
+import { McpAgentCallSchema } from './agent';
+
+export const StructuredThoughtResponseSchema = z.object({
+  agentCalls: z
+    .array(McpAgentCallSchema)
+    .describe(
+      'The agent calls to make. The agentCalls array must contain only the immediate next function to call. Do not include future function calls.',
+    ),
+  isFinished: z
+    .boolean()
+    .describe('Whether the agent has finished its task.')
+    .default(false),
+});
+
+export type StructuredThoughtResponse = z.infer<
+  typeof StructuredThoughtResponseSchema
+>;
 
 export const RouterProcessSchema = z.object({
   question: z.string(),
@@ -9,10 +25,9 @@ export const RouterProcessSchema = z.object({
     .array(
       z.object({
         iteration: z.number(),
-        thought: z.string(),
-        summary: z.string(),
-        agentCalls: z.array(McpAgentCallSchema).optional(),
-        isFinished: z.boolean(),
+        naturalLanguageThought: z.string(),
+        observation: z.string(),
+        structuredThought: StructuredThoughtResponseSchema,
       }),
     )
     .optional(),
@@ -39,10 +54,9 @@ export type RouterResponseFriendly = z.infer<
 export const addIterationToRouterProcess = (
   routerProcess: RouterProcess,
   iteration: number,
-  thought: string,
-  summary: string,
-  agentCalls: McpAgentCall[],
-  isFinished: boolean,
+  naturalLanguageThought: string,
+  structuredThought: StructuredThoughtResponse,
+  observation: string,
 ): RouterProcess => {
   return {
     ...routerProcess,
@@ -50,10 +64,9 @@ export const addIterationToRouterProcess = (
       ...(routerProcess.iterationHistory || []),
       {
         iteration,
-        thought,
-        summary,
-        agentCalls: agentCalls,
-        isFinished,
+        naturalLanguageThought,
+        structuredThought,
+        observation,
       },
     ],
   };

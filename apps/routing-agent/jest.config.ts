@@ -20,4 +20,5 @@ export default {
     '^zod/v4$': 'zod/dist/cjs/v4/index.js',
     '^chalk$': '<rootDir>/__mocks__/chalk.js',
   },
+  // maxWorkers: 1,
 };
