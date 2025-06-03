@@ -1,4 +1,5 @@
 import {
+  AgentTools,
   AIProvider,
   CallToolResult,
   getAgentTools,
@@ -73,7 +74,7 @@ export class ReActRouter implements Router {
       console.log(chalk.magenta('--------------------------------'));
 
       const naturalLanguageThought = await this.getNaturalLanguageThought(
-        agents,
+        agentTools,
         routerProcess,
       );
 
@@ -160,15 +161,9 @@ export class ReActRouter implements Router {
   }
 
   async getNaturalLanguageThought(
-    agents: MCPClient[],
+    agentTools: AgentTools,
     routerProcess: RouterProcess,
   ): Promise<string> {
-    const agentTools: Record<string, ListToolsResult> = {};
-    for (const agent of agents) {
-      const tools = await agent.listTools();
-      agentTools[agent.name] = tools;
-    }
-
     const systemPrompt = ReActPrompt.getNaturalLanguageThoughtPrompt(
       agentTools,
       routerProcess,
@@ -203,6 +198,7 @@ export class ReActRouter implements Router {
         responseString,
         structuredSystemPrompt,
         StructuredThoughtResponseSchema,
+        0.1,
       );
 
     console.log(chalk.magenta('Structured thought:'), structuredResponse);

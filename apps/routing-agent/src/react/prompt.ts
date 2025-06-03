@@ -22,158 +22,135 @@ export class ReActPrompt {
       minute: '2-digit',
       timeZoneName: 'short',
     })}
-    
-    Important rules: 
-    - Speak in the first person. Speak professionally.
-    - Do everything in english.
-    `,
+
+Important rules:
+- Speak in the first person. Speak professionally.
+- Do everything in English.
+`,
   ];
 
+  /**
+   * Prompt for the natural-language "thought" step.
+   */
   public static getNaturalLanguageThoughtPrompt = (
     agentTools: Record<string, ListToolsResult>,
     routerProcess: RouterProcess,
-  ): AIGenerateTextOptions => ({
-    messages: [
-      ...this.BASE_PROMPTS.map((prompt) => ({
-        role: 'system' as const,
-        content: prompt,
-      })),
-      {
-        role: 'system' as const,
-        content: `You are a task planning agent. You must carefully plan only the **next agent call(s)** based on available information.
+  ): AIGenerateTextOptions => {
+    const lastObservation =
+      routerProcess.iterationHistory?.[
+        routerProcess.iterationHistory.length - 1
+      ]?.observation ?? '';
 
-🎯 Goal:
-- Solve the user's request by calling agent functions one step at a time.
-- Only call a function **if ALL required input parameters are currently available**.
-- Never call a function that depends on results from future function calls.
-- If a needed parameter is missing, you must plan a function call that retrieves it.
+    return {
+      messages: [
+        ...this.BASE_PROMPTS.map((content) => ({
+          role: 'system' as const,
+          content,
+        })),
+        {
+          role: 'system',
+          content: `You are a task planner, who wants to help the user to achieve their goal. Decide **exactly one immediate step**—a single function call (or a set of calls that can run in parallel)—using only the facts you already know.
 
-📌 How to plan:
-1. Read the user's goal and the previous iteration history. We do not want to repeat the same calls.
-2. Think step by step: What do we already know? What do we need next?
-3. IMPORTANT: Plan ONLY the next immediate agent function to call.
-   - Do **not** plan multiple steps ahead or future iterations.
-   - Do **not** call a function that needs unknown input like \`course_id\` unless it is already available.
-   - Do **not** plan multiple steps at once.
-   - If multiple known calls are possible in parallel, list them.
-   - Only gather information directly relevant to the user's request.
+Principles
+- Move the user one step closer to their goal in every iteration.
+- Choose a function only when **all required parameters are fully specified**.
+- Think strictly about what is needed to answer the user's question; do not plan work that is out of scope.
+- Plan one step at a time; reevaluate after each response.
+- When you already have enough information from the iteration history to answer the user's question, state explicitly that you are finished and answer the question. Explain that you do not need to call any more functions.
 
-🧠 Response Processing:
-- If a response contains the requested information and you can answer the user's request, say that you have finished.
-- If a response is empty or doesn't contain the needed information, plan the next step.
-- Do not repeat the same function call with the same parameters
-- Trust the content of the responses - if information is present, use it
-- We do only have the information that I gave you.
-
-🔍 Do: 
-- Ensure correct parameter types.
-- Include every parameter in your response, which is needed to answer the user's request or call the next function(s).
-- Include the agent name in your response.
-- Include your full and detailed thought process in your response.
-
-⚠️ Do not:
-- Call functions that are not explicitly listed in the available agents and their functions.
-- Call functions without complete parameters.
-- Include any function calls that depend on results from other calls in the same iteration.
-- Repeat a function call with the same parameters as in the iteration history.
-- Gather more information than needed to answer the request.
-- Ignore information that is already present in responses.
-- Translate or modify any parameters - use them exactly as provided.
-- Abbreviate or shorten any parameters - use them in their full form.
-- Use placeholder values or templates in parameters (like "<result.course_id>" or "{{course_id}}") - only use actual values.
-
-
-Additional rules:
-- If multiple calls are possible in parallel, list them.
-- If you need more information from the user, describe what you need.
-
-📚 While planing your next step, consider the following iteration history. This is the history of the previous iterations you did before to solve the user's request: ${JSON.stringify(
-          routerProcess.iterationHistory,
-          null,
-          2,
-        )}
-
-📋 The available agents and their functions are listed next: ${JSON.stringify(
-          agentTools,
-          null,
-          2,
-        )}
-        
+Strictly forbidden:
+- Fabricating, translating or abbreviating parameter values.
+- Ignoring facts from the question or iteration history.
+- Calling or referencing any agent or function that is **not** in the available list.
+- Repeating a call with identical parameters.
 `,
-      },
-    ],
-  });
+        },
+        {
+          role: 'system',
+          content: `Available agents and functions:
+${JSON.stringify(agentTools, null, 2)}
+`,
+        },
+        {
+          role: 'system',
+          content: `Iteration history (oldest → newest):
+${
+  routerProcess.iterationHistory
+    ?.map(
+      (it) => `Iteration ${it.iteration}
+- Thought: ${it.naturalLanguageThought}
+- Agent calls: ${JSON.stringify(it.structuredThought.agentCalls, null, 2)}
+- Observation: ${it.observation}
+`,
+    )
+    .join('\n') ?? '— none —'
+}
+`,
+        },
+        lastObservation
+          ? {
+              role: 'system',
+              content: `Carry these facts forward: "${lastObservation}"`,
+            }
+          : { role: 'system', content: '' },
+      ],
+    };
+  };
 
+  /**
+   * Prompt for the structured-thought (JSON) step.
+   */
   public static getStructuredThoughtPrompt = (
     agentTools: Record<string, ListToolsResult>,
   ): AIGenerateTextOptions => ({
     messages: [
       {
-        role: 'system' as const,
-        content: `We have the following possible agents and their functions: ${JSON.stringify(
-          agentTools,
-          null,
-          2,
-        )}`,
+        role: 'system',
+        content: `Agents and functions: ${JSON.stringify(agentTools, null, 2)}`,
       },
       {
-        role: 'system' as const,
-        content: `You are a helpful assistant that understands and translates text to JSON format according to the following schema (ensure correct parameter types): 
-        ${JSON.stringify(z.toJSONSchema(McpAgentCallsSchema), null, 2)}`,
+        role: 'system',
+        content: `Translate the assistant's plan into JSON that conforms precisely to the following schema.
+        - Only add information that was actually stated in the thought process.
+        - Do not add any other information.
+${JSON.stringify(z.toJSONSchema(McpAgentCallsSchema), null, 2)}`,
       },
     ],
   });
 
+  /**
+   * Prompt for the observation-summarisation step.
+   */
   public static getNaturalLanguageObservationPrompt = (
     agentCalls: McpAgentCall[],
     agentResponses: CallToolResult[],
     structuredThought?: StructuredThoughtResponse,
   ): AIGenerateTextOptions => {
-    const structuredThoughtAndAgentResponses = {
+    const merged = {
       ...structuredThought,
-      agentCalls: agentCalls.map((agentCall, index) => ({
-        ...agentCall,
+      agentCalls: agentCalls.map((call, i) => ({
+        ...call,
         response: {
-          isError: agentResponses[index].isError ?? false,
-          content: agentResponses[index].content,
-          structuredContent: agentResponses[index].structuredContent,
+          isError: agentResponses[i].isError ?? false,
+          content: agentResponses[i].content,
+          structuredContent: agentResponses[i].structuredContent,
         },
       })),
     };
 
     return {
       messages: [
-        ...this.BASE_PROMPTS.map((prompt) => ({
+        ...this.BASE_PROMPTS.map((content) => ({
           role: 'system' as const,
-          content: prompt,
+          content,
         })),
         {
-          role: 'system' as const,
-          content: `You are a summarization assistant. Your task is to review the agent responses and write a clear summary of what was discovered.
-
-📌 Your goal:
-- Extract useful facts, values, IDs, and other actionable information.
-- Just observe the agent responses and do not make any assumptions.
-
-✅ Example summary format:
-Summary:
-- The course "abc" was found with course_id xy.
-- No assignments were found yet.
-- The assignment "xyz" is due on 2025-06-01 and has the id 123.
-
-Do: 
-- Include every information from the agent responses in your summary, which may be relevant to the user's request or the next steps.
-
-
-📋 Agent responses and earlier plan are shown next.`,
+          role: 'system',
+          content: `Summarize the agent responses in bullet points. **Use ONLY information explicitly present in the responses; do NOT add external facts, suggestions, or examples. If a detail is not in the responses, leave it out.** Do not invent information.`,
         },
         {
-          role: 'system' as const,
-          content: `Agent responses and prior thought process: ${JSON.stringify(
-            structuredThoughtAndAgentResponses,
-            null,
-            2,
-          )}`,
+          role: 'system',
+          content: JSON.stringify(merged, null, 2),
         },
       ],
     };

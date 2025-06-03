@@ -23,7 +23,10 @@ export class McpServerAgentAdapter {
     // Handle MCP requests
     this.expressApp.post('/mcp', async (req: Request, res: Response) => {
       try {
-        console.log('Received MCP request:', JSON.stringify(req.body, null, 2));
+        console.debug(
+          'Received MCP request:',
+          JSON.stringify(req.body, null, 2),
+        );
 
         const transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: undefined,
@@ -33,7 +36,7 @@ export class McpServerAgentAdapter {
         await transport.handleRequest(req, res, req.body);
 
         res.on('close', () => {
-          console.log('Request closed');
+          console.debug('Request closed');
           transport.close();
         });
       } catch (error) {
@@ -53,7 +56,7 @@ export class McpServerAgentAdapter {
 
     // Handle GET requests to /mcp
     this.expressApp.get('/mcp', async (req: Request, res: Response) => {
-      console.log('Received GET MCP request');
+      console.debug('Received GET MCP request');
       res.writeHead(405).end(
         JSON.stringify({
           jsonrpc: '2.0',
@@ -68,7 +71,7 @@ export class McpServerAgentAdapter {
 
     // Handle DELETE requests to /mcp
     this.expressApp.delete('/mcp', async (req: Request, res: Response) => {
-      console.log('Received DELETE MCP request');
+      console.debug('Received DELETE MCP request');
       res.writeHead(405).end(
         JSON.stringify({
           jsonrpc: '2.0',
@@ -95,7 +98,7 @@ export class McpServerAgentAdapter {
   listen(): Promise<void> {
     return new Promise((resolve) => {
       this.expressApp.listen(this.agentConfig.port, () => {
-        console.log(
+        console.debug(
           `Server is running on port ${this.agentConfig.port} for agent ${this.agentConfig.name}`,
         );
         resolve();

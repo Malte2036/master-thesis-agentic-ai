@@ -5,6 +5,7 @@ export interface AIProvider {
     prompt: string,
     options?: AIGenerateTextOptions,
     jsonSchema?: z.ZodSchema,
+    temperature?: number,
   ): Promise<T>;
 
   generateText?(

@@ -1,4 +1,5 @@
 import {
+  AgentTools,
   AIProvider,
   ListToolsResult,
   MCPClient,
@@ -24,11 +25,7 @@ describe('ReActRouter', () => {
   let router: ReActRouter;
   let aiProvider: AIProvider;
   let structuredAiProvider: AIProvider;
-  let mockAgents: MCPClient[];
-  let agentTools: Record<string, ListToolsResult>;
-  let mockGetAllAgentsMcpClients: jest.MockedFunction<
-    typeof getAllAgentsMcpClients
-  >;
+  let agentTools: AgentTools;
 
   beforeEach(() => {
     aiProvider = new OllamaProvider({
@@ -44,16 +41,118 @@ describe('ReActRouter', () => {
     //   // model: 'mistral:instruct',
     // });
 
-    mockAgents = createMockAgents(jest);
     agentTools = createAgentTools();
 
-    // Set up the mock to return our mock agents
-    mockGetAllAgentsMcpClients = getAllAgentsMcpClients as jest.MockedFunction<
-      typeof getAllAgentsMcpClients
-    >;
-    mockGetAllAgentsMcpClients.mockResolvedValue(mockAgents);
-
     router = new ReActRouter(aiProvider, structuredAiProvider);
+  });
+
+  describe('getNaturalLanguageThought', () => {
+    it('should generate natural language thought containing relevant keywords', async () => {
+      const routerProcess: RouterProcess = {
+        question:
+          'What assignments are available in my Introduction to Computer Science course with the ID 8320?',
+        maxIterations: 3,
+        iterationHistory: [],
+      };
+
+      const result = await router.getNaturalLanguageThought(
+        agentTools,
+        routerProcess,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('string');
+      expect(result.length).toBeGreaterThan(0);
+
+      const lowerResult = result.toLowerCase();
+
+      expect(lowerResult).toMatch(/moodle.?agent/);
+      expect(lowerResult).toMatch(/get.?assignments|get.?course.?info/);
+      expect(lowerResult).toMatch(/8320/);
+    });
+
+    it('should generate thought for complex multi-agent scenario.', async () => {
+      const routerProcess: RouterProcess = {
+        question: 'Find all pending assignments in my Computer Science courses',
+        maxIterations: 3,
+        iterationHistory: [],
+      };
+
+      const result = await router.getNaturalLanguageThought(
+        agentTools,
+        routerProcess,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('string');
+      expect(result.length).toBeGreaterThan(0);
+
+      const lowerResult = result.toLowerCase();
+
+      expect(lowerResult).toMatch(/moodle.?agent/);
+      expect(lowerResult).toMatch(/find.?course.?id/);
+
+      expect(lowerResult).toMatch(/computer science/);
+    });
+
+    it('should consider the last observation from iterationHistory when generating thought', async () => {
+      const routerProcess: RouterProcess = {
+        question:
+          'What assignments are available in my "Introduction to Computer Science" course?',
+        maxIterations: 3,
+        iterationHistory: [
+          {
+            iteration: 0,
+            naturalLanguageThought:
+              'I need to call the get-course-info function of the moodle agent to get course information for the course "Introduction to Computer Science".',
+
+            structuredThought: {
+              agentCalls: [
+                {
+                  agent: 'moodle-agent',
+                  function: 'find-course-id',
+                  args: { courseName: 'Introduction to Computer Science' },
+                },
+              ],
+              isFinished: false,
+            },
+            observation:
+              'The course "Introduction to Computer Science" is valid and the course has the ID 8320.',
+          },
+          {
+            iteration: 1,
+            naturalLanguageThought:
+              'I need to call the get-assignments function of the moodle agent to get assignments for course ID 8320.',
+            structuredThought: {
+              agentCalls: [
+                {
+                  agent: 'moodle-agent',
+                  function: 'get-assignments',
+                  args: { courseId: 8320 },
+                },
+              ],
+              isFinished: false,
+            },
+            observation:
+              'There is an assignment "Learning to Program" for course ID 8320 due on 2025-06-01. There is no other assignment for this course.',
+          },
+        ],
+      };
+
+      const result = await router.getNaturalLanguageThought(
+        agentTools,
+        routerProcess,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('string');
+      expect(result.length).toBeGreaterThan(0);
+
+      const lowerResult = result.toLowerCase();
+      // The generated thought should reference or be influenced by the last observation
+      expect(lowerResult).toMatch(/learning to program/i);
+      expect(lowerResult).toMatch(/2025-06-01/i);
+    });
   });
 
   describe('getStructuredThought', () => {
@@ -96,56 +195,6 @@ describe('ReActRouter', () => {
         query: expect.stringMatching(/computer science/i),
         maxResults: 5,
       });
-    });
-  });
-
-  describe('getNaturalLanguageThought', () => {
-    it('should generate natural language thought containing relevant keywords', async () => {
-      const routerProcess: RouterProcess = {
-        question:
-          'What assignments are available in my Introduction to Computer Science course with the ID 8320?',
-        maxIterations: 3,
-        iterationHistory: [],
-      };
-
-      const result = await router.getNaturalLanguageThought(
-        mockAgents,
-        routerProcess,
-      );
-
-      expect(result).toBeDefined();
-      expect(typeof result).toBe('string');
-      expect(result.length).toBeGreaterThan(0);
-
-      const lowerResult = result.toLowerCase();
-
-      expect(lowerResult).toMatch(/moodle.?agent/);
-      expect(lowerResult).toMatch(/get.?assignments|get.?course.?info/);
-      expect(lowerResult).toMatch(/8320/);
-    });
-
-    it('should generate thought for complex multi-agent scenario.', async () => {
-      const routerProcess: RouterProcess = {
-        question: 'Find all pending assignments in my Computer Science courses',
-        maxIterations: 3,
-        iterationHistory: [],
-      };
-
-      const result = await router.getNaturalLanguageThought(
-        mockAgents,
-        routerProcess,
-      );
-
-      expect(result).toBeDefined();
-      expect(typeof result).toBe('string');
-      expect(result.length).toBeGreaterThan(0);
-
-      const lowerResult = result.toLowerCase();
-
-      expect(lowerResult).toMatch(/moodle.?agent/);
-      expect(lowerResult).toMatch(/find.?course.?id/);
-
-      expect(lowerResult).toMatch(/computer science/);
     });
   });
 

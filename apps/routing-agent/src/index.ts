@@ -153,13 +153,11 @@ expressApp.post('/ask', async (req, res) => {
     );
 
     const aiProvider = getAIProvider(body.model);
-    const friendlyResponse = await aiProvider.generateJson<FriendlyResponse>(
-      body.prompt,
-      {
-        messages: [
-          {
-            role: 'system',
-            content: `You are a helpful assistant.
+    const friendlyResponse = await aiProvider.generateText(body.prompt, {
+      messages: [
+        {
+          role: 'system',
+          content: `You are a helpful assistant.
     You are given a user question and a list of steps the agent system has taken to answer that question.
     Each step includes a thought, an action (e.g. agent function call), and the corresponding result.
     
@@ -187,17 +185,12 @@ expressApp.post('/ask', async (req, res) => {
     The agent execution results:
     ${JSON.stringify(results, null, 2)}
     `,
-          },
-        ],
-      },
-      FriendlyResponseSchema,
-    );
+        },
+      ],
+    });
 
-    console.log(
-      chalk.green('Friendly response:'),
-      friendlyResponse.friendlyResponse,
-    );
-    routerResponseFriendly.friendlyResponse = friendlyResponse.friendlyResponse;
+    console.log(chalk.green('Friendly response:'), friendlyResponse);
+    routerResponseFriendly.friendlyResponse = friendlyResponse;
 
     await database.updateRouterResponseFriendly(
       databaseItemId,

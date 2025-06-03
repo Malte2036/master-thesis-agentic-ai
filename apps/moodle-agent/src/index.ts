@@ -22,8 +22,6 @@ if (!moodleToken) {
   throw new Error('MOODLE_TOKEN is not set');
 }
 
-console.log('moodleToken', moodleToken);
-
 mcpServer.tool(
   'get_all_courses',
   'Get all courses that the user is enrolled in.', //Important: Prefer "find_courses_by_name" if you need to get courses by name.',
@@ -80,9 +78,19 @@ mcpServer.tool(
       throw createResponseError('Course not found', 404);
     }
 
+    const merged = searchedEnrolledCourses.map((course) => ({
+      ...course,
+      ...searchResponse.courses.find((c) => c.id === course.id),
+    }));
+
+    console.log(`merged: ${JSON.stringify(merged, null, 2)}`);
+
     return {
       content: [
-        { type: 'text', text: JSON.stringify(searchedEnrolledCourses) },
+        {
+          type: 'text',
+          text: JSON.stringify(merged),
+        },
       ],
     };
   },

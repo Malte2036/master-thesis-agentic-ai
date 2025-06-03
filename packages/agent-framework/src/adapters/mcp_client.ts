@@ -40,7 +40,7 @@ export class MCPClient {
     this.client.setNotificationHandler(
       LoggingMessageNotificationSchema,
       (notification) => {
-        console.log(
+        console.debug(
           `${notification.params.level} - ${notification.params.data}`,
         );
       },
@@ -49,7 +49,7 @@ export class MCPClient {
     this.client.setNotificationHandler(
       ResourceListChangedNotificationSchema,
       async () => {
-        console.log('Resource list changed notification received');
+        console.debug('Resource list changed notification received');
         try {
           const resourcesResult = await this.client.request(
             {
@@ -58,12 +58,12 @@ export class MCPClient {
             },
             ListResourcesResultSchema,
           );
-          console.log(
+          console.debug(
             'Available resources count:',
             resourcesResult.resources.length,
           );
         } catch (error) {
-          console.log(
+          console.debug(
             'Failed to list resources after change notification:',
             error,
           );
@@ -79,13 +79,13 @@ export class MCPClient {
   async connect() {
     await this.client.connect(this.transport);
     this.sessionId = this.transport.sessionId;
-    console.log('Connected to MCP server with session ID:', this.sessionId);
+    console.debug('Connected to MCP server with session ID:', this.sessionId);
   }
 
   async disconnect() {
     if (this.transport) {
       await this.transport.close();
-      console.log('Disconnected from MCP server');
+      console.debug('Disconnected from MCP server');
     }
   }
 
@@ -93,7 +93,7 @@ export class MCPClient {
     if (this.transport && this.transport.sessionId) {
       await this.transport.terminateSession();
       this.sessionId = undefined;
-      console.log('Session terminated successfully');
+      console.debug('Session terminated successfully');
     }
   }
 

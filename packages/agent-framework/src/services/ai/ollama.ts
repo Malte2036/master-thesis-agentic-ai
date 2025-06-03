@@ -39,7 +39,10 @@ export class OllamaProvider implements AIProvider {
     messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
     isJson = false,
     jsonSchema?: z.ZodSchema,
+    temperature?: number,
   ) {
+    console.log('Making API call with temperature:', temperature);
+
     const response = await this.client.chat({
       model: this.model,
       messages: messages.map((msg) => ({
@@ -48,6 +51,9 @@ export class OllamaProvider implements AIProvider {
       })),
       stream: false,
       format: isJson && jsonSchema ? z.toJSONSchema(jsonSchema) : undefined,
+      options: {
+        temperature,
+      },
     });
 
     if (!response.message?.content) {
@@ -69,13 +75,14 @@ export class OllamaProvider implements AIProvider {
       },
     ];
 
-    return this.makeApiCall(messages);
+    return this.makeApiCall(messages, false, undefined, 0.7);
   }
 
   async generateJson<T>(
     prompt: string,
     options?: AIGenerateTextOptions,
     jsonSchema?: z.ZodSchema,
+    temperature?: number,
   ): Promise<T> {
     const messages = [
       ...(jsonSchema
@@ -105,7 +112,12 @@ ${JSON.stringify(z.toJSONSchema(jsonSchema), null, 2)}`,
       },
     ];
 
-    const content = await this.makeApiCall(messages, true, jsonSchema);
+    const content = await this.makeApiCall(
+      messages,
+      true,
+      jsonSchema,
+      temperature,
+    );
 
     if (!jsonSchema) {
       return content as T;
