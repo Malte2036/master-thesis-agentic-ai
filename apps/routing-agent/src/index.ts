@@ -1,6 +1,7 @@
 import {
   OpenAIProvider,
   OllamaProvider,
+  Logger,
 } from '@master-thesis-agentic-rag/agent-framework';
 import {
   ResponseError,
@@ -16,10 +17,12 @@ import { Router } from './router';
 import { MongoDBService } from './services/mongodb.service';
 import { ObjectId } from 'mongodb';
 
+const logger = new Logger({ agentName: 'routing-agent' });
+
 const OllamaBaseUrl = 'http://10.50.60.153:11434';
 
 const getAIProvider = (model: string) => {
-  return new OllamaProvider({
+  return new OllamaProvider(logger, {
     baseUrl: OllamaBaseUrl,
     model,
   });
@@ -35,14 +38,8 @@ const getAIProvider = (model: string) => {
 const getRouter = (model: string, router?: 'legacy' | 'react'): Router => {
   const aiProvider = getAIProvider(model);
   const structuredAiProvider = aiProvider; //getStructuredAIProvider(model);
-  return new ReActRouter(aiProvider, structuredAiProvider);
+  return new ReActRouter(aiProvider, structuredAiProvider, logger);
 };
-
-const FriendlyResponseSchema = z.object({
-  friendlyResponse: z.string(),
-});
-
-type FriendlyResponse = z.infer<typeof FriendlyResponseSchema>;
 
 const RequestBodySchema = z.object({
   prompt: z.string(),
@@ -70,19 +67,19 @@ expressApp.post('/ask', async (req, res) => {
 
     body = parsed.data;
   } catch (error) {
-    console.error('Error parsing request body:', error);
+    logger.error('Error parsing request body:', error);
     res.status(400).json({
       error: 'Invalid request body',
     });
     return;
   }
 
-  console.log(chalk.cyan('--------------------------------'));
-  console.log(chalk.cyan('User question:'), body.prompt);
-  console.log(chalk.cyan('Using model:'), body.model);
-  console.log(chalk.cyan('Using router:'), body.router);
-  console.log(chalk.cyan('Using max iterations:'), body.max_iterations);
-  console.log(chalk.cyan('--------------------------------'));
+  logger.log(chalk.cyan('--------------------------------'));
+  logger.log(chalk.cyan('User question:'), body.prompt);
+  logger.log(chalk.cyan('Using model:'), body.model);
+  logger.log(chalk.cyan('Using router:'), body.router);
+  logger.log(chalk.cyan('Using max iterations:'), body.max_iterations);
+  logger.log(chalk.cyan('--------------------------------'));
 
   const routerResponseFriendly: RouterResponseFriendly = {
     friendlyResponse: '',
@@ -98,20 +95,20 @@ expressApp.post('/ask', async (req, res) => {
   let database: MongoDBService;
   let databaseItemId: ObjectId;
   try {
-    console.log(chalk.magenta('Connecting to database:'));
-    database = MongoDBService.getInstance();
+    logger.log(chalk.magenta('Connecting to database:'));
+    database = MongoDBService.getInstance(logger);
     await database.connect();
-    console.log(chalk.magenta('Creating router response friendly:'));
+    logger.log(chalk.magenta('Creating router response friendly:'));
     const { insertedId } = await database.createRouterResponseFriendly(
       routerResponseFriendly,
     );
     databaseItemId = insertedId;
-    console.log(
+    logger.log(
       chalk.magenta('Router response friendly created:'),
       databaseItemId,
     );
   } catch (error) {
-    console.error('Error connecting to database:', error);
+    logger.error('Error connecting to database:', error);
     res.status(500).json({
       error: 'An error occurred while connecting to the database.',
     });
@@ -119,7 +116,7 @@ expressApp.post('/ask', async (req, res) => {
   }
 
   try {
-    console.log(chalk.magenta('Routing question:'));
+    logger.log(chalk.magenta('Routing question:'));
     const generator = getRouter(body.model, body.router).routeQuestion(
       body.prompt,
       body.max_iterations,
@@ -189,7 +186,7 @@ expressApp.post('/ask', async (req, res) => {
       ],
     });
 
-    console.log(chalk.green('Friendly response:'), friendlyResponse);
+    logger.log(chalk.green('Friendly response:'), friendlyResponse);
     routerResponseFriendly.friendlyResponse = friendlyResponse;
 
     await database.updateRouterResponseFriendly(
@@ -199,7 +196,7 @@ expressApp.post('/ask', async (req, res) => {
 
     res.json(routerResponseFriendly);
   } catch (error) {
-    console.error('Error processing question:', error);
+    logger.error('Error processing question:', error);
     routerResponseFriendly.error =
       error instanceof Error
         ? error.message
@@ -208,7 +205,7 @@ expressApp.post('/ask', async (req, res) => {
     await database
       .updateRouterResponseFriendly(databaseItemId, routerResponseFriendly)
       .catch((error) => {
-        console.error('Error updating router response friendly:', error);
+        logger.error('Error updating router response friendly:', error);
       });
 
     if (error instanceof Error) {
@@ -228,5 +225,5 @@ expressApp.post('/ask', async (req, res) => {
 
 // Start the server and keep it running
 expressApp.listen(3000, () => {
-  console.log(`Server is running on port 3000`);
+  logger.log(`Server is running on port 3000`);
 });

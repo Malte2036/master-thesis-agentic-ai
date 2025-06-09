@@ -2,10 +2,12 @@ import {
   CallToolResult,
   getAgentConfigs,
   MCPClient,
+  Logger,
 } from '@master-thesis-agentic-rag/agent-framework';
 import { McpAgentCall } from '@master-thesis-agentic-rag/types';
 
 export async function callMcpAgentsInParallel(
+  logger: Logger,
   mcpClients: MCPClient[],
   agentCalls: McpAgentCall[],
   remainingCalls: number,
@@ -27,7 +29,7 @@ export async function callMcpAgentsInParallel(
         );
       }
       try {
-        console.log(
+        logger.log(
           `Calling tool ${agentCall.function} on agent ${agentCall.agent} with args: ${JSON.stringify(
             agentCall.args,
             null,
@@ -37,7 +39,7 @@ export async function callMcpAgentsInParallel(
 
         return await client.callTool(agentCall.function, agentCall.args);
       } catch (error) {
-        console.error(
+        logger.error(
           `Error calling tool ${agentCall.function} on agent ${agentCall.agent}:`,
           error,
         );
@@ -54,11 +56,13 @@ export async function callMcpAgentsInParallel(
   );
 }
 
-export const getAllAgentsMcpClients = async (): Promise<MCPClient[]> => {
+export const getAllAgentsMcpClients = async (
+  logger: Logger,
+): Promise<MCPClient[]> => {
   const allAgents = getAgentConfigs(false);
 
   return Object.entries(allAgents).map(([, agent]) => {
-    const client = new MCPClient(agent);
+    const client = new MCPClient(logger, agent);
     client.connect();
     return client;
   });

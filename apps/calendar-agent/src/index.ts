@@ -1,4 +1,7 @@
-import { createAgentFramework } from '@master-thesis-agentic-rag/agent-framework';
+import {
+  createAgentFramework,
+  Logger,
+} from '@master-thesis-agentic-rag/agent-framework';
 import dotenv from 'dotenv';
 import { CalendarProvider } from './providers/calendarProvider';
 import { z } from 'zod/v3';
@@ -6,8 +9,10 @@ import { createResponseError } from '@master-thesis-agentic-rag/types';
 
 dotenv.config();
 
-const calendarProvider = new CalendarProvider();
-const agentFramework = createAgentFramework('calendar-agent');
+const logger = new Logger({ agentName: 'calendar-agent' });
+
+const calendarProvider = new CalendarProvider(logger);
+const agentFramework = createAgentFramework(logger, 'calendar-agent');
 const mcpServer = agentFramework.getServer();
 
 mcpServer.tool(
@@ -46,6 +51,6 @@ mcpServer.tool(
 
 // Start the server and keep it running
 agentFramework.listen().catch((error) => {
-  console.error('Failed to start server:', error);
+  logger.error('Failed to start server:', error);
   process.exit(1);
 });

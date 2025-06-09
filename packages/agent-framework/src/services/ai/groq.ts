@@ -1,11 +1,13 @@
 import { AIProvider, AIGenerateTextOptions } from './types';
 import Groq from 'groq-sdk';
 import { z } from 'zod/v4';
+import { Logger } from '../../logger';
+
 export class GroqProvider implements AIProvider {
   private readonly groq: Groq;
   public readonly model: string;
 
-  constructor() {
+  constructor(private readonly logger: Logger) {
     const groqApiKey = process.env['GROQ_API_KEY'];
     if (!groqApiKey) {
       throw new Error('GROQ_API_KEY is not set');
@@ -55,19 +57,19 @@ export class GroqProvider implements AIProvider {
       return response.choices[0].message.content as T;
     }
 
-    // console.log('response is', response.choices[0].message.content);
+    //this.logger.debug('response is', response.choices[0].message.content);
 
     let jsonResponse;
     try {
       jsonResponse = JSON.parse(response.choices[0].message.content);
     } catch (error) {
-      console.error('Failed to parse JSON response:', error);
+      this.logger.error('Failed to parse JSON response:', error);
       throw new Error('Invalid JSON response format');
     }
 
     const parsedResponse = jsonSchema.safeParse(jsonResponse);
     if (parsedResponse.success === false) {
-      console.error(
+      this.logger.error(
         'Invalid JSON response',
         response.choices[0].message.content,
         parsedResponse.error,

@@ -1,11 +1,12 @@
 import OpenAI from 'openai';
 import { z } from 'zod/v4';
 import { AIProvider, AIGenerateTextOptions } from './types';
+import { Logger } from '../../logger';
 
 export class OpenAIProvider implements AIProvider {
   private readonly openai: OpenAI;
   public readonly model: string;
-  constructor() {
+  constructor(private readonly logger: Logger) {
     const openaiApiKey = process.env['OPENAI_API_KEY'];
     if (!openaiApiKey) {
       throw new Error('OPENAI_API_KEY is not set');
@@ -58,13 +59,13 @@ export class OpenAIProvider implements AIProvider {
     try {
       jsonResponse = JSON.parse(response.choices[0].message.content);
     } catch (error) {
-      console.error('Failed to parse JSON response:', error);
+      this.logger.error('Failed to parse JSON response:', error);
       throw new Error('Invalid JSON response format');
     }
 
     const parsedResponse = jsonSchema.safeParse(jsonResponse);
     if (parsedResponse.success === false) {
-      console.error(
+      this.logger.error(
         'Invalid JSON response',
         response.choices[0].message.content,
         parsedResponse.error,

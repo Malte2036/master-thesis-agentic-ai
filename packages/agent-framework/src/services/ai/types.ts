@@ -1,4 +1,5 @@
 import { z } from 'zod/v4';
+import { Logger } from '../../logger';
 
 export interface AIProvider {
   generateJson<T>(

@@ -17,13 +17,17 @@ import {
   CallToolResult,
   ListToolsResult,
 } from '@modelcontextprotocol/sdk/types.js';
+import { Logger } from '../logger';
 
 export class MCPClient {
   private client: Client;
   private transport: StreamableHTTPClientTransport;
   private sessionId?: string;
 
-  constructor(private agentConfig: AgentConfig) {
+  constructor(
+    private readonly logger: Logger,
+    private agentConfig: AgentConfig,
+  ) {
     this.client = new Client({
       name: this.agentConfig.name,
       version: '1.0.0',
@@ -40,7 +44,7 @@ export class MCPClient {
     this.client.setNotificationHandler(
       LoggingMessageNotificationSchema,
       (notification) => {
-        console.debug(
+        this.logger.debug(
           `${notification.params.level} - ${notification.params.data}`,
         );
       },
@@ -49,7 +53,7 @@ export class MCPClient {
     this.client.setNotificationHandler(
       ResourceListChangedNotificationSchema,
       async () => {
-        console.debug('Resource list changed notification received');
+        this.logger.debug('Resource list changed notification received');
         try {
           const resourcesResult = await this.client.request(
             {
@@ -58,12 +62,12 @@ export class MCPClient {
             },
             ListResourcesResultSchema,
           );
-          console.debug(
+          this.logger.debug(
             'Available resources count:',
             resourcesResult.resources.length,
           );
         } catch (error) {
-          console.debug(
+          this.logger.debug(
             'Failed to list resources after change notification:',
             error,
           );
@@ -79,13 +83,16 @@ export class MCPClient {
   async connect() {
     await this.client.connect(this.transport);
     this.sessionId = this.transport.sessionId;
-    console.debug('Connected to MCP server with session ID:', this.sessionId);
+    this.logger.debug(
+      'Connected to MCP server with session ID:',
+      this.sessionId,
+    );
   }
 
   async disconnect() {
     if (this.transport) {
       await this.transport.close();
-      console.debug('Disconnected from MCP server');
+      this.logger.debug('Disconnected from MCP server');
     }
   }
 
@@ -93,7 +100,7 @@ export class MCPClient {
     if (this.transport && this.transport.sessionId) {
       await this.transport.terminateSession();
       this.sessionId = undefined;
-      console.debug('Session terminated successfully');
+      this.logger.debug('Session terminated successfully');
     }
   }
 

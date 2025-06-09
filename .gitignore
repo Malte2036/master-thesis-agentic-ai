@@ -135,3 +135,5 @@ yarn-error.log*
 .devcontainer/ 
 
 docker_data
+
+logs/

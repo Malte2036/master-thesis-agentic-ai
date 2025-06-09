@@ -1,4 +1,7 @@
-import { createAgentFramework } from '@master-thesis-agentic-rag/agent-framework';
+import {
+  createAgentFramework,
+  Logger,
+} from '@master-thesis-agentic-rag/agent-framework';
 import { createResponseError } from '@master-thesis-agentic-rag/types';
 import dotenv from 'dotenv';
 import { MoodleProvider } from './providers/moodleProvider';
@@ -6,15 +9,17 @@ import { z } from 'zod/v3';
 
 dotenv.config();
 
+const logger = new Logger({ agentName: 'moodle-agent' });
+
 const moodleBaseUrl = process.env.MOODLE_BASE_URL;
 
 if (!moodleBaseUrl) {
   throw new Error('MOODLE_BASE_URL is not set');
 }
 
-const moodleProvider = new MoodleProvider(moodleBaseUrl);
+const moodleProvider = new MoodleProvider(logger, moodleBaseUrl);
 
-const agentFramework = createAgentFramework('moodle-agent');
+const agentFramework = createAgentFramework(logger, 'moodle-agent');
 const mcpServer = agentFramework.getServer();
 
 const moodleToken = process.env.MOODLE_TOKEN;
@@ -47,7 +52,7 @@ mcpServer.tool(
     course_name: z.string().describe('Name of the course to search for'),
   },
   async ({ course_name }) => {
-    console.log(
+    logger.log(
       `search_courses_by_name: ${JSON.stringify({ course_name }, null, 2)}`,
     );
 
@@ -83,7 +88,7 @@ mcpServer.tool(
       ...searchResponse.courses.find((c) => c.id === course.id),
     }));
 
-    console.log(`merged: ${JSON.stringify(merged, null, 2)}`);
+    logger.log(`merged: ${JSON.stringify(merged, null, 2)}`);
 
     return {
       content: [
@@ -134,7 +139,7 @@ mcpServer.tool(
     course_id: z.number().describe('ID of the course to get assignments for'),
   },
   async ({ course_id }) => {
-    console.log(
+    logger.log(
       `get_assignments_for_course: ${JSON.stringify({ course_id }, null, 2)}`,
     );
 
@@ -165,6 +170,6 @@ mcpServer.tool(
 
 // Start the server and keep it running
 agentFramework.listen().catch((error) => {
-  console.error('Failed to start server:', error);
+  logger.error('Failed to start server:', error);
   process.exit(1);
 });

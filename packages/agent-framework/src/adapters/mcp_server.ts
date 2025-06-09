@@ -2,12 +2,16 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { AgentConfig } from '../config';
 import express, { Request, Response } from 'express';
+import { Logger } from '../logger';
 
 export class McpServerAgentAdapter {
   private expressApp: express.Application;
   private mcpServer: McpServer;
 
-  constructor(private agentConfig: AgentConfig) {
+  constructor(
+    private readonly logger: Logger,
+    private agentConfig: AgentConfig,
+  ) {
     this.mcpServer = new McpServer(
       {
         name: agentConfig.name,
@@ -23,7 +27,7 @@ export class McpServerAgentAdapter {
     // Handle MCP requests
     this.expressApp.post('/mcp', async (req: Request, res: Response) => {
       try {
-        console.debug(
+        this.logger.debug(
           'Received MCP request:',
           JSON.stringify(req.body, null, 2),
         );
@@ -36,11 +40,11 @@ export class McpServerAgentAdapter {
         await transport.handleRequest(req, res, req.body);
 
         res.on('close', () => {
-          console.debug('Request closed');
+          this.logger.debug('Request closed');
           transport.close();
         });
       } catch (error) {
-        console.error('Error handling MCP request:', error);
+        this.logger.error('Error handling MCP request:', error);
         if (!res.headersSent) {
           res.status(500).json({
             jsonrpc: '2.0',
@@ -56,7 +60,7 @@ export class McpServerAgentAdapter {
 
     // Handle GET requests to /mcp
     this.expressApp.get('/mcp', async (req: Request, res: Response) => {
-      console.debug('Received GET MCP request');
+      this.logger.debug('Received GET MCP request');
       res.writeHead(405).end(
         JSON.stringify({
           jsonrpc: '2.0',
@@ -71,7 +75,7 @@ export class McpServerAgentAdapter {
 
     // Handle DELETE requests to /mcp
     this.expressApp.delete('/mcp', async (req: Request, res: Response) => {
-      console.debug('Received DELETE MCP request');
+      this.logger.debug('Received DELETE MCP request');
       res.writeHead(405).end(
         JSON.stringify({
           jsonrpc: '2.0',
@@ -98,7 +102,7 @@ export class McpServerAgentAdapter {
   listen(): Promise<void> {
     return new Promise((resolve) => {
       this.expressApp.listen(this.agentConfig.port, () => {
-        console.debug(
+        this.logger.debug(
           `Server is running on port ${this.agentConfig.port} for agent ${this.agentConfig.name}`,
         );
         resolve();

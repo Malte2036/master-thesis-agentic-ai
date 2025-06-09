@@ -1,12 +1,16 @@
 import { z } from 'zod/v4';
 import { AIProvider, AIGenerateTextOptions } from './types';
 import { Ollama } from 'ollama';
+import { Logger } from '../../logger';
 
 export class OllamaProvider implements AIProvider {
   private readonly client: Ollama;
   public readonly model: string;
 
-  constructor(options?: { baseUrl?: string; model?: string }) {
+  constructor(
+    private readonly logger: Logger,
+    options?: { baseUrl?: string; model?: string },
+  ) {
     this.client = new Ollama({
       host: options?.baseUrl || 'http://localhost:11434',
     });
@@ -16,7 +20,7 @@ export class OllamaProvider implements AIProvider {
       if (!isAvailable) {
         throw new Error(`Model ${this.model} is not available`);
       }
-      console.log(`Model ${this.model} is available`);
+      this.logger.log(`Model ${this.model} is available`);
     });
   }
 
@@ -26,11 +30,11 @@ export class OllamaProvider implements AIProvider {
 
   private async isModelAvailable(model: string): Promise<boolean> {
     try {
-      console.log('Checking if model is available:', model);
+      this.logger.log('Checking if model is available:', model);
       await this.client.show({ model: model });
       return true;
     } catch (error) {
-      console.error('Ollama model is not available:', model, error);
+      this.logger.error('Ollama model is not available:', model, error);
       return false;
     }
   }
@@ -41,7 +45,7 @@ export class OllamaProvider implements AIProvider {
     jsonSchema?: z.ZodSchema,
     temperature?: number,
   ) {
-    console.log('Making API call with temperature:', temperature);
+    this.logger.log('Making API call with temperature:', temperature);
 
     const response = await this.client.chat({
       model: this.model,
@@ -129,14 +133,14 @@ ${JSON.stringify(z.toJSONSchema(jsonSchema), null, 2)}`,
       const cleanedContent = content.trim().replace(/^```json\n?|\n?```$/g, '');
       jsonResponse = JSON.parse(cleanedContent);
     } catch (error) {
-      console.error('Failed to parse JSON response:', error);
-      console.error('Raw content:', content);
+      this.logger.error('Failed to parse JSON response:', error);
+      this.logger.error('Raw content:', content);
       throw new Error('Invalid JSON response format');
     }
 
     const parsedResponse = jsonSchema.safeParse(jsonResponse);
     if (parsedResponse.success === false) {
-      console.error('Invalid JSON response', content, parsedResponse.error);
+      this.logger.error('Invalid JSON response', content, parsedResponse.error);
       throw new Error('Invalid JSON response');
     }
 

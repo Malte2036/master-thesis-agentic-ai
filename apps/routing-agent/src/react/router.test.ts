@@ -2,6 +2,8 @@ import {
   AgentTools,
   AIProvider,
   OllamaProvider,
+  Logger,
+  OLLAMA_MODELS,
 } from '@master-thesis-agentic-rag/agent-framework';
 import { RouterProcess } from '@master-thesis-agentic-rag/types';
 import { ReActRouter } from './router';
@@ -17,54 +19,36 @@ const OllamaBaseUrl = 'http://10.50.60.153:11434';
 // Increase timeout for AI provider operations
 jest.setTimeout(10000);
 
-// Define test matrix for different AI providers
-const aiProviders: { provider: AIProvider }[] = [
-  {
-    provider: new OllamaProvider({
-      baseUrl: OllamaBaseUrl,
-      model: 'llama3.1:8b',
-    }),
-  },
-  {
-    provider: new OllamaProvider({
-      baseUrl: OllamaBaseUrl,
-      model: 'mistral:instruct',
-    }),
-  },
-
-  {
-    provider: new OllamaProvider({
-      baseUrl: OllamaBaseUrl,
-      model: 'qwen3:0.6b',
-    }),
-  },
-  // {
-  //   provider: new OllamaProvider({
-  //     baseUrl: OllamaBaseUrl,
-  //     model: 'qwen3:1.7b',
-  //   }),
-  // },
-  // {
-  //   provider: new OllamaProvider({
-  //     baseUrl: OllamaBaseUrl,
-  //     model: 'qwen3:4b',
-  //   }),
-  // },
-];
-
 describe('ReActRouter', () => {
-  for (const { provider } of aiProviders) {
-    describe(`with ${provider.constructor.name} - ${provider.model}`, () => {
+  for (const model of OLLAMA_MODELS) {
+    describe(`with ${model}`, () => {
       let router: ReActRouter;
       let aiProvider: AIProvider;
       let structuredAiProvider: AIProvider;
       let agentTools: AgentTools;
 
       beforeEach(() => {
-        aiProvider = provider;
-        structuredAiProvider = provider;
+        const testName = expect.getState().currentTestName || 'unknown-test';
+        const sanitizedTestName = testName
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '');
+
+        const logger = new Logger({
+          agentName: sanitizedTestName,
+          logsSubDir: model,
+        });
+
+        aiProvider = new OllamaProvider(logger, {
+          baseUrl: OllamaBaseUrl,
+          model,
+        });
+
+        // At the moment, we use the same AI provider for both natural language and structured thought generation
+        structuredAiProvider = aiProvider;
         agentTools = createAgentTools();
-        router = new ReActRouter(aiProvider, structuredAiProvider);
+        router = new ReActRouter(aiProvider, structuredAiProvider, logger);
       });
 
       describe('getNaturalLanguageThought', () => {

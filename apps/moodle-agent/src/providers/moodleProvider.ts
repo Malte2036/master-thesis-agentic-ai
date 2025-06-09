@@ -15,11 +15,15 @@ import {
   CourseContentsResponseSchema,
 } from '../schemas/moodle/course_content';
 import { UserInfo, UserInfoSchema } from '../schemas/moodle/user';
+import { Logger } from '@master-thesis-agentic-rag/agent-framework';
 
 const MOODLE_WEBSERVICE_PATH = '/webservice/rest/server.php';
 
 export class MoodleProvider {
-  constructor(private readonly moodleBaseUrl: string) {}
+  constructor(
+    private readonly logger: Logger,
+    private readonly moodleBaseUrl: string,
+  ) {}
 
   /**
    * Generic function to call Moodle REST API functions
@@ -80,12 +84,15 @@ export class MoodleProvider {
       return data as T;
     } catch (error) {
       if (error instanceof Error) {
-        console.error(
+        this.logger.error(
           `Failed to call Moodle function ${wsfunction}:`,
           error.message,
         );
       } else {
-        console.error(`Failed to call Moodle function ${wsfunction}:`, error);
+        this.logger.error(
+          `Failed to call Moodle function ${wsfunction}:`,
+          error,
+        );
       }
       throw error;
     }
