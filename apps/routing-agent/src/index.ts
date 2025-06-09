@@ -1,5 +1,4 @@
 import {
-  OpenAIProvider,
   OllamaProvider,
   Logger,
 } from '@master-thesis-agentic-rag/agent-framework';
@@ -59,6 +58,7 @@ expressApp.post('/ask', async (req, res) => {
     const parsed = RequestBodySchema.safeParse(req.body);
 
     if (!parsed.success) {
+      logger.error('Error parsing request body:', parsed.error);
       res.status(400).json({
         error: 'Missing required fields in request body',
       });

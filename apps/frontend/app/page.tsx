@@ -7,7 +7,9 @@ import { ChatMessages } from './components/ChatMessages';
 import { ChatInput } from './components/ChatInput';
 import { SettingsModal } from './components/SettingsModal';
 import { ChatHistory } from './components/ChatHistory';
-import { MOCK_SESSIONS, MOCK_SETTINGS, ChatSession } from './lib/mockData';
+import { askRoutingAgent } from './lib/routingApi';
+import { MOCK_SESSIONS, MOCK_SETTINGS } from './lib/mockData';
+import { ChatSession } from './lib/mockData';
 
 export default function Home() {
   const [sessions] = useState(MOCK_SESSIONS);
@@ -26,11 +28,21 @@ export default function Home() {
     if (!input.trim()) return;
 
     setLoading(true);
-    // Simulate loading for UI demo
-    setTimeout(() => {
-      setLoading(false);
-    }, 2000);
     setInput('');
+
+    const response = await askRoutingAgent(
+      input,
+      settings.router,
+      settings.max_iterations,
+      settings.model,
+    ).catch((error) => {
+      console.error(error);
+      setLoading(false);
+    });
+
+    console.log(response);
+
+    setLoading(false);
   };
 
   const handleNewChat = () => {
