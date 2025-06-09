@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import { ChatMessage } from './types';
 import { Bot } from 'lucide-react';
 import { UserMessage } from './messages/UserMessage';
@@ -11,22 +11,12 @@ interface ChatMessagesProps {
 
 function ChatMessages({ messages, loading }: ChatMessagesProps) {
   const chatRef = useRef<HTMLDivElement>(null);
-  const [showProcess, setShowProcess] = useState<{ [key: number]: boolean }>(
-    {},
-  );
 
   useEffect(() => {
     if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
   }, [messages, loading]);
-
-  const toggleProcess = (messageIndex: number) => {
-    setShowProcess((prev) => ({
-      ...prev,
-      [messageIndex]: !prev[messageIndex],
-    }));
-  };
 
   return (
     <main
@@ -42,8 +32,8 @@ function ChatMessages({ messages, loading }: ChatMessagesProps) {
               key={idx}
               message={msg}
               index={idx}
-              showProcess={showProcess[idx] || false}
-              onToggleProcess={() => toggleProcess(idx)}
+              showProcess={false}
+              onToggleProcess={() => {}}
             />
           ),
         )}

@@ -2,7 +2,6 @@ import { AlertCircle, Bot } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ChatMessage } from '../types';
-import { safeValidateApiResponse } from '../../lib/validation';
 import { MessageHeader } from './MessageHeader';
 import { ProcessDisplay } from './ProcessDisplay';
 
@@ -19,11 +18,7 @@ export function AssistantMessage({
   showProcess,
   onToggleProcess,
 }: AssistantMessageProps) {
-  const validatedContent = safeValidateApiResponse(message.content);
-  if (!validatedContent) {
-    console.error('Invalid message content:', message.content);
-    return null;
-  }
+  const content = message.content;
 
   return (
     <div key={index} className="flex justify-start ml-16">
@@ -32,16 +27,16 @@ export function AssistantMessage({
           <Bot className="w-5 h-5 text-white" />
         </div>
         <div className="flex-1">
-          <MessageHeader aiModel={validatedContent.ai_model} />
+          <MessageHeader aiModel={content.ai_model} />
           <div className="prose prose-sm max-w-none px-5 py-3 shadow-sm bg-white border border-gray-200 text-gray-800 rounded-2xl rounded-bl-md">
             <div className="text-sm leading-5 font-medium">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {validatedContent.friendlyResponse}
+                {content.friendlyResponse}
               </ReactMarkdown>
             </div>
           </div>
 
-          {validatedContent.error && (
+          {content.error && (
             <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-4">
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0">
@@ -51,9 +46,7 @@ export function AssistantMessage({
                   <h4 className="text-sm font-medium text-red-800 mb-1">
                     Es gab ein Problem
                   </h4>
-                  <p className="text-sm text-red-700">
-                    {validatedContent.error}
-                  </p>
+                  <p className="text-sm text-red-700">{content.error}</p>
                   <div className="mt-2 text-xs text-red-600">
                     Bitte versuche es erneut oder kontaktiere den Support, wenn
                     das Problem weiterhin besteht.
@@ -63,9 +56,9 @@ export function AssistantMessage({
             </div>
           )}
 
-          {validatedContent.process?.iterationHistory && (
+          {content.process?.iterationHistory && (
             <ProcessDisplay
-              process={validatedContent.process}
+              process={content.process}
               showProcess={showProcess}
               onToggleProcess={onToggleProcess}
             />

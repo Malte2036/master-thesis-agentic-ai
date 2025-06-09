@@ -1,5 +1,11 @@
 import { Settings } from './types';
-import { AVAILABLE_MODELS } from '../lib/constants';
+
+const AVAILABLE_MODELS = [
+  { value: 'mixtral:8x7b', label: 'Mixtral 8x7B', size: '47GB' },
+  { value: 'llama3.1:8b', label: 'Llama 3.1 8B', size: '4.7GB' },
+  { value: 'llama3.1:70b', label: 'Llama 3.1 70B', size: '40GB' },
+  { value: 'qwen2.5:14b', label: 'Qwen 2.5 14B', size: '8.7GB' },
+];
 
 interface SettingsModalProps {
   settings: Settings;
