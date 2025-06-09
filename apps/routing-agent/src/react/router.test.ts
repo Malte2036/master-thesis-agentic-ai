@@ -3,11 +3,11 @@ import {
   AIProvider,
   OllamaProvider,
   Logger,
-  OLLAMA_MODELS,
+  GroqProvider,
 } from '@master-thesis-agentic-rag/agent-framework';
 import { RouterProcess } from '@master-thesis-agentic-rag/types';
 import { ReActRouter } from './router';
-import { createAgentTools } from './router.test.config';
+import { createAgentTools, TEST_AI_PROVIDERS } from './router.test.config';
 
 // Mock the getAllAgentsMcpClients function
 jest.mock('../agents/agent', () => ({
@@ -20,8 +20,8 @@ const OllamaBaseUrl = 'http://10.50.60.153:11434';
 jest.setTimeout(10000);
 
 describe('ReActRouter', () => {
-  for (const model of OLLAMA_MODELS) {
-    describe(`with ${model}`, () => {
+  for (const { provider, model, structuredModel } of TEST_AI_PROVIDERS) {
+    describe(`with model ${model} and structured model ${structuredModel ?? model}`, () => {
       let router: ReActRouter;
       let aiProvider: AIProvider;
       let structuredAiProvider: AIProvider;
@@ -37,16 +37,32 @@ describe('ReActRouter', () => {
 
         const logger = new Logger({
           agentName: sanitizedTestName,
-          logsSubDir: model,
+          logsSubDir: `${model}-${structuredModel ?? model}`,
         });
 
-        aiProvider = new OllamaProvider(logger, {
-          baseUrl: OllamaBaseUrl,
-          model,
-        });
+        if (provider === 'ollama') {
+          aiProvider = new OllamaProvider(logger, {
+            baseUrl: OllamaBaseUrl,
+            model,
+          });
+        } else if (provider === 'groq') {
+          aiProvider = new GroqProvider(logger, {
+            model,
+          });
+        } else {
+          throw new Error(`Unsupported provider: ${provider}`);
+        }
 
-        // At the moment, we use the same AI provider for both natural language and structured thought generation
-        structuredAiProvider = aiProvider;
+        if (structuredModel) {
+          structuredAiProvider = new OllamaProvider(logger, {
+            baseUrl: OllamaBaseUrl,
+            model: structuredModel,
+          });
+          logger.log(`Using structured model: ${structuredModel} for ${model}`);
+        } else {
+          structuredAiProvider = aiProvider;
+        }
+
         agentTools = createAgentTools();
         router = new ReActRouter(aiProvider, structuredAiProvider, logger);
       });

@@ -9,7 +9,7 @@ export interface AIProvider {
     temperature?: number,
   ): Promise<T>;
 
-  generateText?(
+  generateText(
     prompt: string,
     options?: AIGenerateTextOptions,
   ): Promise<string>;

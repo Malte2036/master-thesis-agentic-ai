@@ -29,9 +29,7 @@ export class ReActRouter implements Router {
     private readonly aiProvider: AIProvider,
     private readonly structuredAiProvider: AIProvider,
     private readonly logger: Logger,
-  ) {
-    console.log('ReActRouter constructor');
-  }
+  ) {}
 
   async *routeQuestion(
     question: string,

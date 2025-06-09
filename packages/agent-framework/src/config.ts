@@ -1,15 +1,5 @@
 import { z } from 'zod/v4';
 
-export const OLLAMA_BASE_URL = 'http://10.50.60.153:11434';
-
-export const OLLAMA_MODELS = [
-  'llama3.1:8b',
-  'mistral:instruct',
-  'qwen3:0.6b',
-  'qwen3:1.7b',
-  'qwen3:4b',
-];
-
 export interface AgentFunction {
   name: string;
   description: string;
