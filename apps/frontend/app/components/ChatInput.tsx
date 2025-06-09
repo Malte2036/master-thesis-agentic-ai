@@ -4,15 +4,9 @@ interface ChatInputProps {
   input: string;
   onInputChange: (value: string) => void;
   onSubmit: (e: React.FormEvent) => void;
-  loading: boolean;
 }
 
-export function ChatInput({
-  input,
-  onInputChange,
-  onSubmit,
-  loading,
-}: ChatInputProps) {
+export function ChatInput({ input, onInputChange, onSubmit }: ChatInputProps) {
   const quickActions = [
     {
       icon: BookOpen,
@@ -54,7 +48,6 @@ export function ChatInput({
             <button
               key={index}
               onClick={() => onInputChange(action.query)}
-              disabled={loading}
               className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${action.color}`}
             >
               <action.icon className="w-4 h-4" />
@@ -73,13 +66,12 @@ export function ChatInput({
               placeholder="Frage mich nach Kursen, Abgaben, Materialien oder anderen universitären Angelegenheiten..."
               className="w-full p-4 border border-gray-300 rounded-xl resize-none focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none bg-white text-gray-800 placeholder-gray-500 transition-all duration-200"
               rows={2}
-              disabled={loading}
               style={{ minHeight: '60px', maxHeight: '120px' }}
             />
           </div>
           <button
             type="submit"
-            disabled={!input.trim() || loading}
+            disabled={!input.trim()}
             className="px-6 py-4 bg-red-600 text-white rounded-xl hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg font-medium"
           >
             <Send className="w-5 h-5" />

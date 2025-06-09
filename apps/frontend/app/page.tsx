@@ -8,26 +8,27 @@ import { ChatInput } from './components/ChatInput';
 import { SettingsModal } from './components/SettingsModal';
 import { ChatHistory } from './components/ChatHistory';
 import { askRoutingAgent } from './lib/routingApi';
-import { MOCK_SESSIONS, MOCK_SETTINGS } from './lib/mockData';
-import { ChatSession } from './lib/mockData';
+import { MOCK_SETTINGS } from './lib/mockData';
+import { RouterResponseWithId } from './lib/types';
+import { useMongoDBRealtime } from './lib/useMongoDBRealtime';
 
 export default function Home() {
-  const [sessions] = useState(MOCK_SESSIONS);
-  const [currentSessionId, setCurrentSessionId] = useState(MOCK_SESSIONS[0].id);
+  const { data } = useMongoDBRealtime();
+  const [currentSessionId, setCurrentSessionId] = useState<string | undefined>(
+    undefined,
+  );
   const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState<Settings>(MOCK_SETTINGS);
   const [showSettings, setShowSettings] = useState(false);
 
-  const currentSession = sessions.find(
-    (s: ChatSession) => s.id === currentSessionId,
+  const currentSession = data.find(
+    (s: RouterResponseWithId) => s._id === currentSessionId,
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    setLoading(true);
     setInput('');
 
     const response = await askRoutingAgent(
@@ -37,17 +38,14 @@ export default function Home() {
       settings.model,
     ).catch((error) => {
       console.error(error);
-      setLoading(false);
     });
 
     console.log(response);
-
-    setLoading(false);
   };
 
   const handleNewChat = () => {
     // Just switch to first session for UI demo
-    setCurrentSessionId(sessions[0].id);
+    setCurrentSessionId(undefined);
   };
 
   const handleSelectChat = (sessionId: string) => {
@@ -55,27 +53,18 @@ export default function Home() {
   };
 
   const handleDeleteChat = (sessionId: string) => {
-    // For UI demo, just switch to another session if current is deleted
-    if (sessionId === currentSessionId) {
-      const otherSession = sessions.find(
-        (s: ChatSession) => s.id !== sessionId,
-      );
-      if (otherSession) {
-        setCurrentSessionId(otherSession.id);
-      }
-    }
+    console.log(`TODO: Delete chat ${sessionId}`);
   };
 
   const handleClearChat = () => {
-    // For UI demo, just switch to first session
-    setCurrentSessionId(sessions[0].id);
+    console.log(`TODO: Clear chat ${currentSessionId}`);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center font-sans">
       <div className="w-full max-w-6xl h-[90vh] bg-white rounded-xl shadow-lg flex overflow-hidden border border-gray-200">
         <ChatHistory
-          sessions={sessions}
+          sessions={data}
           currentSessionId={currentSessionId}
           onNewChat={handleNewChat}
           onSelectChat={handleSelectChat}
@@ -96,16 +85,12 @@ export default function Home() {
             />
           )}
 
-          <ChatMessages
-            messages={currentSession?.messages || []}
-            loading={loading}
-          />
+          <ChatMessages data={currentSession} />
 
           <ChatInput
             input={input}
             onInputChange={setInput}
             onSubmit={handleSubmit}
-            loading={loading}
           />
         </div>
       </div>

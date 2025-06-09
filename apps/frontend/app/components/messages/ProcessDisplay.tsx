@@ -1,27 +1,18 @@
 import { Brain, ChevronRight, Target } from 'lucide-react';
+import { RouterResponseWithId } from '../../lib/types';
 
 interface ProcessDisplayProps {
-  process:
-    | {
-        question: string;
-        maxIterations: number;
-        iterationHistory?: Array<{
-          iteration: number;
-          naturalLanguageThought: string;
-          observation: string;
-        }>;
-      }
-    | undefined;
+  data: RouterResponseWithId;
   showProcess: boolean;
   onToggleProcess: () => void;
 }
 
 export function ProcessDisplay({
-  process,
+  data,
   showProcess,
   onToggleProcess,
 }: ProcessDisplayProps) {
-  if (!process?.iterationHistory) return null;
+  if (!data.process?.iterationHistory) return null;
 
   return (
     <div className="mt-3">
@@ -35,7 +26,7 @@ export function ProcessDisplay({
         <Brain className="w-4 h-4" />
         <span className="font-medium">KI-Prozess anzeigen</span>
         <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">
-          {process.iterationHistory.length} Iterationen
+          {data.process.iterationHistory.length} Iterationen
         </span>
       </button>
 
@@ -44,15 +35,15 @@ export function ProcessDisplay({
           <div className="mb-4">
             <h4 className="font-semibold text-gray-800 flex items-center">
               <Target className="w-4 h-4 mr-2 text-blue-600" />
-              Verarbeitete Anfrage: &ldquo;{process.question}&rdquo;
+              Verarbeitete Anfrage: &ldquo;{data.process.question}&rdquo;
             </h4>
             <p className="text-sm text-gray-600 mt-1">
-              Maximale Iterationen: {process.maxIterations}
+              Maximale Iterationen: {data.process.maxIterations}
             </p>
           </div>
 
           <div className="space-y-4">
-            {process.iterationHistory.map((iteration, index) => (
+            {data.process.iterationHistory.map((iteration, index) => (
               <div
                 key={index}
                 className="bg-white rounded-lg p-4 border border-gray-200"

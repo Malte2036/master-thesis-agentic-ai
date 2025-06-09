@@ -1,24 +1,18 @@
 import { AlertCircle, Bot } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ChatMessage } from '../types';
 import { MessageHeader } from './MessageHeader';
 import { ProcessDisplay } from './ProcessDisplay';
+import { useState } from 'react';
+import { RouterResponseWithId } from '../../lib/types';
 
 interface AssistantMessageProps {
-  message: ChatMessage;
+  data: RouterResponseWithId;
   index: number;
-  showProcess: boolean;
-  onToggleProcess: () => void;
 }
 
-export function AssistantMessage({
-  message,
-  index,
-  showProcess,
-  onToggleProcess,
-}: AssistantMessageProps) {
-  const content = message.content;
+export function AssistantMessage({ data, index }: AssistantMessageProps) {
+  const [showProcess, setShowProcess] = useState(false);
 
   return (
     <div key={index} className="flex justify-start ml-16">
@@ -27,16 +21,16 @@ export function AssistantMessage({
           <Bot className="w-5 h-5 text-white" />
         </div>
         <div className="flex-1">
-          <MessageHeader aiModel={content.ai_model} />
+          <MessageHeader aiModel={data.ai_model} />
           <div className="prose prose-sm max-w-none px-5 py-3 shadow-sm bg-white border border-gray-200 text-gray-800 rounded-2xl rounded-bl-md">
             <div className="text-sm leading-5 font-medium">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {content.friendlyResponse}
+                {data.friendlyResponse || 'No response from AI'}
               </ReactMarkdown>
             </div>
           </div>
 
-          {content.error && (
+          {data.error && (
             <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-4">
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0">
@@ -46,7 +40,7 @@ export function AssistantMessage({
                   <h4 className="text-sm font-medium text-red-800 mb-1">
                     Es gab ein Problem
                   </h4>
-                  <p className="text-sm text-red-700">{content.error}</p>
+                  <p className="text-sm text-red-700">{data.error}</p>
                   <div className="mt-2 text-xs text-red-600">
                     Bitte versuche es erneut oder kontaktiere den Support, wenn
                     das Problem weiterhin besteht.
@@ -56,13 +50,14 @@ export function AssistantMessage({
             </div>
           )}
 
-          {content.process?.iterationHistory && (
-            <ProcessDisplay
-              process={content.process}
-              showProcess={showProcess}
-              onToggleProcess={onToggleProcess}
-            />
-          )}
+          {data.process?.iterationHistory &&
+            data.process.iterationHistory.length > 0 && (
+              <ProcessDisplay
+                data={data}
+                showProcess={showProcess}
+                onToggleProcess={() => setShowProcess((state) => !state)}
+              />
+            )}
         </div>
       </div>
     </div>

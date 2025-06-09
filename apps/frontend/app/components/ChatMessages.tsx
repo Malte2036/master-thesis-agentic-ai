@@ -1,22 +1,29 @@
-import { useRef, useEffect } from 'react';
-import { ChatMessage } from './types';
 import { Bot } from 'lucide-react';
-import { UserMessage } from './messages/UserMessage';
+import { useEffect, useRef } from 'react';
+import { RouterResponseWithId } from '../lib/types';
 import { AssistantMessage } from './messages/AssistantMessage';
+import { UserMessage } from './messages/UserMessage';
 
 interface ChatMessagesProps {
-  messages: ChatMessage[];
-  loading: boolean;
+  data: RouterResponseWithId | undefined;
 }
 
-function ChatMessages({ messages, loading }: ChatMessagesProps) {
+function ChatMessages({ data }: ChatMessagesProps) {
   const chatRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
-  }, [messages, loading]);
+  }, [data]);
+
+  if (!data) {
+    return <div className="h-full"></div>;
+  }
+  const isFinished =
+    data.process?.iterationHistory?.find(
+      (iteration) => iteration.structuredThought.isFinished,
+    ) || data.error;
 
   return (
     <main
@@ -24,20 +31,10 @@ function ChatMessages({ messages, loading }: ChatMessagesProps) {
       className="flex-1 overflow-y-auto px-6 py-4 space-y-4 bg-gray-50"
     >
       <div className="flex flex-col gap-4">
-        {messages.map((msg, idx) =>
-          msg.role === 'user' ? (
-            <UserMessage key={idx} message={msg} index={idx} />
-          ) : (
-            <AssistantMessage
-              key={idx}
-              message={msg}
-              index={idx}
-              showProcess={false}
-              onToggleProcess={() => {}}
-            />
-          ),
-        )}
-        {loading && (
+        <UserMessage key={'user-message'} data={data} index={0} />
+        <AssistantMessage key={'assistant-message'} data={data} index={1} />
+
+        {!isFinished && (
           <div className="flex justify-start ml-16">
             <div className="flex items-start space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">

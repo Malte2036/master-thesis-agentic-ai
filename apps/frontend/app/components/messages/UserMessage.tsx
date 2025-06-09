@@ -1,12 +1,12 @@
 import { User } from 'lucide-react';
-import { ChatMessage } from '../types';
+import { RouterResponseWithId } from '../../lib/types';
 
 interface UserMessageProps {
-  message: ChatMessage;
+  data: RouterResponseWithId;
   index: number;
 }
 
-export function UserMessage({ message, index }: UserMessageProps) {
+export function UserMessage({ data, index }: UserMessageProps) {
   return (
     <div key={index} className="flex justify-end mr-16">
       <div className="flex items-end space-x-3 group">
@@ -22,7 +22,7 @@ export function UserMessage({ message, index }: UserMessageProps) {
           </div>
           <div className="prose prose-sm max-w-none p-5 shadow-sm bg-gradient-to-r from-slate-100 to-slate-200 text-slate-800 rounded-2xl rounded-br-md border border-slate-300">
             <div className="whitespace-pre-line leading-relaxed">
-              {message.content.friendlyResponse}
+              {data.process?.question || 'No question'}
             </div>
           </div>
         </div>

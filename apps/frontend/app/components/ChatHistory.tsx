@@ -1,18 +1,10 @@
-import { MessageSquare, Plus, Trash2, Menu, X } from 'lucide-react';
-import { ChatMessage } from './types';
+import { Menu, MessageSquare, Plus, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
-
-interface ChatSession {
-  id: string;
-  title: string;
-  messages: ChatMessage[];
-  createdAt: string;
-  updatedAt: string;
-}
+import { RouterResponseWithId } from '../lib/types';
 
 interface ChatHistoryProps {
-  sessions: ChatSession[];
-  currentSessionId: string;
+  sessions: RouterResponseWithId[];
+  currentSessionId: string | undefined;
   onNewChat: () => void;
   onSelectChat: (sessionId: string) => void;
   onDeleteChat: (sessionId: string) => void;
@@ -27,16 +19,16 @@ export function ChatHistory({
 }: ChatHistoryProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-      hour12: true,
-    });
-  };
+  // const formatDate = (dateString: string) => {
+  //   const date = new Date(dateString);
+  //   return date.toLocaleString('en-US', {
+  //     month: 'short',
+  //     day: 'numeric',
+  //     hour: 'numeric',
+  //     minute: 'numeric',
+  //     hour12: true,
+  //   });
+  // };
 
   return (
     <>
@@ -77,30 +69,30 @@ export function ChatHistory({
         <div className="flex-1 overflow-y-auto p-2">
           {sessions.map((session) => (
             <div
-              key={session.id}
+              key={session._id}
               className={`group relative flex items-center space-x-2 p-2 rounded-lg cursor-pointer mb-1 ${
-                session.id === currentSessionId
+                session._id === currentSessionId
                   ? 'bg-red-50 text-red-700'
                   : 'hover:bg-gray-100'
               }`}
               onClick={() => {
-                onSelectChat(session.id);
+                onSelectChat(session._id);
                 setIsOpen(false);
               }}
             >
               <MessageSquare className="w-4 h-4 flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium truncate">
-                  {session.title}
+                  {session.process?.question || 'No question'}
                 </div>
-                <div className="text-xs text-gray-500">
-                  {formatDate(session.updatedAt)}
-                </div>
+                {/* <div className="text-xs text-gray-500">
+                  {formatDate(session.createdAt)}
+                </div> */}
               </div>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDeleteChat(session.id);
+                  onDeleteChat(session._id);
                 }}
                 className="opacity-0 group-hover:opacity-100 p-1 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
               >
