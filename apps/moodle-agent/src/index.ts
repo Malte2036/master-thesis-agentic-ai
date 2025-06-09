@@ -24,7 +24,7 @@ if (!moodleToken) {
 
 mcpServer.tool(
   'get_all_courses',
-  'Get all courses that the user is enrolled in. Prefer "find_courses_by_name" if you need to get courses by name.',
+  'Get all courses that the user is enrolled in. Prefer "search_courses_by_name" if you need to get courses by name.',
   {},
   async () => {
     const userInfo = await moodleProvider.getUserInfo(moodleToken);
@@ -41,14 +41,14 @@ mcpServer.tool(
 );
 
 mcpServer.tool(
-  'find_courses_by_name',
+  'search_courses_by_name',
   'Find courses by a search query for the course name. If there are multiple courses, return all of them. Important: Prefer this over "get_all_courses" if you need to get courses by name.',
   {
     course_name: z.string().describe('Name of the course to search for'),
   },
   async ({ course_name }) => {
     console.log(
-      `find_courses_by_name: ${JSON.stringify({ course_name }, null, 2)}`,
+      `search_courses_by_name: ${JSON.stringify({ course_name }, null, 2)}`,
     );
 
     if (!course_name) {

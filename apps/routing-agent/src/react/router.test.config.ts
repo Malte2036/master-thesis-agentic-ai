@@ -9,7 +9,8 @@ export const createAgentTools = (): Record<string, ListToolsResult> =>
       tools: [
         {
           name: 'find-course-id',
-          description: 'Find the course ID for a specific course from Moodle',
+          description:
+            'Find the course ID for a specific course from Moodle by its name',
           inputSchema: {
             type: 'object' as const,
             properties: {
@@ -36,8 +37,6 @@ export const createAgentTools = (): Record<string, ListToolsResult> =>
             type: 'object' as const,
             properties: {
               courseId: { type: 'number' },
-              status: { type: 'string' },
-              dueDate: { type: 'string' },
             },
             required: ['courseId'],
           },

@@ -27,6 +27,23 @@ Important rules:
 `,
   ];
 
+  private static getAgentToolsString = (
+    agentTools: Record<string, ListToolsResult>,
+  ): string => {
+    return JSON.stringify(
+      Object.entries(agentTools)
+        .map(([agentKey, toolsResult]) => {
+          return toolsResult.tools.map((tool: object) => ({
+            agentName: agentKey,
+            ...tool,
+          }));
+        })
+        .flat(),
+      null,
+      2,
+    );
+  };
+
   /**
    * Prompt for the natural-language "thought" step.
    */
@@ -50,7 +67,7 @@ Principles
 - Answer with your thought process.
 - Move the user one step closer to their goal in every iteration.
 - Choose a function only when **all required parameters are fully specified**.
-- Describe the function call in natural language.
+- Describe the function call in natural language and explicitly mention the agent name.
 - Think strictly about what is needed to answer the user's question; do not plan work that is out of scope.
 - Plan one step at a time; reevaluate after each response.
 - When you already have enough information from the iteration history to answer the user's question, state explicitly that you are finished, answer the question and do not call any more functions.
@@ -65,7 +82,7 @@ Strictly forbidden:
         {
           role: 'system',
           content: `Available agents and functions:
-${JSON.stringify(agentTools, null, 2)}
+${this.getAgentToolsString(agentTools)}
 `,
         },
         {
