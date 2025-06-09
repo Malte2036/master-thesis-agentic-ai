@@ -5,11 +5,9 @@ import {
 } from '@master-thesis-agentic-rag/agent-framework';
 import {
   McpAgentCall,
-  McpAgentCallsSchema,
   RouterProcess,
   StructuredThoughtResponse,
 } from '@master-thesis-agentic-rag/types';
-import z from 'zod/v4';
 
 export class ReActPrompt {
   public static readonly BASE_PROMPTS: string[] = [
@@ -25,7 +23,7 @@ export class ReActPrompt {
 
 Important rules:
 - Speak in the first person. Speak professionally.
-- Do everything in English.
+- IMPORTANT: Do everything in English.
 `,
   ];
 
@@ -36,11 +34,6 @@ Important rules:
     agentTools: Record<string, ListToolsResult>,
     routerProcess: RouterProcess,
   ): AIGenerateTextOptions => {
-    const lastObservation =
-      routerProcess.iterationHistory?.[
-        routerProcess.iterationHistory.length - 1
-      ]?.observation ?? '';
-
     return {
       messages: [
         ...this.BASE_PROMPTS.map((content) => ({
@@ -49,14 +42,18 @@ Important rules:
         })),
         {
           role: 'system',
-          content: `You are a task planner, who wants to help the user to achieve their goal. Decide **exactly one immediate step**—a single function call (or a set of calls that can run in parallel)—using only the facts you already know.
+          content: `
+You are a task planner, who wants to help the user to achieve their goal. 
+Decide **exactly one immediate step**—a single function call (or a set of calls that can run in parallel)—using only the facts you already know.
 
 Principles
+- Answer with your thought process.
 - Move the user one step closer to their goal in every iteration.
 - Choose a function only when **all required parameters are fully specified**.
+- Describe the function call in natural language.
 - Think strictly about what is needed to answer the user's question; do not plan work that is out of scope.
 - Plan one step at a time; reevaluate after each response.
-- When you already have enough information from the iteration history to answer the user's question, state explicitly that you are finished and answer the question. Explain that you do not need to call any more functions.
+- When you already have enough information from the iteration history to answer the user's question, state explicitly that you are finished, answer the question and do not call any more functions.
 
 Strictly forbidden:
 - Fabricating, translating or abbreviating parameter values.
@@ -72,27 +69,22 @@ ${JSON.stringify(agentTools, null, 2)}
 `,
         },
         {
-          role: 'system',
+          role: 'assistant',
           content: `Iteration history (oldest → newest):
 ${
   routerProcess.iterationHistory
     ?.map(
-      (it) => `Iteration ${it.iteration}
-- Thought: ${it.naturalLanguageThought}
-- Agent calls: ${JSON.stringify(it.structuredThought.agentCalls, null, 2)}
-- Observation: ${it.observation}
+      (it) =>
+        `Iteration ${it.iteration}
+- Thought which justifies the next step: ${it.naturalLanguageThought}
+- The function calls that were made: ${JSON.stringify(it.structuredThought.agentCalls, null, 2)}
+- The observation that was made after seeing the response of the function calls: ${it.observation}
 `,
     )
     .join('\n') ?? '— none —'
 }
 `,
         },
-        lastObservation
-          ? {
-              role: 'system',
-              content: `Carry these facts forward: "${lastObservation}"`,
-            }
-          : { role: 'system', content: '' },
       ],
     };
   };
@@ -106,14 +98,15 @@ ${
     messages: [
       {
         role: 'system',
-        content: `Agents and functions: ${JSON.stringify(agentTools, null, 2)}`,
+        content: `Translate the assistant's plan into JSON that conforms precisely to the following schema.
+        - Only add information and agent calls that were explicitly stated in the user's thought process.
+        - Ensure the agent calls are valid and that the parameters are correct (look at the possible agent calls).
+        - Do not add any other information.
+        `,
       },
       {
         role: 'system',
-        content: `Translate the assistant's plan into JSON that conforms precisely to the following schema.
-        - Only add information that was actually stated in the thought process.
-        - Do not add any other information.
-${JSON.stringify(z.toJSONSchema(McpAgentCallsSchema), null, 2)}`,
+        content: `Possible agent calls: ${JSON.stringify(agentTools, null, 2)}`,
       },
     ],
   });
@@ -149,8 +142,8 @@ ${JSON.stringify(z.toJSONSchema(McpAgentCallsSchema), null, 2)}`,
           content: `Summarize the agent responses in bullet points. **Use ONLY information explicitly present in the responses; do NOT add external facts, suggestions, or examples. If a detail is not in the responses, leave it out.** Do not invent information.`,
         },
         {
-          role: 'system',
-          content: JSON.stringify(merged, null, 2),
+          role: 'assistant',
+          content: `The agent responses: ${JSON.stringify(merged, null, 2)}`,
         },
       ],
     };

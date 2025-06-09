@@ -32,6 +32,7 @@ describe('ReActRouter', () => {
       baseUrl: OllamaBaseUrl,
       model: 'llama3.1:8b',
       // model: 'mistral:instruct',
+      // model: 'gemma3:1b',
     });
     structuredAiProvider = aiProvider;
     // structuredAiProvider = new OllamaProvider({
@@ -66,8 +67,9 @@ describe('ReActRouter', () => {
 
       const lowerResult = result.toLowerCase();
 
+      // it should get the assignments or first validate the course id
       expect(lowerResult).toMatch(/moodle.?agent/);
-      expect(lowerResult).toMatch(/get.?assignments|get.?course.?info/);
+      expect(lowerResult).toMatch(/get.?assignments|find.?course.?id/);
       expect(lowerResult).toMatch(/8320/);
     });
 
@@ -134,7 +136,7 @@ describe('ReActRouter', () => {
               isFinished: false,
             },
             observation:
-              'There is an assignment "Learning to Program" for course ID 8320 due on 2025-06-01. There is no other assignment for this course.',
+              'There is an assignment with the name "Learning to Program" for course ID 8320 due on 2025-06-01. There is no other assignment for this course.',
           },
         ],
       };

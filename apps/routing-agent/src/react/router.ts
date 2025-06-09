@@ -201,7 +201,10 @@ export class ReActRouter implements Router {
         0.1,
       );
 
-    console.log(chalk.magenta('Structured thought:'), structuredResponse);
+    console.log(
+      chalk.magenta('Structured thought:'),
+      JSON.stringify(structuredResponse, null, 2),
+    );
     return structuredResponse;
   }
 
