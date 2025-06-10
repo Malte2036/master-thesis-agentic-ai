@@ -107,6 +107,13 @@ expressApp.post('/ask', async (req, res) => {
       chalk.magenta('Router response friendly created:'),
       databaseItemId,
     );
+
+    // Return the MongoDB ID immediately to the user
+    res.json({
+      id: databaseItemId.toString(),
+      status: 'processing',
+      message: 'Question received and processing started',
+    });
   } catch (error) {
     logger.error('Error connecting to database:', error);
     res.status(500).json({
@@ -115,46 +122,48 @@ expressApp.post('/ask', async (req, res) => {
     return;
   }
 
-  try {
-    logger.log(chalk.magenta('Routing question:'));
-    const generator = getRouter(body.model, body.router).routeQuestion(
-      body.prompt,
-      body.max_iterations,
-    );
+  // Continue processing in the background
+  (async () => {
+    try {
+      logger.log(chalk.magenta('Routing question:'));
+      const generator = getRouter(body.model, body.router).routeQuestion(
+        body.prompt,
+        body.max_iterations,
+      );
 
-    let results: RouterResponse;
-    while (true) {
-      const { done, value } = await generator.next();
-      if (done) {
-        results = value;
-        break;
+      let results: RouterResponse;
+      while (true) {
+        const { done, value } = await generator.next();
+        if (done) {
+          results = value;
+          break;
+        }
+
+        routerResponseFriendly.process = value;
+        await database.updateRouterResponseFriendly(
+          databaseItemId,
+          routerResponseFriendly,
+        );
       }
 
-      routerResponseFriendly.process = value;
+      results.process?.iterationHistory?.sort(
+        (a, b) => a.iteration - b.iteration,
+      );
+
+      routerResponseFriendly.process = results.process;
+      routerResponseFriendly.error = results.error;
+
       await database.updateRouterResponseFriendly(
         databaseItemId,
         routerResponseFriendly,
       );
-    }
 
-    results.process?.iterationHistory?.sort(
-      (a, b) => a.iteration - b.iteration,
-    );
-
-    routerResponseFriendly.process = results.process;
-    routerResponseFriendly.error = results.error;
-
-    await database.updateRouterResponseFriendly(
-      databaseItemId,
-      routerResponseFriendly,
-    );
-
-    const aiProvider = getAIProvider(body.model);
-    const friendlyResponse = await aiProvider.generateText(body.prompt, {
-      messages: [
-        {
-          role: 'system',
-          content: `You are a helpful assistant.
+      const aiProvider = getAIProvider(body.model);
+      const friendlyResponse = await aiProvider.generateText(body.prompt, {
+        messages: [
+          {
+            role: 'system',
+            content: `You are a helpful assistant.
     You are given a user question and a list of steps the agent system has taken to answer that question.
     Each step includes a thought, an action (e.g. agent function call), and the corresponding result.
     
@@ -182,45 +191,33 @@ expressApp.post('/ask', async (req, res) => {
     The agent execution results:
     ${JSON.stringify(results, null, 2)}
     `,
-        },
-      ],
-    });
-
-    logger.log(chalk.green('Friendly response:'), friendlyResponse);
-    routerResponseFriendly.friendlyResponse = friendlyResponse;
-
-    await database.updateRouterResponseFriendly(
-      databaseItemId,
-      routerResponseFriendly,
-    );
-
-    res.json(routerResponseFriendly);
-  } catch (error) {
-    logger.error('Error processing question:', error);
-    routerResponseFriendly.error =
-      error instanceof Error
-        ? error.message
-        : 'An error occurred while processing your question.';
-
-    await database
-      .updateRouterResponseFriendly(databaseItemId, routerResponseFriendly)
-      .catch((error) => {
-        logger.error('Error updating router response friendly:', error);
+          },
+        ],
       });
 
-    if (error instanceof Error) {
-      const responseError = error as ResponseError;
-      res.status(responseError.statusCode || 500).json({
-        error:
-          responseError.message ||
-          'An error occurred while processing your question.',
-      });
-    } else {
-      res.status(500).json({
-        error: 'An error occurred while processing your question.',
-      });
+      logger.log(chalk.green('Friendly response:'), friendlyResponse);
+      routerResponseFriendly.friendlyResponse = friendlyResponse;
+
+      await database.updateRouterResponseFriendly(
+        databaseItemId,
+        routerResponseFriendly,
+      );
+
+      logger.log(chalk.green('Processing completed successfully'));
+    } catch (error) {
+      logger.error('Error processing question:', error);
+      routerResponseFriendly.error =
+        error instanceof Error
+          ? error.message
+          : 'An error occurred while processing your question.';
+
+      await database
+        .updateRouterResponseFriendly(databaseItemId, routerResponseFriendly)
+        .catch((error) => {
+          logger.error('Error updating router response friendly:', error);
+        });
     }
-  }
+  })(); // Close the async IIFE
 });
 
 // Start the server and keep it running

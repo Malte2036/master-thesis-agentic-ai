@@ -1,14 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Settings } from './components/types';
 import { ChatHeader } from './components/ChatHeader';
-import { ChatMessages } from './components/ChatMessages';
-import { ChatInput } from './components/ChatInput';
-import { SettingsModal } from './components/SettingsModal';
 import { ChatHistory } from './components/ChatHistory';
+import { ChatInput } from './components/ChatInput';
+import { ChatMessages } from './components/ChatMessages';
+import { SettingsModal } from './components/SettingsModal';
+import { useSettings } from './components/useSettings';
 import { askRoutingAgent } from './lib/routingApi';
-import { MOCK_SETTINGS } from './lib/mockData';
 import { RouterResponseWithId } from './lib/types';
 import { useMongoDBRealtime } from './lib/useMongoDBRealtime';
 
@@ -18,7 +17,7 @@ export default function Home() {
     undefined,
   );
   const [input, setInput] = useState('');
-  const [settings, setSettings] = useState<Settings>(MOCK_SETTINGS);
+  const { settings } = useSettings();
   const [showSettings, setShowSettings] = useState(false);
 
   const currentSession = data.find(
@@ -29,19 +28,28 @@ export default function Home() {
     e.preventDefault();
     if (!input.trim()) return;
 
-    setInput('');
+    const question = input;
 
-    const response = await askRoutingAgent(
-      input,
-      settings.router,
-      settings.max_iterations,
-      settings.model,
-    ).catch((error) => {
-      console.error(error);
-    });
+    try {
+      const response = await askRoutingAgent(
+        question,
+        settings.router,
+        settings.max_iterations,
+        settings.model,
+      );
 
-    console.log(response);
+      console.log('New chat session created:', response);
+
+      // Immediately open the new chat session using the returned MongoDB ID
+      setCurrentSessionId(response.id);
+    } catch (error) {
+      console.error('Error creating new chat session:', error);
+      // TODO: Show error message to user
+    } finally {
+      setInput('');
+    }
   };
+  console.log(currentSession);
 
   const handleNewChat = () => {
     // Just switch to first session for UI demo
@@ -78,11 +86,7 @@ export default function Home() {
           />
 
           {showSettings && (
-            <SettingsModal
-              settings={settings}
-              onUpdateSettings={setSettings}
-              onClose={() => setShowSettings(false)}
-            />
+            <SettingsModal onClose={() => setShowSettings(false)} />
           )}
 
           <ChatMessages data={currentSession} />
