@@ -220,6 +220,17 @@ expressApp.post('/ask', async (req, res) => {
   })(); // Close the async IIFE
 });
 
+expressApp.get('/models', async (req, res) => {
+  try {
+    const aiProvider = getAIProvider('qwen3:4b');
+    const models = await aiProvider.getModels();
+    res.json(models);
+  } catch (error) {
+    logger.error('Error getting models:', error);
+    res.status(500).json({ error: 'An error occurred while getting models.' });
+  }
+});
+
 // Start the server and keep it running
 expressApp.listen(3000, () => {
   logger.log(`Server is running on port 3000`);

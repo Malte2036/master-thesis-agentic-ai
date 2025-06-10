@@ -23,6 +23,10 @@ export class GroqProvider implements AIProvider {
     this.model = options.model;
   }
 
+  public async getModels(): Promise<{ name: string; size: number }[]> {
+    return [];
+  }
+
   private async makeApiCall(
     messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
     isJson = false,

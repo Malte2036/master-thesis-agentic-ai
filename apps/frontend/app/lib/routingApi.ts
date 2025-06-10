@@ -34,3 +34,13 @@ export const askRoutingAgent = async (
 
   return response.json();
 };
+
+export const getModels = async (): Promise<
+  { name: string; size: number }[]
+> => {
+  const url = new URL(routingAgentUrl);
+  url.pathname = '/models';
+
+  const response = await fetch(url);
+  return response.json();
+};

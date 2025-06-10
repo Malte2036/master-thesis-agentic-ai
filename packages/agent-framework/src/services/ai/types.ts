@@ -1,5 +1,4 @@
 import { z } from 'zod/v4';
-import { Logger } from '../../logger';
 
 export interface AIProvider {
   generateJson<T>(
@@ -13,6 +12,8 @@ export interface AIProvider {
     prompt: string,
     options?: AIGenerateTextOptions,
   ): Promise<string>;
+
+  getModels(): Promise<{ name: string; size: number }[]>;
 
   model: string;
 }

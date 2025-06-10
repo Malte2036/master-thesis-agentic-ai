@@ -39,6 +39,14 @@ export class OllamaProvider implements AIProvider {
     }
   }
 
+  public async getModels(): Promise<{ name: string; size: number }[]> {
+    const response = await this.client.list();
+    return response.models.map((model) => ({
+      name: model.model,
+      size: model.size,
+    }));
+  }
+
   private async makeApiCall(
     messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
     isJson = false,

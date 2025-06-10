@@ -1,20 +1,27 @@
+import { useEffect, useState } from 'react';
 import { useSettings } from './useSettings';
-
-const AVAILABLE_MODELS = [
-  { value: 'mixtral:8x7b', label: 'Mixtral 8x7B', size: '47GB' },
-  { value: 'llama3.1:8b', label: 'Llama 3.1 8B', size: '4.7GB' },
-  { value: 'llama3.1:70b', label: 'Llama 3.1 70B', size: '40GB' },
-  { value: 'qwen3:0.6b', label: 'Qwen 3 0.6B', size: '523MB' },
-  { value: 'qwen3:1.7b', label: 'Qwen 3 1.7B', size: '1.7GB' },
-  { value: 'qwen3:4b', label: 'Qwen 3 4B', size: '6.7GB' },
-];
+import { getModels } from '../lib/routingApi';
 
 interface SettingsModalProps {
   onClose: () => void;
 }
 
+const sizeToFriendly = (bytes: number) => {
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const index = Math.floor(Math.log(bytes) / Math.log(1024));
+  return (bytes / Math.pow(1024, index)).toFixed(2) + ' ' + sizes[index];
+};
+
 export function SettingsModal({ onClose }: SettingsModalProps) {
   const { settings, updateSettings } = useSettings();
+
+  const [models, setModels] = useState<{ name: string; size: number }[]>([]);
+
+  useEffect(() => {
+    getModels().then(setModels);
+  }, []);
+
+  console.log(models);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -53,9 +60,9 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
               }
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              {AVAILABLE_MODELS.map((model) => (
-                <option key={model.value} value={model.value}>
-                  {model.label} ({model.size})
+              {models.map((model) => (
+                <option key={model.name} value={model.name}>
+                  {model.name} ({sizeToFriendly(model.size)})
                 </option>
               ))}
             </select>
