@@ -116,7 +116,6 @@ export const EXAMPLE_AGENT_RESPONSES = {
             {
               id: 1405,
               fullname: 'D3.1 Einführung Künstliche Intelligenz',
-              shortname: 'D3.1 Einführung Künstliche Intelligenz',
               displayname: 'D3.1 Einführung Künstliche Intelligenz',
               visible: 1,
               summary:
@@ -132,7 +131,6 @@ export const EXAMPLE_AGENT_RESPONSES = {
             {
               id: 1388,
               fullname: 'D4.1.1 Machine Perception und Tracking',
-              shortname: 'D4.1.1 MPT',
               displayname: 'D4.1.1 Machine Perception und Tracking',
               visible: 1,
               summary: null,
@@ -147,7 +145,6 @@ export const EXAMPLE_AGENT_RESPONSES = {
             {
               id: 1389,
               fullname: 'D5.1.2: Advances in Intelligent Systems (ISS)',
-              shortname: 'D5.1.2: Advances in Intelligent Systems',
               displayname: 'D5.1.2: Advances in Intelligent Systems (ISS)',
               visible: 1,
               summary: null,
@@ -162,7 +159,6 @@ export const EXAMPLE_AGENT_RESPONSES = {
             {
               id: 1392,
               fullname: 'PF1.2 Designing Digital Health User Experience',
-              shortname: 'PF1.2 Designing Digital Health User Experience',
               displayname: 'PF1.2 Designing Digital Health User Experience',
               visible: 1,
               summary:
@@ -178,7 +174,6 @@ export const EXAMPLE_AGENT_RESPONSES = {
             {
               id: 632,
               fullname: 'Sendezentrum',
-              shortname: 'Sendezentrum',
               displayname: 'Sendezentrum',
               visible: 1,
               summary: null,
@@ -193,7 +188,6 @@ export const EXAMPLE_AGENT_RESPONSES = {
             {
               id: 690,
               fullname: 'Masterprojekt 1',
-              shortname: 'Masterprojekt 1',
               displayname: 'Masterprojekt 1',
               visible: 1,
               summary: null,

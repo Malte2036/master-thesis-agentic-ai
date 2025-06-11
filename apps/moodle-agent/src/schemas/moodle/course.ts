@@ -4,7 +4,7 @@ import { AssignmentSchema } from './assignment';
 export const MinimalCourseSchema = z.object({
   id: z.number(),
   fullname: z.string(),
-  shortname: z.string(),
+  // shortname: z.string(),
   // timemodified: z.number().optional(),
   assignments: z.array(z.lazy(() => AssignmentSchema)).optional(),
 });

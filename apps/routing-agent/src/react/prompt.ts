@@ -72,6 +72,18 @@ Principles
 - Plan one step at a time; reevaluate after each response.
 - When you already have enough information from the iteration history to answer the user's question, state explicitly that you are finished, answer the question and do not call any more functions.
 
+Example:
+___
+User: What's the weather like in New York?
+Thought: I need to check the current weather in New York. Since this is a direct question about current weather conditions, I should use the weather agent's get_weather function. The city parameter is clearly specified as "New York" in the user's question, so I have all the required information to make this call.
+
+I will call the "get_weather" function from the "weather-agent" with the parameters:
+- city: "New York"
+This will provide us with the current weather conditions in New York.
+___
+
+
+
 Strictly forbidden:
 - Fabricating, translating or abbreviating parameter values.
 - Ignoring facts from the question or iteration history.
@@ -170,6 +182,7 @@ DO NOT:
 • Add external facts or assumptions
 • Include suggestions not in the responses
 • Modify or interpret the information
+• Shorten or abbreviate any names, titles, or other identifiers.
 • Omit significant details
 • Add any thinking process or analysis
 • Add any formatting or styling`,
