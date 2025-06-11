@@ -20,6 +20,9 @@ const logger = new Logger({ agentName: 'routing-agent' });
 
 const OllamaBaseUrl = 'http://10.50.60.153:11434';
 
+// Store active SSE connections
+const activeConnections = new Map<string, express.Response>();
+
 const getAIProvider = (model: string) => {
   return new OllamaProvider(logger, {
     baseUrl: OllamaBaseUrl,
@@ -51,6 +54,51 @@ type RequestBody = z.infer<typeof RequestBodySchema>;
 const expressApp = express();
 expressApp.use(cors());
 expressApp.use(express.json());
+
+// SSE endpoint for streaming updates
+expressApp.get('/stream/:sessionId', (req, res) => {
+  const sessionId = req.params.sessionId;
+  logger.log('Client connected to SSE endpoint for session:', sessionId);
+
+  // Set headers for SSE
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+
+  // Send initial connection message
+  res.write('data: {"type":"connected","data":"Connected to SSE stream"}\n\n');
+
+  // Store the connection
+  activeConnections.set(sessionId, res);
+
+  // Remove connection when client disconnects
+  req.on('close', () => {
+    logger.log('Client disconnected');
+    activeConnections.delete(sessionId);
+  });
+
+  // Handle errors
+  req.on('error', (error) => {
+    logger.error('SSE connection error:', error);
+    activeConnections.delete(sessionId);
+  });
+});
+
+// Helper function to send SSE updates
+const sendSSEUpdate = (sessionId: string, data: any) => {
+  logger.log('Sending SSE update:', data);
+  const connection = activeConnections.get(sessionId);
+  if (connection) {
+    try {
+      const message = `data: ${JSON.stringify(data)}\n\n`;
+      connection.write(message);
+    } catch (error) {
+      logger.error('Error sending SSE update:', error);
+      activeConnections.delete(sessionId);
+    }
+  }
+};
 
 expressApp.post('/ask', async (req, res) => {
   let body: RequestBody;
@@ -144,6 +192,21 @@ expressApp.post('/ask', async (req, res) => {
           databaseItemId,
           routerResponseFriendly,
         );
+
+        // Send SSE update for each iteration
+        const lastIteration =
+          value.iterationHistory?.[value.iterationHistory.length - 1];
+        if (lastIteration) {
+          sendSSEUpdate(databaseItemId.toString(), {
+            type: 'iteration_update',
+            data: {
+              iteration: lastIteration.iteration,
+              naturalLanguageThought: lastIteration.naturalLanguageThought,
+              structuredThought: lastIteration.structuredThought,
+              observation: lastIteration.observation,
+            },
+          });
+        }
       }
 
       results.process?.iterationHistory?.sort(
@@ -203,6 +266,14 @@ expressApp.post('/ask', async (req, res) => {
         routerResponseFriendly,
       );
 
+      // Send final SSE update
+      sendSSEUpdate(databaseItemId.toString(), {
+        type: 'final_response',
+        data: {
+          friendlyResponse,
+        },
+      });
+
       logger.log(chalk.green('Processing completed successfully'));
     } catch (error) {
       logger.error('Error processing question:', error);
@@ -216,6 +287,12 @@ expressApp.post('/ask', async (req, res) => {
         .catch((error) => {
           logger.error('Error updating router response friendly:', error);
         });
+
+      // Send error SSE update
+      sendSSEUpdate(databaseItemId.toString(), {
+        type: 'error',
+        data: routerResponseFriendly.error,
+      });
     }
   })(); // Close the async IIFE
 });
