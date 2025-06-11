@@ -41,6 +41,7 @@ mcpServer.tool(
       moodleToken,
       userInfo.userid,
     );
+    logger.debug(`get_all_courses: ${JSON.stringify(courses, null, 2)}`);
     return { content: [{ type: 'text', text: JSON.stringify(courses) }] };
   },
 );

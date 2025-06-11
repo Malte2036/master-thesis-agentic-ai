@@ -177,10 +177,26 @@ async def start():
     ).send()
     
     
-    await cl.Message(
-        content="Hello! I'm your HSD AI assistant. Select your preferred AI model from the settings above, then ask me anything!",
-        author="Assistant"
-    ).send()
+
+@cl.set_starters
+async def set_starters():
+     return [
+        cl.Starter(
+            label="Get my user information",
+            message="Can you help me get my user information?",
+            # icon="/public/idea.svg",
+            ),
+            cl.Starter(
+                label="Get all my modules",
+                message="Can you get me all my modules?",
+                # icon="/public/idea.svg",
+            ),
+            cl.Starter(
+                label="Get Information about a specific module",
+                message="Can you get me information about the module 'Digital Health'?",
+                # icon="/public/idea.svg",
+            ),
+        ]
 
 @cl.on_settings_update
 async def on_settings_update(settings):
