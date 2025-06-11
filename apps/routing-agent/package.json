@@ -19,8 +19,7 @@
     "express": "^5.1.0",
     "tslib": "^2.3.0",
     "zod": "^3.22.4",
-    "chalk": "^5.4.1",
-    "mongodb": "^6.3.0"
+    "chalk": "^5.4.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.1",

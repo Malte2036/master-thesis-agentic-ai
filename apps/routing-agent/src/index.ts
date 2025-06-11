@@ -1,20 +1,14 @@
 import {
-  OllamaProvider,
   Logger,
+  OllamaProvider,
 } from '@master-thesis-agentic-rag/agent-framework';
-import {
-  ResponseError,
-  RouterResponse,
-  RouterResponseFriendly,
-} from '@master-thesis-agentic-rag/types';
+import { RouterResponse } from '@master-thesis-agentic-rag/types';
 import chalk from 'chalk';
 import cors from 'cors';
 import express from 'express';
-import { z } from 'zod/v4';
+import { uuidv4, z } from 'zod/v4';
 import { ReActRouter } from './react/router';
 import { Router } from './router';
-import { MongoDBService } from './services/mongodb.service';
-import { ObjectId } from 'mongodb';
 
 const logger = new Logger({ agentName: 'routing-agent' });
 
@@ -86,8 +80,8 @@ expressApp.get('/stream/:sessionId', (req, res) => {
 });
 
 // Helper function to send SSE updates
-const sendSSEUpdate = (sessionId: string, data: any) => {
-  logger.log('Sending SSE update:', data);
+const sendSSEUpdate = (sessionId: string, data: unknown) => {
+  logger.debug('Sending SSE update:', data);
   const connection = activeConnections.get(sessionId);
   if (connection) {
     try {
@@ -129,104 +123,54 @@ expressApp.post('/ask', async (req, res) => {
   logger.log(chalk.cyan('Using max iterations:'), body.max_iterations);
   logger.log(chalk.cyan('--------------------------------'));
 
-  const routerResponseFriendly: RouterResponseFriendly = {
-    friendlyResponse: '',
-    process: {
-      question: body.prompt,
-      maxIterations: body.max_iterations,
-      iterationHistory: [],
-    },
-    ai_model: body.model,
-    error: undefined,
-  };
+  const id = uuidv4().toString();
+  res.json({
+    id,
+    status: 'processing',
+    message: 'Question received and processing started',
+  });
 
-  let database: MongoDBService;
-  let databaseItemId: ObjectId;
   try {
-    logger.log(chalk.magenta('Connecting to database:'));
-    database = MongoDBService.getInstance(logger);
-    await database.connect();
-    logger.log(chalk.magenta('Creating router response friendly:'));
-    const { insertedId } = await database.createRouterResponseFriendly(
-      routerResponseFriendly,
-    );
-    databaseItemId = insertedId;
-    logger.log(
-      chalk.magenta('Router response friendly created:'),
-      databaseItemId,
+    logger.log(chalk.magenta('Routing question:'));
+    const generator = getRouter(body.model, body.router).routeQuestion(
+      body.prompt,
+      body.max_iterations,
     );
 
-    // Return the MongoDB ID immediately to the user
-    res.json({
-      id: databaseItemId.toString(),
-      status: 'processing',
-      message: 'Question received and processing started',
-    });
-  } catch (error) {
-    logger.error('Error connecting to database:', error);
-    res.status(500).json({
-      error: 'An error occurred while connecting to the database.',
-    });
-    return;
-  }
-
-  // Continue processing in the background
-  (async () => {
-    try {
-      logger.log(chalk.magenta('Routing question:'));
-      const generator = getRouter(body.model, body.router).routeQuestion(
-        body.prompt,
-        body.max_iterations,
-      );
-
-      let results: RouterResponse;
-      while (true) {
-        const { done, value } = await generator.next();
-        if (done) {
-          results = value;
-          break;
-        }
-
-        routerResponseFriendly.process = value;
-        await database.updateRouterResponseFriendly(
-          databaseItemId,
-          routerResponseFriendly,
-        );
-
-        // Send SSE update for each iteration
-        const lastIteration =
-          value.iterationHistory?.[value.iterationHistory.length - 1];
-        if (lastIteration) {
-          sendSSEUpdate(databaseItemId.toString(), {
-            type: 'iteration_update',
-            data: {
-              iteration: lastIteration.iteration,
-              naturalLanguageThought: lastIteration.naturalLanguageThought,
-              structuredThought: lastIteration.structuredThought,
-              observation: lastIteration.observation,
-            },
-          });
-        }
+    let results: RouterResponse;
+    while (true) {
+      const { done, value } = await generator.next();
+      if (done) {
+        results = value;
+        break;
       }
 
-      results.process?.iterationHistory?.sort(
-        (a, b) => a.iteration - b.iteration,
-      );
+      // Send SSE update for each iteration
+      const lastIteration =
+        value.iterationHistory?.[value.iterationHistory.length - 1];
+      if (lastIteration) {
+        sendSSEUpdate(id, {
+          type: 'iteration_update',
+          data: {
+            iteration: lastIteration.iteration,
+            naturalLanguageThought: lastIteration.naturalLanguageThought,
+            structuredThought: lastIteration.structuredThought,
+            observation: lastIteration.observation,
+          },
+        });
+      }
+    }
 
-      routerResponseFriendly.process = results.process;
-      routerResponseFriendly.error = results.error;
+    results.process?.iterationHistory?.sort(
+      (a, b) => a.iteration - b.iteration,
+    );
 
-      await database.updateRouterResponseFriendly(
-        databaseItemId,
-        routerResponseFriendly,
-      );
-
-      const aiProvider = getAIProvider(body.model);
-      const friendlyResponse = await aiProvider.generateText(body.prompt, {
-        messages: [
-          {
-            role: 'system',
-            content: `You are a helpful assistant.
+    const aiProvider = getAIProvider(body.model);
+    const friendlyResponse = await aiProvider.generateText(body.prompt, {
+      messages: [
+        {
+          role: 'system',
+          content: `You are a helpful assistant.
     You are given a user question and a list of steps the agent system has taken to answer that question.
     Each step includes a thought, an action (e.g. agent function call), and the corresponding result.
     
@@ -254,47 +198,33 @@ expressApp.post('/ask', async (req, res) => {
     The agent execution results:
     ${JSON.stringify(results, null, 2)}
     `,
-          },
-        ],
-      });
-
-      logger.log(chalk.green('Friendly response:'), friendlyResponse);
-      routerResponseFriendly.friendlyResponse = friendlyResponse;
-
-      await database.updateRouterResponseFriendly(
-        databaseItemId,
-        routerResponseFriendly,
-      );
-
-      // Send final SSE update
-      sendSSEUpdate(databaseItemId.toString(), {
-        type: 'final_response',
-        data: {
-          friendlyResponse,
         },
-      });
+      ],
+    });
 
-      logger.log(chalk.green('Processing completed successfully'));
-    } catch (error) {
-      logger.error('Error processing question:', error);
-      routerResponseFriendly.error =
+    logger.log(chalk.green('Friendly response:'), friendlyResponse);
+
+    // Send final SSE update
+    sendSSEUpdate(id, {
+      type: 'final_response',
+      data: {
+        friendlyResponse,
+      },
+    });
+
+    logger.log(chalk.green('Processing completed successfully'));
+  } catch (error) {
+    logger.error('Error processing question:', error);
+
+    // Send error SSE update
+    sendSSEUpdate(id, {
+      type: 'error',
+      data:
         error instanceof Error
           ? error.message
-          : 'An error occurred while processing your question.';
-
-      await database
-        .updateRouterResponseFriendly(databaseItemId, routerResponseFriendly)
-        .catch((error) => {
-          logger.error('Error updating router response friendly:', error);
-        });
-
-      // Send error SSE update
-      sendSSEUpdate(databaseItemId.toString(), {
-        type: 'error',
-        data: routerResponseFriendly.error,
-      });
-    }
-  })(); // Close the async IIFE
+          : 'An error occurred while processing your question.',
+    });
+  }
 });
 
 expressApp.get('/models', async (req, res) => {
