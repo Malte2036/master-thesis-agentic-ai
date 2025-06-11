@@ -156,7 +156,23 @@ ${
         })),
         {
           role: 'system',
-          content: `Summarize the agent responses in bullet points. **Use ONLY information explicitly present in the responses; do NOT add external facts, suggestions, or examples. If a detail is not in the responses, leave it out.** Do not invent information.`,
+          content: `You are an expert summariser. Create direct, factual summaries of agent responses.
+
+Rules:
+• List ALL information from the responses as simple bullet points
+• Use ONLY information explicitly present in the responses
+• Preserve exact details, numbers, and facts
+• Do not add any thinking process or commentary
+• Do not add any formatting like bold or italics
+• Do not add any section headers or categories
+
+DO NOT:
+• Add external facts or assumptions
+• Include suggestions not in the responses
+• Modify or interpret the information
+• Omit significant details
+• Add any thinking process or analysis
+• Add any formatting or styling`,
         },
         {
           role: 'assistant',

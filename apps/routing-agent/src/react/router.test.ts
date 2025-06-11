@@ -7,7 +7,11 @@ import {
 } from '@master-thesis-agentic-rag/agent-framework';
 import { RouterProcess } from '@master-thesis-agentic-rag/types';
 import { ReActRouter } from './router';
-import { createAgentTools, TEST_AI_PROVIDERS } from './router.test.config';
+import {
+  createAgentTools,
+  TEST_AI_PROVIDERS,
+  EXAMPLE_AGENT_RESPONSES,
+} from './router.test.config';
 
 // Mock the getAllAgentsMcpClients function
 jest.mock('../agents/agent', () => ({
@@ -222,6 +226,49 @@ describe('ReActRouter', () => {
       });
 
       describe('observeAndSummarizeAgentResponses', () => {
+        it('should include all courses from agent response in the observation', async () => {
+          const question = 'Can you get me all my modules?';
+
+          const agentCalls = [
+            {
+              agent: 'moodle-agent',
+              function: 'get_all_courses',
+              args: {},
+            },
+          ];
+
+          const agentResponses = [EXAMPLE_AGENT_RESPONSES.getAllCourses];
+
+          const thinkAndFindResponse = {
+            agentCalls: agentCalls,
+            isFinished: false,
+          };
+
+          const summary = await router.observeAndSummarizeAgentResponses(
+            question,
+            agentCalls,
+            agentResponses,
+            thinkAndFindResponse,
+          );
+
+          expect(summary).toBeDefined();
+          expect(typeof summary).toBe('string');
+          expect(summary.length).toBeGreaterThan(0);
+
+          // Verify that all courses are mentioned in the summary
+          const courses = [
+            'D3.1 Einführung Künstliche Intelligenz',
+            'D4.1.1 Machine Perception und Tracking',
+            'D5.1.2: Advances in Intelligent Systems',
+            'PF1.2 Designing Digital Health User Experience',
+            'Masterprojekt 1',
+            'Sendezentrum',
+          ];
+          courses.forEach((course) => {
+            expect(summary).toContain(course);
+          });
+        });
+
         it.skip('should convert unix timestamps to readable format in agent response summaries', async () => {
           const question = 'What assignments are due soon?';
 
