@@ -1,0 +1,21 @@
+{
+  "name": "chainlit",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/chainlit",
+  "projectType": "application",
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bash -c 'cd apps/chainlit && source venv/bin/activate && chainlit run app.py'",
+        "cwd": "."
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "echo 'Chainlit app does not require a build step'"
+      }
+    }
+  }
+}
