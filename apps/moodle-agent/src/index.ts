@@ -4,8 +4,10 @@ import {
 } from '@master-thesis-agentic-rag/agent-framework';
 import { createResponseError } from '@master-thesis-agentic-rag/types';
 import dotenv from 'dotenv';
-import { MoodleProvider } from './providers/moodleProvider';
 import { z } from 'zod/v3';
+import { MoodleProvider } from './providers/moodleProvider';
+import { Course } from './schemas/moodle/course';
+import { CourseContent } from './schemas/moodle/course_content';
 
 dotenv.config();
 
@@ -27,11 +29,131 @@ if (!moodleToken) {
   throw new Error('MOODLE_TOKEN is not set');
 }
 
+/**
+ * Common schema for include_in_response parameter
+ */
+const includeCourseInResponseSchema = z
+  .object({
+    summary: z
+      .boolean()
+      .nullish()
+      .describe('Whether to include the course summary in the response'),
+    courseimage: z
+      .boolean()
+      .nullish()
+      .describe('Whether to include the course image in the response'),
+    displayname: z
+      .boolean()
+      .nullish()
+      .describe('Whether to include the course display name in the response'),
+    completed: z
+      .boolean()
+      .nullish()
+      .describe(
+        'Whether to include the course completed status in the response',
+      ),
+    startdate: z
+      .boolean()
+      .nullish()
+      .describe('Whether to include the course start date in the response'),
+    enddate: z
+      .boolean()
+      .nullish()
+      .describe('Whether to include the course end date in the response'),
+    isfavourite: z
+      .boolean()
+      .nullish()
+      .describe(
+        'Whether to include the course favourite status in the response',
+      ),
+    hidden: z
+      .boolean()
+      .nullish()
+      .describe('Whether to include the course hidden status in the response'),
+  })
+  .nullish();
+
+const includeCourseContentInResponseSchema = z
+  .object({
+    summary: z.boolean().nullish(),
+    modules: z
+      .object({
+        description: z
+          .boolean()
+          .nullish()
+          .describe(
+            'Whether to include the module description in the response',
+          ),
+        modname: z
+          .boolean()
+          .nullish()
+          .describe('Whether to include the module name in the response'),
+        contents: z
+          .boolean()
+          .nullish()
+          .describe('Whether to include the module contents in the response'),
+      })
+      .nullish()
+      .describe('Whether to include the module in the response'),
+  })
+  .nullish();
+
+/**
+ * Filters a course object based on the include_in_response configuration
+ */
+function filterCourseByInclude(
+  data: { id: number; fullname: string },
+  include_in_response?: z.infer<typeof includeCourseInResponseSchema>,
+): Partial<Course> | undefined {
+  const filteredCourse: Partial<Course> = {
+    id: data.id,
+    fullname: data.fullname,
+  };
+
+  Object.entries(include_in_response ?? {}).forEach(([key, value]) => {
+    if (value) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (filteredCourse as any)[key] = data[key as keyof typeof data];
+    }
+  });
+
+  return filteredCourse;
+}
+
+function filterCourseContentByInclude(
+  data: CourseContent,
+  include_in_response?: z.infer<typeof includeCourseContentInResponseSchema>,
+): Partial<CourseContent> | undefined {
+  const filteredCourseContent: Partial<CourseContent> = {
+    id: data.id,
+    name: data.name,
+  };
+
+  Object.entries(include_in_response ?? {}).forEach(([key, value]) => {
+    if (value) {
+      const valueToInclude = data[key as keyof typeof data];
+
+      if (key === 'modules' && Array.isArray(valueToInclude)) {
+        const modules = valueToInclude as CourseContent['modules'];
+        // TODO: Filter modules by include_in_response
+        filteredCourseContent.modules = modules;
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (filteredCourseContent as any)[key] = valueToInclude;
+      }
+    }
+  });
+
+  return filteredCourseContent;
+}
+
 mcpServer.tool(
   'get_all_courses',
   'Get all courses that the user is enrolled in. Prefer "search_courses_by_name" if you need to get courses by name.',
-  {},
-  async () => {
+  {
+    include_in_response: includeCourseInResponseSchema,
+  },
+  async ({ include_in_response }) => {
     const userInfo = await moodleProvider.getUserInfo(moodleToken);
     if (!userInfo) {
       throw createResponseError('User info not found', 400);
@@ -41,8 +163,21 @@ mcpServer.tool(
       moodleToken,
       userInfo.userid,
     );
-    logger.debug(`get_all_courses: ${JSON.stringify(courses, null, 2)}`);
-    return { content: [{ type: 'text', text: JSON.stringify(courses) }] };
+
+    logger.debug(
+      `include_in_response: ${JSON.stringify(include_in_response, null, 2)}`,
+    );
+
+    const filteredCourses = courses.map((course) =>
+      filterCourseByInclude(course, include_in_response),
+    );
+
+    logger.debug(
+      `get_all_courses: ${JSON.stringify(filteredCourses, null, 2)}`,
+    );
+    return {
+      content: [{ type: 'text', text: JSON.stringify(filteredCourses) }],
+    };
   },
 );
 
@@ -51,8 +186,9 @@ mcpServer.tool(
   'Find courses by a search query for the course name. If there are multiple courses, return all of them. Important: Prefer this over "get_all_courses" if you need to get courses by name.',
   {
     course_name: z.string().describe('Name of the course to search for'),
+    include_in_response: includeCourseInResponseSchema.nullish(),
   },
-  async ({ course_name }) => {
+  async ({ course_name, include_in_response }) => {
     logger.log(
       `search_courses_by_name: ${JSON.stringify({ course_name }, null, 2)}`,
     );
@@ -89,13 +225,17 @@ mcpServer.tool(
       ...searchResponse.courses.find((c) => c.id === course.id),
     }));
 
-    logger.log(`merged: ${JSON.stringify(merged, null, 2)}`);
+    const filteredMerged = merged.map((course) =>
+      filterCourseByInclude(course, include_in_response),
+    );
+
+    logger.log(`merged: ${JSON.stringify(filteredMerged, null, 2)}`);
 
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(merged),
+          text: JSON.stringify(filteredMerged),
         },
       ],
     };
@@ -107,8 +247,9 @@ mcpServer.tool(
   'Get contents of a specific course. The course is identified by the course_id parameter. Maybe you need to call find_course_id_by_name first to get the course_id.',
   {
     course_id: z.number().describe('ID of the course to get contents for'),
+    include_in_response: includeCourseContentInResponseSchema,
   },
-  async ({ course_id }) => {
+  async ({ course_id, include_in_response }) => {
     if (!course_id) {
       throw createResponseError('Course ID is required', 400);
     }
@@ -117,8 +258,13 @@ mcpServer.tool(
       moodleToken,
       course_id,
     );
+
+    const filteredCourseContents = courseContents.map((courseContent) =>
+      filterCourseContentByInclude(courseContent, include_in_response),
+    );
+
     return {
-      content: [{ type: 'text', text: JSON.stringify(courseContents) }],
+      content: [{ type: 'text', text: JSON.stringify(filteredCourseContents) }],
     };
   },
 );

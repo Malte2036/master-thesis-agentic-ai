@@ -180,6 +180,106 @@ describe('ReActRouter', () => {
           expect(lowerResult).toMatch(/learning to program/i);
           expect(lowerResult).toMatch(/2025-06-01/i);
         });
+
+        it('should mention include_in_response parameters when user asks for specific course fields', async () => {
+          const routerProcess: RouterProcess = {
+            question:
+              'Get all my courses but only show me the course names and IDs, I do not need descriptions or images.',
+            maxIterations: 3,
+            iterationHistory: [],
+          };
+
+          const result = await router.getNaturalLanguageThought(
+            agentTools,
+            routerProcess,
+          );
+
+          expect(result).toBeDefined();
+          expect(typeof result).toBe('string');
+          expect(result.length).toBeGreaterThan(0);
+
+          const lowerResult = result.toLowerCase();
+
+          // Should mention the moodle agent and get_all_courses function
+          expect(lowerResult).toMatch(/moodle.?agent/);
+          expect(lowerResult).toMatch(/get.?all.?courses/);
+
+          // Should mention the specific fields requested
+          expect(lowerResult).toMatch(/course.?name/);
+          expect(lowerResult).toMatch(/course.?id/);
+
+          // Should mention excluding unwanted fields
+          expect(lowerResult).toMatch(/description|image/);
+          expect(lowerResult).toMatch(
+            /include.?in.?response|include.?response|specific.?fields/,
+          );
+        });
+
+        it('should mention include_in_response parameters when user asks to exclude specific fields', async () => {
+          const routerProcess: RouterProcess = {
+            question:
+              'Show me all my enrolled courses with full details but without the course images.',
+            maxIterations: 3,
+            iterationHistory: [],
+          };
+
+          const result = await router.getNaturalLanguageThought(
+            agentTools,
+            routerProcess,
+          );
+
+          expect(result).toBeDefined();
+          expect(typeof result).toBe('string');
+          expect(result.length).toBeGreaterThan(0);
+
+          const lowerResult = result.toLowerCase();
+
+          // Should mention the moodle agent and get_all_courses function
+          expect(lowerResult).toMatch(/moodle.?agent/);
+          expect(lowerResult).toMatch(/get.?all.?courses/);
+
+          // Should mention excluding images
+          expect(lowerResult).toMatch(/image/);
+          expect(lowerResult).toMatch(/without|exclude|not|no/);
+
+          // Should mention including other fields or using include_in_response
+          expect(lowerResult).toMatch(
+            /include.?in.?response|include.?response|specific.?fields|full.?details/,
+          );
+        });
+
+        it('should mention include_in_response parameters when user asks for minimal course information', async () => {
+          const routerProcess: RouterProcess = {
+            question:
+              'I just need a simple list of my course names, nothing else.',
+            maxIterations: 3,
+            iterationHistory: [],
+          };
+
+          const result = await router.getNaturalLanguageThought(
+            agentTools,
+            routerProcess,
+          );
+
+          expect(result).toBeDefined();
+          expect(typeof result).toBe('string');
+          expect(result.length).toBeGreaterThan(0);
+
+          const lowerResult = result.toLowerCase();
+
+          // Should mention the moodle agent and get_all_courses function
+          expect(lowerResult).toMatch(/moodle.?agent/);
+          expect(lowerResult).toMatch(/get.?all.?courses/);
+
+          // Should mention only course names
+          expect(lowerResult).toMatch(/course.?name/);
+          expect(lowerResult).toMatch(/only|just|simple|minimal/);
+
+          // Should mention using include_in_response to limit fields
+          expect(lowerResult).toMatch(
+            /include.?in.?response|include.?response|specific.?fields/,
+          );
+        });
       });
 
       describe('getStructuredThought', () => {
@@ -222,6 +322,72 @@ describe('ReActRouter', () => {
             query: expect.stringMatching(/computer science/i),
             maxResults: 5,
           });
+        });
+
+        it('should correctly handle include_in_response parameters for get_all_courses', async () => {
+          const responseString =
+            'I need to call the get_all_courses function of the moodle-agent to get all courses. I want to include course_id, course_name, and course_description in the response, but exclude course_image and course_url.';
+
+          const result = await router.getStructuredThought(
+            responseString,
+            agentTools,
+          );
+
+          expect(result).toBeDefined();
+          expect(result.agentCalls).toHaveLength(1);
+
+          const getAllCoursesCall = result.agentCalls[0];
+          expect(getAllCoursesCall.agent).toBe('moodle-agent');
+          expect(getAllCoursesCall.function).toBe('get_all_courses');
+          expect(getAllCoursesCall.args).toMatchObject({
+            include_in_response: {
+              course_id: true,
+              course_name: true,
+              course_description: true,
+            },
+          });
+        });
+
+        it('should handle partial include_in_response parameters for get_all_courses', async () => {
+          const responseString =
+            'I need to call the get_all_courses function of the moodle-agent to get all courses. I only want to include course_name and course_url in the response.';
+
+          const result = await router.getStructuredThought(
+            responseString,
+            agentTools,
+          );
+
+          expect(result).toBeDefined();
+          expect(result.agentCalls).toHaveLength(1);
+
+          const getAllCoursesCall = result.agentCalls[0];
+          expect(getAllCoursesCall.agent).toBe('moodle-agent');
+          expect(getAllCoursesCall.function).toBe('get_all_courses');
+          expect(getAllCoursesCall.args).toMatchObject({
+            include_in_response: expect.objectContaining({
+              course_name: true,
+              course_url: true,
+            }),
+          });
+        });
+
+        it('should handle get_all_courses without include_in_response parameters', async () => {
+          const responseString =
+            'I need to call the get_all_courses function of the moodle-agent to get all courses with default parameters.';
+
+          const result = await router.getStructuredThought(
+            responseString,
+            agentTools,
+          );
+
+          expect(result).toBeDefined();
+          expect(result.agentCalls).toHaveLength(1);
+
+          const getAllCoursesCall = result.agentCalls[0];
+          expect(getAllCoursesCall.agent).toBe('moodle-agent');
+          expect(getAllCoursesCall.function).toBe('get_all_courses');
+          // Should either have empty args or undefined include_in_response
+          expect(getAllCoursesCall.args).toEqual(expect.objectContaining({}));
         });
       });
 

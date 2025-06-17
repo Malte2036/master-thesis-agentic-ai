@@ -8,7 +8,15 @@ export const McpAgentCallSchema = z.object({
     .record(
       z.string().describe('The name of the parameter'),
       z
-        .union([z.string(), z.number(), z.boolean()])
+        .union([
+          z.string(),
+          z.number(),
+          z.boolean(),
+          z.record(
+            z.string(),
+            z.union([z.string(), z.number(), z.boolean(), z.any()]),
+          ),
+        ])
         .describe('The value of the parameter.'),
     )
     .describe(

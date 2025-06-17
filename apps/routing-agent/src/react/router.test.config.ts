@@ -9,16 +9,16 @@ export const TEST_AI_PROVIDERS: {
   structuredModel?: string;
 }[] = [
   // ollama models
-  // { provider: 'ollama', model: 'llama3.1:8b' },
-  // { provider: 'ollama', model: 'mistral:instruct' },
+  { provider: 'ollama', model: 'llama3.1:8b' },
+  { provider: 'ollama', model: 'mistral:instruct' },
   { provider: 'ollama', model: 'qwen3:0.6b' },
   // { provider: 'ollama', model: 'qwen3:1.7b' },
-  // { provider: 'ollama', model: 'qwen3:4b' },
+  { provider: 'ollama', model: 'qwen3:4b' },
   // { provider: 'ollama', model: 'deepseek-r1:1.5b' },
   // { provider: 'ollama', model: 'phi:2.7b' },
 
   // ollama with custom structured model
-  { provider: 'ollama', model: 'qwen3:0.6b', structuredModel: 'phi:2.7b' },
+  // { provider: 'ollama', model: 'qwen3:0.6b', structuredModel: 'phi:2.7b' },
 
   // groq models
   // { provider: 'groq', model: 'qwen-qwq-32b' },
@@ -61,6 +61,50 @@ export const createAgentTools = (): Record<string, ListToolsResult> =>
               courseId: { type: 'number' },
             },
             required: ['courseId'],
+          },
+        },
+        {
+          name: 'get_all_courses',
+          description:
+            'Get all courses that the user is enrolled in. Prefer "search_courses_by_name" if you need to get courses by name.',
+          inputSchema: {
+            type: 'object' as const,
+            properties: {
+              include_in_response: {
+                type: 'object' as const,
+                description:
+                  'Whether to include certain information in the response. If you do not want to include any information, return an empty object.',
+                properties: {
+                  course_id: {
+                    type: 'boolean' as const,
+                    description:
+                      'Whether to include the course ID in the response',
+                  },
+                  course_name: {
+                    type: 'boolean' as const,
+                    description:
+                      'Whether to include the course name in the response',
+                  },
+                  course_description: {
+                    type: 'boolean' as const,
+                    description:
+                      'Whether to include the course description in the response',
+                  },
+                  course_image: {
+                    type: 'boolean' as const,
+                    description:
+                      'Whether to include the course image in the response',
+                  },
+                  course_url: {
+                    type: 'boolean' as const,
+                    description:
+                      'Whether to include the course URL in the response',
+                  },
+                },
+                required: [],
+              },
+            },
+            required: [],
           },
         },
       ],

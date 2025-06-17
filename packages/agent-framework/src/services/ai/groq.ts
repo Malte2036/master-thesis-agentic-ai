@@ -73,6 +73,10 @@ export class GroqProvider implements AIProvider {
     jsonSchema?: z.ZodSchema,
     temperature?: number,
   ): Promise<T> {
+    console.log(
+      `JSON Schema: ${JSON.stringify(z.toJSONSchema(jsonSchema!), null, 2)}`,
+    );
+
     const messages = [
       ...(jsonSchema
         ? [

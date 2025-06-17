@@ -56,6 +56,9 @@ async def show_processing_step(question: str):
 
 async def show_iteration_update( iteration_id: int, natural_language_thought: str, structured_thought: str, observation: str):
     """Show the iteration update."""
+
+    friendly_observation = observation.replace("```json", "").replace("```", "")
+
     async with cl.Step(
         name=f"Iteration {iteration_id}",
         type="",
