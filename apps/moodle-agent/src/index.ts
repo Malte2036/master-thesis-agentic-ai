@@ -4,10 +4,12 @@ import {
 } from '@master-thesis-agentic-rag/agent-framework';
 import { createResponseError } from '@master-thesis-agentic-rag/types';
 import dotenv from 'dotenv';
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { MoodleProvider } from './providers/moodleProvider';
+import { Assignment } from './schemas/moodle/assignment';
 import { Course } from './schemas/moodle/course';
 import { CourseContent } from './schemas/moodle/course_content';
+import { UserInfo } from './schemas/moodle/user';
 
 dotenv.config();
 
@@ -28,10 +30,6 @@ const moodleToken = process.env.MOODLE_TOKEN;
 if (!moodleToken) {
   throw new Error('MOODLE_TOKEN is not set');
 }
-
-/**
- * Common schema for include_in_response parameter
- */
 const includeCourseInResponseSchema = z
   .object({
     summary: z
@@ -98,6 +96,43 @@ const includeCourseContentInResponseSchema = z
   })
   .nullish();
 
+const includeAssignmentInResponseSchema = z.object({
+  name: z.boolean().nullish(),
+  description: z.boolean().nullish(),
+  due: z.boolean().nullish(),
+  grading: z.boolean().nullish(),
+  submission: z.boolean().nullish(),
+});
+
+const includeUserInfoInResponseSchema = z.object({
+  username: z
+    .boolean()
+    .nullish()
+    .describe(
+      'Whether to include the username in the response. Often this is an email address.',
+    ),
+  firstname: z
+    .boolean()
+    .nullish()
+    .describe('Whether to include the first name in the response'),
+  lastname: z
+    .boolean()
+    .nullish()
+    .describe('Whether to include the last name in the response'),
+  siteurl: z
+    .boolean()
+    .nullish()
+    .describe('Whether to include the site url in the response'),
+  userpictureurl: z
+    .boolean()
+    .nullish()
+    .describe('Whether to include the user picture url in the response'),
+  userlang: z
+    .boolean()
+    .nullish()
+    .describe('Whether to include the user language in the response'),
+});
+
 /**
  * Filters a course object based on the include_in_response configuration
  */
@@ -118,6 +153,28 @@ function filterCourseByInclude(
   });
 
   return filteredCourse;
+}
+
+/**
+ * Filters an assignment object based on the include_in_response configuration
+ */
+function filterAssignmentByInclude(
+  data: Assignment,
+  include_in_response?: z.infer<typeof includeAssignmentInResponseSchema>,
+): Partial<Assignment> {
+  const filteredAssignment: Partial<Assignment> = {
+    id: data.id,
+    name: data.name,
+  };
+
+  Object.entries(include_in_response ?? {}).forEach(([key, value]) => {
+    if (value) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (filteredAssignment as any)[key] = data[key as keyof typeof data];
+    }
+  });
+
+  return filteredAssignment;
 }
 
 function filterCourseContentByInclude(
@@ -145,6 +202,22 @@ function filterCourseContentByInclude(
   });
 
   return filteredCourseContent;
+}
+
+function filterUserInfoByInclude(
+  data: UserInfo,
+  include_in_response?: z.infer<typeof includeUserInfoInResponseSchema>,
+): Partial<UserInfo> {
+  const filteredUserInfo: Partial<UserInfo> = {};
+
+  Object.entries(include_in_response ?? {}).forEach(([key, value]) => {
+    if (value) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (filteredUserInfo as any)[key] = data[key as keyof typeof data];
+    }
+  });
+
+  return filteredUserInfo;
 }
 
 mcpServer.tool(
@@ -186,7 +259,7 @@ mcpServer.tool(
   'Find courses by a search query for the course name. If there are multiple courses, return all of them. Important: Prefer this over "get_all_courses" if you need to get courses by name.',
   {
     course_name: z.string().describe('Name of the course to search for'),
-    include_in_response: includeCourseInResponseSchema.nullish(),
+    include_in_response: includeCourseInResponseSchema,
   },
   async ({ course_name, include_in_response }) => {
     logger.log(
@@ -272,10 +345,21 @@ mcpServer.tool(
 mcpServer.tool(
   'get_all_assignments_for_all_courses',
   'Get all assignments the user has access to. Prefer "assignments_for_course" if you need to get assignments for a specific course.',
-  {},
-  async () => {
-    const assignments = await moodleProvider.getAssignments(moodleToken);
-    return { content: [{ type: 'text', text: JSON.stringify(assignments) }] };
+  {
+    include_in_response: includeAssignmentInResponseSchema,
+  },
+  async ({ include_in_response }) => {
+    const assignmentsResponse =
+      await moodleProvider.getAssignments(moodleToken);
+    const allAssignments = assignmentsResponse.courses.flatMap(
+      (course) => course.assignments ?? [],
+    );
+    const filteredAssignments = allAssignments.map((assignment) =>
+      filterAssignmentByInclude(assignment, include_in_response),
+    );
+    return {
+      content: [{ type: 'text', text: JSON.stringify(filteredAssignments) }],
+    };
   },
 );
 
@@ -284,8 +368,9 @@ mcpServer.tool(
   'Get all assignments for a specific course. Prefer this over "assignments" if you need to get assignments for a specific course.',
   {
     course_id: z.number().describe('ID of the course to get assignments for'),
+    include_in_response: includeAssignmentInResponseSchema,
   },
-  async ({ course_id }) => {
+  async ({ course_id, include_in_response }) => {
     logger.log(
       `get_assignments_for_course: ${JSON.stringify({ course_id }, null, 2)}`,
     );
@@ -294,24 +379,49 @@ mcpServer.tool(
       throw createResponseError('Course ID is required', 400);
     }
 
-    const assignments = await moodleProvider.getAssignmentsForCourse(
+    const course = await moodleProvider.getAssignmentsForCourse(
       moodleToken,
       course_id,
     );
-    return { content: [{ type: 'text', text: JSON.stringify(assignments) }] };
+
+    if (!course || !course.assignments) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify([]),
+          },
+        ],
+      };
+    }
+
+    const filteredAssignments = course.assignments.map((assignment) =>
+      filterAssignmentByInclude(assignment, include_in_response),
+    );
+    return {
+      content: [{ type: 'text', text: JSON.stringify(filteredAssignments) }],
+    };
   },
 );
 
 mcpServer.tool(
   'get_user_info',
   'Get personal information about the user who asked the question. This function cannot get information about other users.',
-  {},
-  async () => {
+  {
+    include_in_response: includeUserInfoInResponseSchema,
+  },
+  async ({ include_in_response }) => {
     const userInfo = await moodleProvider.getUserInfo(moodleToken);
     if (!userInfo) {
       throw createResponseError('User info not found', 400);
     }
-    return { content: [{ type: 'text', text: JSON.stringify(userInfo) }] };
+    const filteredUserInfo = filterUserInfoByInclude(
+      userInfo,
+      include_in_response,
+    );
+    return {
+      content: [{ type: 'text', text: JSON.stringify(filteredUserInfo) }],
+    };
   },
 );
 
