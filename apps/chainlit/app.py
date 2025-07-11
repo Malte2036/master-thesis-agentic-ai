@@ -105,6 +105,7 @@ async def stream_updates(session_id: str, agentic_viewer_element: cl.CustomEleme
                             elif update_type == 'final_response':
                                 # Update with final response
                                 final_response = update_data.get('friendlyResponse', 'Processing complete.')
+
                                 agentic_viewer_element.props['iterations'] = iterations
                                 agentic_viewer_element.props['finalResponse'] = final_response
                                 agentic_viewer_element.props['status'] = 'completed'
@@ -112,8 +113,12 @@ async def stream_updates(session_id: str, agentic_viewer_element: cl.CustomEleme
                                 final_answer_received = True
                                 print("Final answer received and component updated")
 
+                                striped_final_response = final_response.strip()
+                                if "</think>" in striped_final_response:
+                                    striped_final_response = striped_final_response.split("</think>", 1)[1].strip()
+
                                 await cl.Message(
-                                    content=final_response,
+                                    content=striped_final_response,
                                     author="Assistant"
                                 ).send()
                             
