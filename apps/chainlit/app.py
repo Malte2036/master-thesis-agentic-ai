@@ -189,6 +189,11 @@ async def start():
 @cl.set_starters
 async def set_starters():
      return [
+         cl.Starter(
+            label="What are your capabilities?",
+            message="Tell me what you can do. Which functions do you have?",
+            # icon="/public/idea.svg",
+            ),
         cl.Starter(
             label="Get my user information",
             message="Can you help me get my user information?",

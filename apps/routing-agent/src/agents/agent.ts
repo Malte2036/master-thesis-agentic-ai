@@ -20,9 +20,25 @@ export async function callMcpAgentsInParallel(
 
   return await Promise.all(
     agentCalls.map(async (agentCall) => {
-      const client = mcpClients.find(
-        (client) => client.name === agentCall.agent,
-      );
+      let client = mcpClients.find((client) => client.name === agentCall.agent);
+
+      if (!client) {
+        client = mcpClients.find((client) =>
+          client
+            .listTools()
+            .then((res) =>
+              res.tools.find(
+                (tool: { name: string }) => tool.name === agentCall.function,
+              ),
+            ),
+        );
+        if (client) {
+          logger.warn(
+            `Found agent by reverse function lookup: ${agentCall.agent}. We do not want to do this in the future!`,
+          );
+        }
+      }
+
       if (!client) {
         throw new Error(
           `Agent ${agentCall.agent} not found. So we cannot call tool ${agentCall.function}.`,

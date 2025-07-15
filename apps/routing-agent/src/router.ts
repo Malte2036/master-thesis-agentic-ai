@@ -2,7 +2,6 @@ import {
   RouterResponse,
   RouterProcess,
 } from '@master-thesis-agentic-rag/types';
-import { Logger } from '@master-thesis-agentic-rag/agent-framework';
 
 export interface Router {
   routeQuestion(
