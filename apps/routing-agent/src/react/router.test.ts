@@ -389,6 +389,20 @@ describe('ReActRouter', () => {
           // Should either have empty args or undefined include_in_response
           expect(getAllCoursesCall.args).toEqual(expect.objectContaining({}));
         });
+
+        it('should not generate agent calls for thoughts that only describe capabilities', async () => {
+          const responseString =
+            'What I Can Do and My Functions: I can help with the following tasks using specific functions: 1. Moodle-related functions: - Search courses by name - Get course contents - Retrieve assignments for courses (with details like name, description, due dates, grading, and submission info) - Get user information (username, name, site URL, etc.). 2. Calendar management: - Create calendar events (e.g., scheduling checks or reminders).';
+          const result = await router.getStructuredThought(
+            responseString,
+            agentTools,
+          );
+
+          expect(result).toBeDefined();
+          // The core of the test: The model should understand this is a descriptive statement, not an action plan.
+          expect(result.agentCalls).toHaveLength(0);
+          expect(result.isFinished).toBe(true);
+        });
       });
 
       describe('observeAndSummarizeAgentResponses', () => {

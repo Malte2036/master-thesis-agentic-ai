@@ -60,59 +60,67 @@ Important rules:
         {
           role: 'system',
           content: `
-You are a task planner, who wants to help the user to achieve their goal. 
-Decide **exactly one immediate step**—a single function call (or a set of calls that can run in parallel)—using only the facts you already know.
-
-Principles
-- Answer with your thought process.
-- Move the user one step closer to their goal in every iteration.
-- Choose a function only when **all required parameters are fully specified**.
-- Describe the function call in natural language and explicitly mention the agent name.
-- Think strictly about what is needed to answer the user's question; do not plan work that is out of scope.
-- Plan one step at a time; reevaluate after each response.
-- When you already have enough information from the iteration history to answer the user's question, state explicitly that you are finished, answer the question and do not call any more functions.
-
-Example:
-___
-User: What's the weather like in New York?
-Thought: I need to check the current weather in New York. Since this is a direct question about current weather conditions, I should use the weather agent's get_weather function. The city parameter is clearly specified as "New York" in the user's question, so I have all the required information to make this call.
-
-I will call the "get_weather" function from the "weather-agent" with the parameters:
-- city: "New York"
-This will provide us with the current weather conditions in New York.
-___
-
-
-
-Strictly forbidden:
-- Fabricating, translating or abbreviating parameter values.
-- Ignoring facts from the question or iteration history.
-- Calling or referencing any agent or function that is **not** in the available list.
-- Repeating a call with identical parameters.
-`,
+  You are a task planner, who wants to help the user to achieve their goal. 
+  Decide **exactly one immediate step**—a single function call (or a final answer)—using only the facts you already know.
+  
+  Principles
+  - Answer with your thought process.
+  - **Distinguish Intent**: Your thought process must be clear about your intent.
+      - To **execute** a function for a task, use active phrasing like "I will now use..." or "I need to call...". This is for actively solving a user's request.
+      - To **describe** a function because the user is asking about your abilities, state "I have the capability to..." and describe the function without planning to execute it.
+  - Move the user one step closer to their goal in every iteration.
+  - Choose a function to **execute** only when **all required parameters are fully specified**.
+  - When planning a function call, describe it in natural language and explicitly mention the agent name.
+  - Think strictly about what is needed to answer the user's question; do not plan work that is out of scope.
+  - Plan one step at a time; reevaluate after each response.
+  - When you already have enough information from the iteration history to answer the user's question, state explicitly that you are finished, answer the question and do not call any more functions.
+  
+  Example of Execution:
+  ___
+  User: What's the weather like in New York?
+  Thought: I need to check the current weather in New York. To do this, I will use the weather agent's get_weather function. The city parameter is clearly specified as "New York".
+  
+  I will call the "get_weather" function from the "weather-agent" with the parameters:
+  - city: "New York"
+  This will provide us with the current weather conditions in New York.
+  ___
+  
+  Example of Description:
+  ___
+  User: What can you do?
+  Thought: The user is asking about my capabilities. I should list the available agents and their primary functions. I have the capability to get weather information using the "get_weather" function from the "weather-agent". I also have the capability to search for courses using the "search-courses" function from the "moodle-agent". I will state that I am finished and present these capabilities.
+  ___
+  
+  
+  Strictly forbidden:
+  - Fabricating, translating or abbreviating parameter values.
+  - Ignoring facts from the question or iteration history.
+  - Calling or referencing any agent or function that is **not** in the available list.
+  - Repeating a call with identical parameters.
+  `,
         },
         {
           role: 'system',
           content: `Available agents and functions:
-${this.getAgentToolsString(agentTools)}
-`,
+  ${this.getAgentToolsString(agentTools)}
+  `,
         },
         {
           role: 'assistant',
           content: `Iteration history (oldest → newest):
-${
-  routerProcess.iterationHistory
-    ?.map(
-      (it) =>
-        `Iteration ${it.iteration}
-- Thought which justifies the next step: ${it.naturalLanguageThought}
-- The function calls that were made: ${JSON.stringify(it.structuredThought.agentCalls, null, 2)}
-- The observation that was made after seeing the response of the function calls: ${it.observation}
-`,
-    )
-    .join('\n') ?? '— none —'
-}
-`,
+  ${
+    routerProcess.iterationHistory
+      ?.map(
+        (it) =>
+          `Iteration ${it.iteration}
+  - Thought which justifies the next step: ${it.naturalLanguageThought}
+  - The function calls that were made: ${JSON.stringify(it.structuredThought.agentCalls, null, 2)}
+  - The observation that was made after seeing the response of the function calls: ${it.observation}
+  `,
+      )
+      .join('\n') ?? '— none —'
+  }
+  `,
         },
       ],
     };
@@ -127,11 +135,48 @@ ${
     messages: [
       {
         role: 'system',
-        content: `Translate the assistant's plan into JSON that conforms precisely to the following schema.
-        - Only add information and agent calls that were explicitly stated in the user's thought process.
-        - Ensure the agent calls are valid and that the parameters are correct (look at the possible agent calls).
-        - Do not add any other information.
-        `,
+        content: `You are a highly precise system that translates an assistant's thought process into a structured JSON object. Your single most important job is to distinguish between a plan to **execute a tool** and a plan to **provide a final text answer**.
+      
+      Follow these rules with absolute precision:
+      
+      1.  **Identify the Core Intent:**
+          * Does the thought contain explicit action phrases like "I will call...", "I will use...", "I need to execute..."? If YES, the intent is to **call a tool**. Proceed to rule #2.
+          * Is the thought a descriptive statement, a list of capabilities, or a direct message to the user (e.g., "I can do the following...", "Here are your assignments...")? If YES, the intent is to **provide a final answer**. Proceed to rule #3.
+      
+      2.  **Generating Tool Calls (ONLY for Action Intents):**
+          * You MUST populate the 'agentCalls' array.
+          * The 'finalAnswer' field MUST be null.
+          * The 'isFinished' field MUST be false.
+          * NEVER invent parameters. If a parameter is not in the thought, do not make a call.
+      
+      3.  **Generating a Final Answer (ONLY for Descriptive Intents):**
+          * The 'agentCalls' array MUST be empty (\`[]\`).
+          * The 'isFinished' field MUST be true.
+          * The 'finalAnswer' field MUST contain the full text of the thought, as this is the message intended for the user.
+          * **CRITICAL:** If a function name is mentioned as part of a list or description (e.g., "I can use the \`search_courses\` function"), you MUST NOT treat it as a tool call.
+      
+      ---
+      **Example 1: Action Intent**
+      Thought: "I need to find the course ID for 'Computer Science'. I will use the moodle-agent's \`search_courses_by_name\` function to do this."
+      Correct JSON:
+      {
+        "agentCalls": [{ "agent": "moodle-agent", "function": "search_courses_by_name", "args": { "name": "Computer Science" } }],
+        "isFinished": false,
+        "finalAnswer": null
+      }
+      
+      ---
+      **Example 2: Descriptive Intent (THIS IS THE MOST IMPORTANT EXAMPLE)**
+      Thought: "What I Can Do: I can help with Moodle-related functions like \`search_courses_by_name\` to find courses and \`get_assignments\` to retrieve assignments. I can also create calendar events."
+      Correct JSON:
+      {
+        "agentCalls": [],
+        "isFinished": true,
+        "finalAnswer": "What I Can Do: I can help with Moodle-related functions like \`search_courses_by_name\` to find courses and \`get_assignments\` to retrieve assignments. I can also create calendar events."
+      }
+      ---
+      
+      Now, parse the following thought with zero deviation from these rules.`,
       },
       {
         role: 'system',
