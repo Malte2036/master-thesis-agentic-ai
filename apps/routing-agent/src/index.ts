@@ -1,4 +1,5 @@
 import {
+  AgentClient,
   Logger,
   OllamaProvider,
 } from '@master-thesis-agentic-rag/agent-framework';
@@ -236,6 +237,12 @@ expressApp.get('/models', async (req, res) => {
     logger.error('Error getting models:', error);
     res.status(500).json({ error: 'An error occurred while getting models.' });
   }
+});
+
+expressApp.get('/test', async (req, res) => {
+  const agentClient = new AgentClient(logger, 1234);
+  const result = await agentClient.call();
+  res.json(result);
 });
 
 // Start the server and keep it running

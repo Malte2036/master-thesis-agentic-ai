@@ -1,5 +1,8 @@
-import { ListToolsResult } from '@modelcontextprotocol/sdk/types';
+// import { ListToolsResult } from '@modelcontextprotocol/sdk/types';
 import { MCPClient } from './mcp_client';
+
+// TODO: Fix this
+type ListToolsResult = any;
 
 export type AgentTools = Record<string, ListToolsResult>;
 
@@ -16,3 +19,5 @@ export const getAgentTools = async (
 
 export * from './mcp_client';
 export * from './mcp_server';
+export * from './a2a_client';
+export * from './a2a_server';

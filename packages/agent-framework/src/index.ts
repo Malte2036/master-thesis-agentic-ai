@@ -1,3 +1,4 @@
+import { A2AServer, MinimalAgentCard } from './adapters/a2a_server';
 import { McpServerAgentAdapter } from './adapters/mcp_server';
 import { AgentName, AgentNameSchema, getAgentConfig } from './config';
 import { Logger } from './logger';
@@ -14,10 +15,18 @@ export function createAgentFramework(logger: Logger, agentName: AgentName) {
   );
 }
 
-export * from './config';
-export * from './services';
+export function createA2AFramework(
+  logger: Logger,
+  port: number,
+  card: MinimalAgentCard,
+) {
+  return new A2AServer(logger, port, card);
+}
+
 export * from './adapters';
+export * from './config';
 export { Logger, LoggerConfig } from './logger';
+export * from './services';
 
 export {
   CallToolResult,
