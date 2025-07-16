@@ -88,7 +88,7 @@ Important rules:
   Example of Description:
   ___
   User: What can you do?
-  Thought: The user is asking about my capabilities. I should list the available agents and their primary functions. I have the capability to get weather information using the "get_weather" function from the "weather-agent". I also have the capability to search for courses using the "search-courses" function from the "moodle-agent". I will state that I am finished and present these capabilities.
+  Thought: The user is asking about my capabilities. I should list the available agents and their primary functions. I have the capability to get weather information using the "get_weather" function from the "weather-agent". I also have the capability to search for courses using the "search-courses" function from the "moodle-mcp". I will state that I am finished and present these capabilities.
   ___
   
   
@@ -157,10 +157,10 @@ Important rules:
       
       ---
       **Example 1: Action Intent**
-      Thought: "I need to find the course ID for 'Computer Science'. I will use the moodle-agent's \`search_courses_by_name\` function to do this."
+      Thought: "I need to find the course ID for 'Computer Science'. I will use the moodle-mcp's \`search_courses_by_name\` function to do this."
       Correct JSON:
       {
-        "agentCalls": [{ "agent": "moodle-agent", "function": "search_courses_by_name", "args": { "name": "Computer Science" } }],
+        "agentCalls": [{ "agent": "moodle-mcp", "function": "search_courses_by_name", "args": { "name": "Computer Science" } }],
         "isFinished": false,
         "finalAnswer": null
       }

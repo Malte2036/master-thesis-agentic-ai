@@ -1,13 +1,13 @@
 {
-  "name": "@master-thesis-agentic-rag/calendar-agent",
+  "name": "@master-thesis-agentic-rag/moodle-mcp",
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "nx build calendar-agent",
-    "start": "node dist/apps/calendar-agent/index.js",
-    "dev": "nx serve calendar-agent",
-    "lint": "nx lint calendar-agent",
-    "test": "nx test calendar-agent"
+    "build": "nx build moodle-mcp",
+    "start": "node dist/apps/moodle-mcp/index.js",
+    "dev": "nx serve moodle-mcp",
+    "lint": "nx lint moodle-mcp",
+    "test": "nx test moodle-mcp"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +17,7 @@
     "@master-thesis-agentic-rag/agent-framework": "workspace:*",
     "@master-thesis-agentic-rag/types": "workspace:*",
     "dotenv": "^16.5.0",
-    "zod": "^3.22.4"
+    "zod": "^3.25.48"
   },
   "devDependencies": {
     "@nx/js": "^20.5.0",

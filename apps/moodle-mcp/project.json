@@ -1,26 +1,23 @@
 {
-  "name": "@master-thesis-agentic-rag/moodle-agent",
+  "name": "@master-thesis-agentic-rag/moodle-mcp",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/moodle-agent/src",
+  "sourceRoot": "apps/moodle-mcp/src",
   "projectType": "application",
   "targets": {
     "build": {
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/apps/moodle-agent",
-        "main": "apps/moodle-agent/src/index.ts",
-        "tsConfig": "apps/moodle-agent/tsconfig.json",
-        "assets": [
-          "apps/moodle-agent/src/assets",
-          "apps/moodle-agent/package.json"
-        ]
+        "outputPath": "dist/apps/moodle-mcp",
+        "main": "apps/moodle-mcp/src/index.ts",
+        "tsConfig": "apps/moodle-mcp/tsconfig.json",
+        "assets": ["apps/moodle-mcp/src/assets", "apps/moodle-mcp/package.json"]
       }
     },
     "serve": {
       "executor": "@nx/js:node",
       "options": {
-        "buildTarget": "@master-thesis-agentic-rag/moodle-agent:build",
+        "buildTarget": "@master-thesis-agentic-rag/moodle-mcp:build",
         "watch": true
       }
     },
@@ -32,7 +29,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "apps/moodle-agent/jest.config.ts"
+        "jestConfig": "apps/moodle-mcp/jest.config.ts"
       }
     }
   },

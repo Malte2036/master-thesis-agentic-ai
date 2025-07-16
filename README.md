@@ -47,13 +47,13 @@ The project is a polyglot monorepo (TypeScript/Node.js and Python) containing th
     2.  **Plans (Structured Thought):** Translates the thought into a structured, machine-readable plan that specifies which tool agent to call, which function to use, and with what arguments.
     3.  **Acts (Tool Use):** Dispatches the function calls to the appropriate tool agents via MCP.
 
-- **Specialized Tool Agents (`apps/moodle-agent`, `apps/calendar-agent`):**
+- **Specialized Tool Agents (`apps/moodle-mcp`, `apps/calendar-mcp`):**
 
   - **Technology:** TypeScript/Node.js standalone services.
   - **Function:** These are the passive "workers" or **tools** that the orchestrator wields. They do not have their own reasoning loops or goals. They simply wait for commands from the orchestrator and execute their specific function (e.g., connect to an external API).
-  - **`moodle-agent`:** Provides tools for interacting with the Moodle Learning Management System.
+  - **`moodle-mcp`:** Provides tools for interacting with the Moodle Learning Management System.
     - `get_all_courses`, `search_courses_by_name`, `get_course_contents`, `get_all_assignments_for_all_courses`, `get_assignments_for_course`, `get_user_info`.
-  - **`calendar-agent`:** Provides a single, focused tool for calendar operations.
+  - **`calendar-mcp`:** Provides a single, focused tool for calendar operations.
     - `create_calendar_event`.
 
 - **Shared Libraries (`packages/`):**
@@ -79,27 +79,30 @@ The project is a polyglot monorepo (TypeScript/Node.js and Python) containing th
 
 The system operates on the ReAct (Reason-Act) principle. For the example scenario, the flow is orchestrated by the `routing-agent` over several iterations:
 
-1.  **Initial Prompt:** The user asks: *"Show me all my current courses, and create calendar events for any assignments due in the next 14 days."*
+1.  **Initial Prompt:** The user asks: _"Show me all my current courses, and create calendar events for any assignments due in the next 14 days."_
 
 2.  **Iteration 1: Getting Course Information**
-    *   **🤔 Thought:** The `routing-agent` decides it first needs to know which courses the user is enrolled in to find their assignments.
-    *   **🎬 Action:** It calls the `get_all_courses` function on the `moodle-agent`.
-    *   **👀 Observation:** It receives a JSON list of the user's courses from the `moodle-agent`.
+
+    - **🤔 Thought:** The `routing-agent` decides it first needs to know which courses the user is enrolled in to find their assignments.
+    - **🎬 Action:** It calls the `get_all_courses` function on the `moodle-mcp`.
+    - **👀 Observation:** It receives a JSON list of the user's courses from the `moodle-mcp`.
 
 3.  **Iteration 2: Finding Assignments**
-    *   **🤔 Thought:** Now that it has the courses, the agent decides it needs to find the assignments for those courses.
-    *   **🎬 Action:** It calls the `get_assignments_for_course` function on the `moodle-agent` for each course ID it found.
-    *   **👀 Observation:** It receives a JSON list of assignments, including their due dates.
+
+    - **🤔 Thought:** Now that it has the courses, the agent decides it needs to find the assignments for those courses.
+    - **🎬 Action:** It calls the `get_assignments_for_course` function on the `moodle-mcp` for each course ID it found.
+    - **👀 Observation:** It receives a JSON list of assignments, including their due dates.
 
 4.  **Iteration 3: Creating Calendar Events**
-    *   **🤔 Thought:** The agent now has the assignments. It filters them to find those due in the next 14 days and decides it needs to create calendar events for them.
-    *   **🎬 Action:** For each relevant assignment, it calls the `create_calendar_event` function on the `calendar-agent`, passing the assignment's name and due date.
-    *   **👀 Observation:** It receives a success confirmation from the `calendar-agent` for each created event.
+
+    - **🤔 Thought:** The agent now has the assignments. It filters them to find those due in the next 14 days and decides it needs to create calendar events for them.
+    - **🎬 Action:** For each relevant assignment, it calls the `create_calendar_event` function on the `calendar-mcp`, passing the assignment's name and due date.
+    - **👀 Observation:** It receives a success confirmation from the `calendar-mcp` for each created event.
 
 5.  **Final Response:**
-    *   **🤔 Thought:** The agent sees that all tasks are complete. It decides it's time to formulate a friendly response to the user.
-    *   **🎬 Action:** The agent generates a final, human-readable summary of the actions it took.
-    *   **✅ Output:** The user receives a message like: "I have found your courses and created calendar events for 3 upcoming assignments."
+    - **🤔 Thought:** The agent sees that all tasks are complete. It decides it's time to formulate a friendly response to the user.
+    - **🎬 Action:** The agent generates a final, human-readable summary of the actions it took.
+    - **✅ Output:** The user receives a message like: "I have found your courses and created calendar events for 3 upcoming assignments."
 
 This entire process is streamed to the user interface, providing a transparent view of the agent's reasoning at every step.
 
@@ -116,6 +119,6 @@ This entire process is streamed to the user interface, providing a transparent v
 # Install dependencies
 pnpm install
 
-# Start all agents (e.g. routing-agent, moodle-agent, calendar-agent)
+# Start all agents (e.g. routing-agent, moodle-mcp, calendar-mcp)
 pnpm dev
 ```

@@ -136,7 +136,7 @@ describe('ReActRouter', () => {
                 structuredThought: {
                   agentCalls: [
                     {
-                      agent: 'moodle-agent',
+                      agent: 'moodle-mcp',
                       function: 'find-course-id',
                       args: { courseName: 'Introduction to Computer Science' },
                     },
@@ -153,7 +153,7 @@ describe('ReActRouter', () => {
                 structuredThought: {
                   agentCalls: [
                     {
-                      agent: 'moodle-agent',
+                      agent: 'moodle-mcp',
                       function: 'get-assignments',
                       args: { courseId: 8320 },
                     },
@@ -296,7 +296,7 @@ describe('ReActRouter', () => {
           expect(result.agentCalls).toHaveLength(1);
 
           const courseInfoCall = result.agentCalls[0];
-          expect(courseInfoCall.agent).toBe('moodle-agent');
+          expect(courseInfoCall.agent).toBe('moodle-mcp');
           expect(courseInfoCall.function).toBe('get-course-info');
           expect(courseInfoCall.args).toMatchObject({
             courseId: 62031,
@@ -326,7 +326,7 @@ describe('ReActRouter', () => {
 
         it('should correctly handle include_in_response parameters for get_all_courses', async () => {
           const responseString =
-            'I need to call the get_all_courses function of the moodle-agent to get all courses. I want to include course_id, course_name, and course_description in the response, but exclude course_image and course_url.';
+            'I need to call the get_all_courses function of the moodle-mcp to get all courses. I want to include course_id, course_name, and course_description in the response, but exclude course_image and course_url.';
 
           const result = await router.getStructuredThought(
             responseString,
@@ -337,7 +337,7 @@ describe('ReActRouter', () => {
           expect(result.agentCalls).toHaveLength(1);
 
           const getAllCoursesCall = result.agentCalls[0];
-          expect(getAllCoursesCall.agent).toBe('moodle-agent');
+          expect(getAllCoursesCall.agent).toBe('moodle-mcp');
           expect(getAllCoursesCall.function).toBe('get_all_courses');
           expect(getAllCoursesCall.args).toMatchObject({
             include_in_response: {
@@ -350,7 +350,7 @@ describe('ReActRouter', () => {
 
         it('should handle partial include_in_response parameters for get_all_courses', async () => {
           const responseString =
-            'I need to call the get_all_courses function of the moodle-agent to get all courses. I only want to include course_name and course_url in the response.';
+            'I need to call the get_all_courses function of the moodle-mcp to get all courses. I only want to include course_name and course_url in the response.';
 
           const result = await router.getStructuredThought(
             responseString,
@@ -361,7 +361,7 @@ describe('ReActRouter', () => {
           expect(result.agentCalls).toHaveLength(1);
 
           const getAllCoursesCall = result.agentCalls[0];
-          expect(getAllCoursesCall.agent).toBe('moodle-agent');
+          expect(getAllCoursesCall.agent).toBe('moodle-mcp');
           expect(getAllCoursesCall.function).toBe('get_all_courses');
           expect(getAllCoursesCall.args).toMatchObject({
             include_in_response: expect.objectContaining({
@@ -373,7 +373,7 @@ describe('ReActRouter', () => {
 
         it('should handle get_all_courses without include_in_response parameters', async () => {
           const responseString =
-            'I need to call the get_all_courses function of the moodle-agent to get all courses with default parameters.';
+            'I need to call the get_all_courses function of the moodle-mcp to get all courses with default parameters.';
 
           const result = await router.getStructuredThought(
             responseString,
@@ -384,7 +384,7 @@ describe('ReActRouter', () => {
           expect(result.agentCalls).toHaveLength(1);
 
           const getAllCoursesCall = result.agentCalls[0];
-          expect(getAllCoursesCall.agent).toBe('moodle-agent');
+          expect(getAllCoursesCall.agent).toBe('moodle-mcp');
           expect(getAllCoursesCall.function).toBe('get_all_courses');
           // Should either have empty args or undefined include_in_response
           expect(getAllCoursesCall.args).toEqual(expect.objectContaining({}));
@@ -411,7 +411,7 @@ describe('ReActRouter', () => {
 
           const agentCalls = [
             {
-              agent: 'moodle-agent',
+              agent: 'moodle-mcp',
               function: 'get_all_courses',
               args: {},
             },
@@ -454,7 +454,7 @@ describe('ReActRouter', () => {
 
           const agentCalls = [
             {
-              agent: 'moodle-agent',
+              agent: 'moodle-mcp',
               function: 'get-assignments',
               args: { courseId: 12345 },
             },

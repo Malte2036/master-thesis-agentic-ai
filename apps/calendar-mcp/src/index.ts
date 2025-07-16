@@ -9,10 +9,10 @@ import { createResponseError } from '@master-thesis-agentic-rag/types';
 
 dotenv.config();
 
-const logger = new Logger({ agentName: 'calendar-agent' });
+const logger = new Logger({ agentName: 'calendar-mcp' });
 
 const calendarProvider = new CalendarProvider(logger);
-const agentFramework = createAgentFramework(logger, 'calendar-agent');
+const agentFramework = createAgentFramework(logger, 'calendar-mcp');
 const mcpServer = agentFramework.getServer();
 
 mcpServer.tool(

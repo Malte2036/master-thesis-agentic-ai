@@ -1,26 +1,26 @@
 {
-  "name": "@master-thesis-agentic-rag/calendar-agent",
+  "name": "@master-thesis-agentic-rag/calendar-mcp",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/calendar-agent/src",
+  "sourceRoot": "apps/calendar-mcp/src",
   "projectType": "application",
   "targets": {
     "build": {
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/apps/calendar-agent",
-        "main": "apps/calendar-agent/src/index.ts",
-        "tsConfig": "apps/calendar-agent/tsconfig.json",
+        "outputPath": "dist/apps/calendar-mcp",
+        "main": "apps/calendar-mcp/src/index.ts",
+        "tsConfig": "apps/calendar-mcp/tsconfig.json",
         "assets": [
-          "apps/calendar-agent/src/assets",
-          "apps/calendar-agent/package.json"
+          "apps/calendar-mcp/src/assets",
+          "apps/calendar-mcp/package.json"
         ]
       }
     },
     "serve": {
       "executor": "@nx/js:node",
       "options": {
-        "buildTarget": "@master-thesis-agentic-rag/calendar-agent:build",
+        "buildTarget": "@master-thesis-agentic-rag/calendar-mcp:build",
         "watch": true
       }
     },
@@ -32,7 +32,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "apps/calendar-agent/jest.config.ts"
+        "jestConfig": "apps/calendar-mcp/jest.config.ts"
       }
     }
   },

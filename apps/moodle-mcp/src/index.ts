@@ -13,7 +13,7 @@ import { UserInfo } from './schemas/moodle/user';
 
 dotenv.config();
 
-const logger = new Logger({ agentName: 'moodle-agent' });
+const logger = new Logger({ agentName: 'moodle-mcp' });
 
 const moodleBaseUrl = process.env.MOODLE_BASE_URL;
 
@@ -23,7 +23,7 @@ if (!moodleBaseUrl) {
 
 const moodleProvider = new MoodleProvider(logger, moodleBaseUrl);
 
-const agentFramework = createAgentFramework(logger, 'moodle-agent');
+const agentFramework = createAgentFramework(logger, 'moodle-mcp');
 const mcpServer = agentFramework.getServer();
 
 const moodleToken = process.env.MOODLE_TOKEN;

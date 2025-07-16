@@ -27,7 +27,7 @@ export const TEST_AI_PROVIDERS: {
 
 export const createAgentTools = (): Record<string, ListToolsResult> =>
   ({
-    'moodle-agent': {
+    'moodle-mcp': {
       tools: [
         {
           name: 'find-course-id',

@@ -58,7 +58,7 @@ export class LegacyPrompt {
   
   ## 🧠 Implicit Intents
   - If the intermediateAnswer clearly shows the next step the user likely wants (e.g. creating a calendar entry for a known assignment), and all required parameters are available, go ahead and call the relevant function.
-  - Example: If \`course_id\`, \`assignment_title\`, and \`due_date\` are available and the answer mentions “add to calendar”, call the calendar-agent immediately.
+  - Example: If \`course_id\`, \`assignment_title\`, and \`due_date\` are available and the answer mentions “add to calendar”, call the calendar-mcp immediately.
   
   ## 🚫 Failure Handling
   - If the task cannot be completed due to:

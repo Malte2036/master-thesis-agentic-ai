@@ -22,9 +22,9 @@ const AGENT_CONFIGS: Record<string, AgentConfig> = {
     description: 'Ask questions about the university',
     functions: [],
   },
-  'moodle-agent': {
+  'moodle-mcp': {
     port: 3003,
-    name: 'moodle-agent',
+    name: 'moodle-mcp',
     friendlyName: 'Moodle Agent',
     description:
       'Get information about university courses and assignments. All timestamps in responses are in Unix timestamp format (seconds since epoch) and in UTC timezone.',
@@ -78,9 +78,9 @@ const AGENT_CONFIGS: Record<string, AgentConfig> = {
       //   },
     ],
   },
-  'calendar-agent': {
+  'calendar-mcp': {
     port: 3004,
-    name: 'calendar-agent',
+    name: 'calendar-mcp',
     friendlyName: 'Calendar Agent',
     description:
       "This agent is responsible for creating calendar events. It is used to create events in the user's calendar.",
