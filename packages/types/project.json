@@ -1,5 +1,5 @@
 {
-  "name": "@master-thesis-agentic-rag/types",
+  "name": "@master-thesis-agentic-ai/types",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/types/src",
   "projectType": "library",

@@ -4,8 +4,8 @@ import {
   OllamaProvider,
   Logger,
   GroqProvider,
-} from '@master-thesis-agentic-rag/agent-framework';
-import { RouterProcess } from '@master-thesis-agentic-rag/types';
+} from '@master-thesis-agentic-ai/agent-framework';
+import { RouterProcess } from '@master-thesis-agentic-ai/types';
 import { ReActRouter } from './router';
 import {
   createAgentTools,

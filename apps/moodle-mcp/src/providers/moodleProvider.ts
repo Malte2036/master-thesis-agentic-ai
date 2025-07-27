@@ -15,7 +15,7 @@ import {
   CourseContentsResponseSchema,
 } from '../schemas/moodle/course_content';
 import { UserInfo, UserInfoSchema } from '../schemas/moodle/user';
-import { Logger } from '@master-thesis-agentic-rag/agent-framework';
+import { Logger } from '@master-thesis-agentic-ai/agent-framework';
 
 const MOODLE_WEBSERVICE_PATH = '/webservice/rest/server.php';
 

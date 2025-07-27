@@ -1,11 +1,11 @@
 import {
   createAgentFramework,
   Logger,
-} from '@master-thesis-agentic-rag/agent-framework';
+} from '@master-thesis-agentic-ai/agent-framework';
 import dotenv from 'dotenv';
 import { CalendarProvider } from './providers/calendarProvider';
 import { z } from 'zod/v3';
-import { createResponseError } from '@master-thesis-agentic-rag/types';
+import { createResponseError } from '@master-thesis-agentic-ai/types';
 
 dotenv.config();
 

@@ -1,5 +1,5 @@
 {
-  "name": "@master-thesis-agentic-rag/routing-agent",
+  "name": "@master-thesis-agentic-ai/routing-agent",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/routing-agent/src",
   "projectType": "library",
@@ -18,7 +18,7 @@
     "serve": {
       "executor": "@nx/js:node",
       "options": {
-        "buildTarget": "@master-thesis-agentic-rag/routing-agent:build",
+        "buildTarget": "@master-thesis-agentic-ai/routing-agent:build",
         "watch": true
       }
     },

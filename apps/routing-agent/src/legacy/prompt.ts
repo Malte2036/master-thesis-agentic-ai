@@ -2,7 +2,7 @@ import {
   AgentConfig,
   AgentName,
   AIGenerateTextOptions,
-} from '@master-thesis-agentic-rag/agent-framework';
+} from '@master-thesis-agentic-ai/agent-framework';
 
 export class LegacyPrompt {
   public static readonly BASE_PROMPTS: string[] = [

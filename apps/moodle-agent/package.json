@@ -1,5 +1,5 @@
 {
-  "name": "@master-thesis-agentic-rag/moodle-agent",
+  "name": "@master-thesis-agentic-ai/moodle-agent",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -14,8 +14,8 @@
   "license": "ISC",
   "packageManager": "pnpm@10.5.0",
   "dependencies": {
-    "@master-thesis-agentic-rag/agent-framework": "workspace:*",
-    "@master-thesis-agentic-rag/types": "workspace:*",
+    "@master-thesis-agentic-ai/agent-framework": "workspace:*",
+    "@master-thesis-agentic-ai/types": "workspace:*",
     "dotenv": "^16.5.0",
     "zod": "^3.25.48"
   },

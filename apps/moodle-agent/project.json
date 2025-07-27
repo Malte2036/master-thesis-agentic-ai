@@ -1,5 +1,5 @@
 {
-  "name": "@master-thesis-agentic-rag/moodle-agent",
+  "name": "@master-thesis-agentic-ai/moodle-agent",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/moodle-agent/src",
   "projectType": "application",
@@ -20,7 +20,7 @@
     "serve": {
       "executor": "@nx/js:node",
       "options": {
-        "buildTarget": "@master-thesis-agentic-rag/moodle-agent:build",
+        "buildTarget": "@master-thesis-agentic-ai/moodle-agent:build",
         "watch": true
       }
     },

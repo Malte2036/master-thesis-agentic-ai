@@ -1,7 +1,7 @@
 import {
   createA2AFramework,
   Logger,
-} from '@master-thesis-agentic-rag/agent-framework';
+} from '@master-thesis-agentic-ai/agent-framework';
 import dotenv from 'dotenv';
 dotenv.config();
 

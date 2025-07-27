@@ -13,10 +13,10 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@master-thesis-agentic-rag/agent-framework": [
+      "@master-thesis-agentic-ai/agent-framework": [
         "packages/agent-framework/src/index.ts"
       ],
-      "@master-thesis-agentic-rag/types": ["packages/types/src/index.ts"]
+      "@master-thesis-agentic-ai/types": ["packages/types/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

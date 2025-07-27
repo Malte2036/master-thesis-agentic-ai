@@ -3,8 +3,8 @@ import {
   getAgentConfigs,
   MCPClient,
   Logger,
-} from '@master-thesis-agentic-rag/agent-framework';
-import { McpAgentCall } from '@master-thesis-agentic-rag/types';
+} from '@master-thesis-agentic-ai/agent-framework';
+import { McpAgentCall } from '@master-thesis-agentic-ai/types';
 
 export async function callMcpAgentsInParallel(
   logger: Logger,

@@ -1,5 +1,5 @@
 {
-  "name": "@master-thesis-agentic-rag/agent-framework",
+  "name": "@master-thesis-agentic-ai/agent-framework",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/agent-framework/src",
   "projectType": "library",

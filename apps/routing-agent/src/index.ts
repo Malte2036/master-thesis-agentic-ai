@@ -2,8 +2,8 @@ import {
   AgentClient,
   Logger,
   OllamaProvider,
-} from '@master-thesis-agentic-rag/agent-framework';
-import { RouterResponse } from '@master-thesis-agentic-rag/types';
+} from '@master-thesis-agentic-ai/agent-framework';
+import { RouterResponse } from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
 import cors from 'cors';
 import express from 'express';

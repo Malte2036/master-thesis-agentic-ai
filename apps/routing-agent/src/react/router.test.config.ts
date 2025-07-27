@@ -1,7 +1,7 @@
 import {
   ListToolsResult,
   MCPClient,
-} from '@master-thesis-agentic-rag/agent-framework';
+} from '@master-thesis-agentic-ai/agent-framework';
 
 export const TEST_AI_PROVIDERS: {
   provider: 'ollama' | 'groq';

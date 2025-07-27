@@ -1,8 +1,8 @@
 import {
   createAgentFramework,
   Logger,
-} from '@master-thesis-agentic-rag/agent-framework';
-import { createResponseError } from '@master-thesis-agentic-rag/types';
+} from '@master-thesis-agentic-ai/agent-framework';
+import { createResponseError } from '@master-thesis-agentic-ai/types';
 import dotenv from 'dotenv';
 import { z } from 'zod';
 import { MoodleProvider } from './providers/moodleProvider';

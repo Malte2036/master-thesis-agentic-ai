@@ -1,4 +1,4 @@
-import { Logger } from '@master-thesis-agentic-rag/agent-framework';
+import { Logger } from '@master-thesis-agentic-ai/agent-framework';
 
 export class CalendarProvider {
   constructor(private readonly logger: Logger) {}

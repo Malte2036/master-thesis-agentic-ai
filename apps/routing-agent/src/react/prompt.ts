@@ -2,12 +2,12 @@ import {
   AIGenerateTextOptions,
   CallToolResult,
   ListToolsResult,
-} from '@master-thesis-agentic-rag/agent-framework';
+} from '@master-thesis-agentic-ai/agent-framework';
 import {
   McpAgentCall,
   RouterProcess,
   StructuredThoughtResponse,
-} from '@master-thesis-agentic-rag/types';
+} from '@master-thesis-agentic-ai/types';
 
 export class ReActPrompt {
   public static readonly BASE_PROMPTS: string[] = [

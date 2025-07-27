@@ -6,7 +6,7 @@ import {
   ListToolsResult,
   MCPClient,
   Logger,
-} from '@master-thesis-agentic-rag/agent-framework';
+} from '@master-thesis-agentic-ai/agent-framework';
 import {
   addIterationToRouterProcess,
   McpAgentCall,
@@ -14,7 +14,7 @@ import {
   RouterResponse,
   StructuredThoughtResponse,
   StructuredThoughtResponseSchema,
-} from '@master-thesis-agentic-rag/types';
+} from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
 
 import {

@@ -2,7 +2,7 @@
 //   AIProvider,
 //   getAgentConfig,
 //   getAgentConfigs,
-// } from '@master-thesis-agentic-rag/agent-framework';
+// } from '@master-thesis-agentic-ai/agent-framework';
 // import { callAgent } from '../agents/agent';
 // import { AgentCalls, AgentCallsSchema, AgentResponse } from '../agents/types';
 // import { LegacyPrompt } from './prompt';
