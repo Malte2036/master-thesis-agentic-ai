@@ -5,7 +5,11 @@
   "type": "commonjs",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
+  "scripts": {
+    "test": "nx test agent-framework"
+  },
   "dependencies": {
+    "@master-thesis-agentic-ai/types": "workspace:*",
     "@a2a-js/sdk": "^0.2.4",
     "@modelcontextprotocol/sdk": "^1.12.0",
     "express": "^4.21.2",
@@ -13,7 +17,8 @@
     "ollama": "^0.5.16",
     "openai": "^4.98.0",
     "tslib": "^2.3.0",
-    "zod": "^3.25.48"
+    "zod": "^3.25.48",
+    "chalk": "^5.4.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.18",

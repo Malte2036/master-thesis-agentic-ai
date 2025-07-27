@@ -8,8 +8,7 @@ import chalk from 'chalk';
 import cors from 'cors';
 import express from 'express';
 import { uuidv4, z } from 'zod/v4';
-import { ReActRouter } from './react/router';
-import { Router } from './router';
+import { Router, ReActRouter } from '@master-thesis-agentic-ai/agent-framework';
 
 const logger = new Logger({ agentName: 'routing-agent' });
 

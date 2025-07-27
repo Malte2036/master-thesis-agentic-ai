@@ -1,13 +1,13 @@
 import {
-  AIGenerateTextOptions,
-  CallToolResult,
-  ListToolsResult,
-} from '@master-thesis-agentic-ai/agent-framework';
-import {
   McpAgentCall,
   RouterProcess,
   StructuredThoughtResponse,
 } from '@master-thesis-agentic-ai/types';
+import {
+  ListToolsResult,
+  CallToolResult,
+} from '@modelcontextprotocol/sdk/types.js';
+import { AIGenerateTextOptions } from '../../services';
 
 export class ReActPrompt {
   public static readonly BASE_PROMPTS: string[] = [

@@ -1,13 +1,4 @@
 import {
-  AgentTools,
-  AIProvider,
-  CallToolResult,
-  getAgentTools,
-  ListToolsResult,
-  MCPClient,
-  Logger,
-} from '@master-thesis-agentic-ai/agent-framework';
-import {
   addIterationToRouterProcess,
   McpAgentCall,
   RouterProcess,
@@ -21,8 +12,15 @@ import {
   callMcpAgentsInParallel,
   getAllAgentsMcpClients,
 } from '../agents/agent';
-import { Router } from '../router';
 import { ReActPrompt } from './prompt';
+import {
+  ListToolsResult,
+  CallToolResult,
+} from '@modelcontextprotocol/sdk/types.js';
+import { MCPClient, getAgentTools, AgentTools } from '../../adapters';
+import { Logger } from '../../logger';
+import { AIProvider } from '../../services';
+import { Router } from '../router';
 
 export class ReActRouter implements Router {
   constructor(

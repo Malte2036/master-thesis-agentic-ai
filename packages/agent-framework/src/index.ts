@@ -27,6 +27,7 @@ export * from './adapters';
 export * from './config';
 export { Logger, LoggerConfig } from './logger';
 export * from './services';
+export * from './agent';
 
 export {
   CallToolResult,

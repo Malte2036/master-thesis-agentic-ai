@@ -1,10 +1,8 @@
-import {
-  CallToolResult,
-  getAgentConfigs,
-  MCPClient,
-  Logger,
-} from '@master-thesis-agentic-ai/agent-framework';
 import { McpAgentCall } from '@master-thesis-agentic-ai/types';
+import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import { MCPClient } from '../../adapters';
+import { getAgentConfigs } from '../../config';
+import { Logger } from '../../logger';
 
 export async function callMcpAgentsInParallel(
   logger: Logger,
