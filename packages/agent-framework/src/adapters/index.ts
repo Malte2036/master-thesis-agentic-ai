@@ -1,5 +1,5 @@
 // import { ListToolsResult } from '@modelcontextprotocol/sdk/types';
-import { MCPClient } from './mcp_client';
+import { MCPClient } from './mcp/mcp_client';
 
 // TODO: Fix this
 type ListToolsResult = any;
@@ -17,7 +17,5 @@ export const getAgentTools = async (
   return agentTools;
 };
 
-export * from './mcp_client';
-export * from './mcp_server';
-export * from './a2a_client';
-export * from './a2a_server';
+export * from './a2a/index';
+export * from './mcp/index';

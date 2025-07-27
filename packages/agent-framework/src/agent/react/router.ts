@@ -9,9 +9,9 @@ import {
 import chalk from 'chalk';
 
 import {
-  callMcpAgentsInParallel,
-  getAllAgentsMcpClients,
-} from '../agents/agent';
+  callMcpClientInParallel,
+  getMcpClient,
+} from '../../adapters/mcp/mcp_client_utils';
 import { ReActPrompt } from './prompt';
 import {
   ListToolsResult,
@@ -21,33 +21,33 @@ import { MCPClient, getAgentTools, AgentTools } from '../../adapters';
 import { Logger } from '../../logger';
 import { AIProvider } from '../../services';
 import { Router } from '../router';
+import { MCPName } from '../../config';
 
 export class ReActRouter implements Router {
   constructor(
     private readonly aiProvider: AIProvider,
     private readonly structuredAiProvider: AIProvider,
     private readonly logger: Logger,
+    private readonly mcpName: MCPName,
   ) {}
 
   async *routeQuestion(
     question: string,
     maxIterations: number,
   ): AsyncGenerator<RouterProcess, RouterResponse, unknown> {
-    const agents = await getAllAgentsMcpClients(this.logger);
+    const mcpClient = await getMcpClient(this.logger, this.mcpName);
+    this.logger.log('MCP Client:', mcpClient.name);
+
     const routerProcess: RouterProcess = {
       question,
       maxIterations,
       iterationHistory: [],
     };
-    const generator = this.iterate(agents, routerProcess);
+    const generator = this.iterate([mcpClient], routerProcess);
     while (true) {
       const { done, value } = await generator.next();
       if (done) {
-        await Promise.all(
-          agents.map((agent) =>
-            agent.terminateSession().then(() => agent.disconnect()),
-          ),
-        );
+        await mcpClient.terminateSession().then(() => mcpClient.disconnect());
         return value satisfies RouterResponse;
       }
       yield value satisfies RouterProcess;
@@ -124,7 +124,7 @@ export class ReActRouter implements Router {
 
       this.logAgentCalls(structuredThought.agentCalls);
 
-      const agentResponses = await callMcpAgentsInParallel(
+      const agentResponses = await callMcpClientInParallel(
         this.logger,
         agents,
         structuredThought.agentCalls,

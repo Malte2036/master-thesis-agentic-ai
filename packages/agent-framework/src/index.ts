@@ -1,26 +1,25 @@
-import { A2AServer, MinimalAgentCard } from './adapters/a2a_server';
-import { McpServerAgentAdapter } from './adapters/mcp_server';
-import { AgentName, AgentNameSchema, getAgentConfig } from './config';
+import { A2AServer, MinimalAgentCard } from './adapters/a2a/a2a_server';
+import { McpServerAgentAdapter } from './adapters/mcp/mcp_server';
+import { Router } from './agent';
+import { MCPName, MCPNameSchema, getMCPConfig } from './config';
 import { Logger } from './logger';
 
-export function createAgentFramework(logger: Logger, agentName: AgentName) {
-  const parsedAgentName = AgentNameSchema.safeParse(agentName);
+export function createMCPServerFramework(logger: Logger, agentName: MCPName) {
+  const parsedAgentName = MCPNameSchema.safeParse(agentName);
   if (!parsedAgentName.success) {
     throw new Error(`Invalid agent name: ${agentName}`);
   }
 
-  return new McpServerAgentAdapter(
-    logger,
-    getAgentConfig(parsedAgentName.data),
-  );
+  return new McpServerAgentAdapter(logger, getMCPConfig(parsedAgentName.data));
 }
 
 export function createA2AFramework(
   logger: Logger,
   port: number,
   card: MinimalAgentCard,
+  router: Router,
 ) {
-  return new A2AServer(logger, port, card);
+  return new A2AServer(logger, port, card, router);
 }
 
 export * from './adapters';

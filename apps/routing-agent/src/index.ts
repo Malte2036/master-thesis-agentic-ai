@@ -3,12 +3,10 @@ import {
   Logger,
   OllamaProvider,
 } from '@master-thesis-agentic-ai/agent-framework';
-import { RouterResponse } from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
 import cors from 'cors';
 import express from 'express';
 import { uuidv4, z } from 'zod/v4';
-import { Router, ReActRouter } from '@master-thesis-agentic-ai/agent-framework';
 
 const logger = new Logger({ agentName: 'routing-agent' });
 
@@ -22,19 +20,6 @@ const getAIProvider = (model: string) => {
     baseUrl: OllamaBaseUrl,
     model,
   });
-};
-
-// const getStructuredAIProvider = (model: string) => {
-//   return new OllamaProvider({
-//     baseUrl: 'http://localhost:11434',
-//     model: 'Osmosis/Osmosis-Structure-0.6B:latest',
-//   });
-// };
-
-const getRouter = (model: string, router?: 'legacy' | 'react'): Router => {
-  const aiProvider = getAIProvider(model);
-  const structuredAiProvider = aiProvider; //getStructuredAIProvider(model);
-  return new ReActRouter(aiProvider, structuredAiProvider, logger);
 };
 
 const RequestBodySchema = z.object({
@@ -131,39 +116,10 @@ expressApp.post('/ask', async (req, res) => {
   });
 
   try {
-    logger.log(chalk.magenta('Routing question:'));
-    const generator = getRouter(body.model, body.router).routeQuestion(
-      body.prompt,
-      body.max_iterations,
-    );
-
-    let results: RouterResponse;
-    while (true) {
-      const { done, value } = await generator.next();
-      if (done) {
-        results = value;
-        break;
-      }
-
-      // Send SSE update for each iteration
-      const lastIteration =
-        value.iterationHistory?.[value.iterationHistory.length - 1];
-      if (lastIteration) {
-        sendSSEUpdate(id, {
-          type: 'iteration_update',
-          data: {
-            iteration: lastIteration.iteration,
-            naturalLanguageThought: lastIteration.naturalLanguageThought,
-            structuredThought: lastIteration.structuredThought,
-            observation: lastIteration.observation,
-          },
-        });
-      }
-    }
-
-    results.process?.iterationHistory?.sort(
-      (a, b) => a.iteration - b.iteration,
-    );
+    logger.log(chalk.magenta('Sending question to moodle agent:'));
+    const moodleAgent = new AgentClient(logger, 1234);
+    const moodleAgentResponse = await moodleAgent.call(body.prompt);
+    logger.log('Result from moodle agent:', moodleAgentResponse);
 
     const aiProvider = getAIProvider(body.model);
     const friendlyResponse = await aiProvider.generateText(body.prompt, {
@@ -196,7 +152,7 @@ expressApp.post('/ask', async (req, res) => {
     - Use tables for structured data.
     
     The agent execution results:
-    ${JSON.stringify(results, null, 2)}
+    ${moodleAgentResponse}
     `,
         },
       ],
@@ -241,7 +197,8 @@ expressApp.get('/models', async (req, res) => {
 expressApp.get('/test', async (req, res) => {
   const moodleAgent = new AgentClient(logger, 1234);
   const result = await moodleAgent.call('What is my moodle email address?');
-  res.json(result);
+  logger.log('Result from moodle agent:', result);
+  res.send(result);
 });
 
 // Start the server and keep it running

@@ -1,5 +1,5 @@
 import {
-  createAgentFramework,
+  createMCPServerFramework,
   Logger,
 } from '@master-thesis-agentic-ai/agent-framework';
 import { createResponseError } from '@master-thesis-agentic-ai/types';
@@ -23,8 +23,8 @@ if (!moodleBaseUrl) {
 
 const moodleProvider = new MoodleProvider(logger, moodleBaseUrl);
 
-const agentFramework = createAgentFramework(logger, 'moodle-mcp');
-const mcpServer = agentFramework.getServer();
+const mcpServerFramework = createMCPServerFramework(logger, 'moodle-mcp');
+const mcpServer = mcpServerFramework.getServer();
 
 const moodleToken = process.env.MOODLE_TOKEN;
 if (!moodleToken) {
@@ -426,7 +426,7 @@ mcpServer.tool(
 );
 
 // Start the server and keep it running
-agentFramework.listen().catch((error) => {
+mcpServerFramework.listen().catch((error) => {
   logger.error('Failed to start server:', error);
   process.exit(1);
 });

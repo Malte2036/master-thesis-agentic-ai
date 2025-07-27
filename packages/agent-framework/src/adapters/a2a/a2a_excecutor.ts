@@ -1,21 +1,22 @@
-import {
-  Task,
-  TaskArtifactUpdateEvent,
-  TaskStatusUpdateEvent,
-} from '@a2a-js/sdk';
+import { Task, TaskStatusUpdateEvent } from '@a2a-js/sdk';
 import {
   AgentExecutor,
   ExecutionEventBus,
   RequestContext,
 } from '@a2a-js/sdk/server';
-import { uuidv4 } from 'zod/v4';
-import { Logger } from '../logger';
+import { RouterResponse } from '@master-thesis-agentic-ai/types';
+import { randomUUID } from 'crypto';
+import { Router } from '../../agent';
+import { Logger } from '../../logger';
 
 // 1. Define your agent's logic as a AgentExecutor
 export class MyAgentExecutor implements AgentExecutor {
   private cancelledTasks = new Set<string>();
 
-  constructor(private readonly logger: Logger) {}
+  constructor(
+    private readonly logger: Logger,
+    private readonly router: Router,
+  ) {}
 
   public cancelTask = async (
     taskId: string,
@@ -36,15 +37,20 @@ export class MyAgentExecutor implements AgentExecutor {
     const taskId = requestContext.taskId;
     const contextId = requestContext.contextId;
 
-    this.logger.debug(
-      `[MyAgentExecutor] User message: ${JSON.stringify(userMessage, null, 2)}`,
+    const userMessageText = userMessage.parts
+      .filter((part) => part.kind === 'text')
+      .map((part) => part.text)
+      .join('');
+
+    this.logger.log(
+      'Executing task:',
+      taskId,
+      'with context:',
+      contextId,
+      'and user message:',
+      userMessageText,
     );
 
-    this.logger.info(
-      `[MyAgentExecutor] Processing message ${userMessage.messageId} for task ${taskId} (context: ${contextId})`,
-    );
-
-    // 1. Publish initial Task event if it's a new task
     if (!existingTask) {
       const initialTask: Task = {
         kind: 'task',
@@ -71,8 +77,8 @@ export class MyAgentExecutor implements AgentExecutor {
         message: {
           kind: 'message',
           role: 'agent',
-          messageId: uuidv4().toString(),
-          parts: [{ kind: 'text', text: 'Generating code...' }],
+          messageId: randomUUID().toString(),
+          parts: [{ kind: 'text', text: 'Thinking...' }],
           taskId: taskId,
           contextId: contextId,
         },
@@ -82,43 +88,19 @@ export class MyAgentExecutor implements AgentExecutor {
     };
     eventBus.publish(workingStatusUpdate);
 
-    // Simulate work...
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const generator = this.router.routeQuestion(userMessageText, 5);
+    let results: RouterResponse;
+    while (true) {
+      const { done, value } = await generator.next();
+      if (done) {
+        results = value;
+        break;
+      }
 
-    // Check for request cancellation
-    if (this.cancelledTasks.has(taskId)) {
-      this.logger.info(
-        `[MyAgentExecutor] Request cancelled for task: ${taskId}`,
-      );
-      const cancelledUpdate: TaskStatusUpdateEvent = {
-        kind: 'status-update',
-        taskId: taskId,
-        contextId: contextId,
-        status: {
-          state: 'canceled',
-          timestamp: new Date().toISOString(),
-        },
-        final: true,
-      };
-      eventBus.publish(cancelledUpdate);
-      eventBus.finished();
-      return;
+      this.logger.log('Step:', value);
     }
 
-    // 3. Publish artifact update
-    const artifactUpdate: TaskArtifactUpdateEvent = {
-      kind: 'artifact-update',
-      taskId: taskId,
-      contextId: contextId,
-      artifact: {
-        artifactId: 'artifact-1',
-        name: 'artifact-1',
-        parts: [{ kind: 'text', text: `Task ${taskId} completed.` }],
-      },
-      append: false, // Each emission is a complete file snapshot
-      lastChunk: true, // True for this file artifact
-    };
-    eventBus.publish(artifactUpdate);
+    this.logger.log('Response:', JSON.stringify(results, null, 2));
 
     // 4. Publish final status update
     const finalUpdate: TaskStatusUpdateEvent = {
@@ -130,8 +112,15 @@ export class MyAgentExecutor implements AgentExecutor {
         message: {
           kind: 'message',
           role: 'agent',
-          messageId: uuidv4().toString(),
-          parts: [{ kind: 'text', text: `Task ${taskId} completed.` }],
+          messageId: randomUUID().toString(),
+          parts: [
+            {
+              kind: 'text',
+              text:
+                results.process?.iterationHistory?.at(-1)
+                  ?.naturalLanguageThought ?? 'No response from agent',
+            },
+          ],
           taskId: taskId,
           contextId: contextId,
         },

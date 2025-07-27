@@ -1,10 +1,10 @@
 import { McpAgentCall } from '@master-thesis-agentic-ai/types';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { MCPClient } from '../../adapters';
-import { getAgentConfigs } from '../../config';
+import { MCPClient } from './mcp_client';
+import { MCPName, getMCPConfig } from '../../config';
 import { Logger } from '../../logger';
 
-export async function callMcpAgentsInParallel(
+export async function callMcpClientInParallel(
   logger: Logger,
   mcpClients: MCPClient[],
   agentCalls: McpAgentCall[],
@@ -70,14 +70,11 @@ export async function callMcpAgentsInParallel(
   );
 }
 
-export const getAllAgentsMcpClients = async (
+export const getMcpClient = async (
   logger: Logger,
-): Promise<MCPClient[]> => {
-  const allAgents = getAgentConfigs(false);
-
-  return Object.entries(allAgents).map(([, agent]) => {
-    const client = new MCPClient(logger, agent);
-    client.connect();
-    return client;
-  });
+  name: MCPName,
+): Promise<MCPClient> => {
+  const client = new MCPClient(logger, getMCPConfig(name));
+  client.connect();
+  return client;
 };

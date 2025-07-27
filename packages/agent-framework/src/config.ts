@@ -14,14 +14,7 @@ export interface AgentConfig {
   functions: AgentFunction[];
 }
 
-const AGENT_CONFIGS: Record<string, AgentConfig> = {
-  'routing-agent': {
-    port: 3000,
-    name: 'routing-agent',
-    friendlyName: 'Routing Agent',
-    description: 'Ask questions about the university',
-    functions: [],
-  },
+const MCP_CONFIGS: Record<'moodle-mcp' | 'calendar-mcp', AgentConfig> = {
   'moodle-mcp': {
     port: 3003,
     name: 'moodle-mcp',
@@ -111,30 +104,18 @@ const AGENT_CONFIGS: Record<string, AgentConfig> = {
   },
 };
 
-export type AgentName = keyof typeof AGENT_CONFIGS;
+export type MCPName = keyof typeof MCP_CONFIGS;
 
-export const AgentNameSchema = z.enum(
-  Object.keys(AGENT_CONFIGS) as [AgentName, ...AgentName[]],
+export const MCPNameSchema = z.enum(
+  Object.keys(MCP_CONFIGS) as [MCPName, ...MCPName[]],
 );
 
-export function getAgentConfigs(
-  includeRoutingAgent = true,
-): Record<AgentName, AgentConfig> {
-  if (includeRoutingAgent) {
-    return AGENT_CONFIGS;
-  }
-
-  return Object.fromEntries(
-    Object.entries(AGENT_CONFIGS).filter(([key]) => key !== 'routing-agent'),
-  );
+export function getMCPConfig(agentName: MCPName): AgentConfig {
+  return MCP_CONFIGS[agentName];
 }
 
-export function getAgentConfig(agentName: AgentName): AgentConfig {
-  return AGENT_CONFIGS[agentName];
-}
-
-export function getAgentUrl(agentName: AgentName, path?: string): string {
-  const config = getAgentConfig(agentName);
+export function getMCPUrl(agentName: MCPName, path?: string): string {
+  const config = getMCPConfig(agentName);
   const port = config.port;
 
   return `http://localhost:${port}${path ?? ''}`;

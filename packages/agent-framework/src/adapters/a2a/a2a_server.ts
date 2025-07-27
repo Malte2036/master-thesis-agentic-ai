@@ -7,8 +7,9 @@ import {
   TaskStore,
 } from '@a2a-js/sdk/server';
 import express from 'express';
-import { Logger } from '../logger';
+import { Logger } from '../../logger';
 import { MyAgentExecutor } from './a2a_excecutor';
+import { Router } from '../../agent';
 
 export type MinimalAgentCard = Pick<
   AgentCard,
@@ -23,6 +24,7 @@ export class A2AServer {
     private readonly logger: Logger,
     private port: number,
     card: MinimalAgentCard,
+    router: Router,
   ) {
     this.card = {
       ...card,
@@ -40,7 +42,10 @@ export class A2AServer {
     } satisfies AgentCard;
 
     const taskStore: TaskStore = new InMemoryTaskStore();
-    const agentExecutor: AgentExecutor = new MyAgentExecutor(this.logger);
+    const agentExecutor: AgentExecutor = new MyAgentExecutor(
+      this.logger,
+      router,
+    );
 
     const requestHandler = new DefaultRequestHandler(
       this.card,

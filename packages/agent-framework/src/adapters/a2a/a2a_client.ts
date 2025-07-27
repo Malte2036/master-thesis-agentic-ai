@@ -8,7 +8,7 @@ import {
   Task,
   TaskQueryParams,
 } from '@a2a-js/sdk';
-import { Logger } from '../logger';
+import { Logger } from '../../logger';
 import { randomUUID } from 'crypto';
 import { A2AClient } from '@a2a-js/sdk/client';
 
@@ -22,7 +22,7 @@ export class AgentClient {
     this.client = new A2AClient(`http://localhost:${this.port}`);
   }
 
-  async call(message: string) {
+  async call(message: string): Promise<string> {
     const messageId = randomUUID();
     let taskId: string | undefined;
 
@@ -63,10 +63,25 @@ export class AgentClient {
           await this.client.getTask(getParams);
 
         const getTaskResult = (getResponse as GetTaskSuccessResponse).result;
-        this.logger.log('Get Task Result:', getTaskResult);
+
+        const message = JSON.stringify(
+          getTaskResult.status.message?.parts.map((part) => {
+            if (part.kind === 'text') {
+              return part.text;
+            }
+            return part;
+          }),
+          null,
+          2,
+        );
+        this.logger.log('Get Task Result:', message);
+        return message;
       }
+
+      return 'We could not get the task result. Please try again.';
     } catch (error) {
       this.logger.error('A2A Client Communication Error:', error);
+      return 'Due to an error, we could not get the task result. Please try again.';
     }
   }
 }
