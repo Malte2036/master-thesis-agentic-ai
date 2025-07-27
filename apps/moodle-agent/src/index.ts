@@ -10,25 +10,19 @@ dotenv.config();
 
 const logger = new Logger({ agentName: 'moodle-agent' });
 
-const OllamaBaseUrl = 'http://10.50.60.153:11434';
+const OLLAMA_BASE_URL = 'http://10.50.60.153:11434';
+const MODEL = 'qwen3:4b';
 
 const getAIProvider = (model: string) => {
   return new OllamaProvider(logger, {
-    baseUrl: OllamaBaseUrl,
+    baseUrl: OLLAMA_BASE_URL,
     model,
   });
 };
 
-// const getStructuredAIProvider = (model: string) => {
-//   return new OllamaProvider({
-//     baseUrl: 'http://localhost:11434',
-//     model: 'Osmosis/Osmosis-Structure-0.6B:latest',
-//   });
-// };
-
 const getRouter = (model: string): Router => {
   const aiProvider = getAIProvider(model);
-  const structuredAiProvider = aiProvider; //getStructuredAIProvider(model);
+  const structuredAiProvider = aiProvider;
   return new ReActRouter(
     aiProvider,
     structuredAiProvider,
@@ -43,24 +37,26 @@ const agentFramework = createA2AFramework(
   {
     name: 'moodle-agent',
     description:
-      'The Moodle Agent is a tool that can be used to manage Moodle courses.',
+      'The Moodle Agent is a tool that can be used to manage Moodle courses. Moodle is a learning management system (LMS) that is used to create and manage online courses for universities.',
     version: '1.0.0',
     skills: [
       {
         id: 'get-all-courses',
         name: 'Get All Courses',
-        description: 'Get all courses',
-        tags: ['moodle'],
+        description:
+          'Get all courses from the user. This includes the course name, course id, and course description.',
+        tags: ['moodle', 'courses'],
       },
       {
         id: 'get-user-info',
         name: 'Get User Info',
-        description: 'Get information about the user',
-        tags: ['moodle'],
+        description: 'Get information about the user in the context of moodle.',
+        tags: ['moodle', 'user'],
       },
     ],
   },
-  getRouter('qwen3:4b'),
+  getRouter(MODEL),
+  getAIProvider(MODEL),
 );
 
 agentFramework.listen().catch((error) => {

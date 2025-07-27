@@ -3,6 +3,7 @@ import { McpServerAgentAdapter } from './adapters/mcp/mcp_server';
 import { Router } from './agent';
 import { MCPName, MCPNameSchema, getMCPConfig } from './config';
 import { Logger } from './logger';
+import { AIProvider } from './services';
 
 export function createMCPServerFramework(logger: Logger, agentName: MCPName) {
   const parsedAgentName = MCPNameSchema.safeParse(agentName);
@@ -18,8 +19,9 @@ export function createA2AFramework(
   port: number,
   card: MinimalAgentCard,
   router: Router,
+  aiProvider: AIProvider,
 ) {
-  return new A2AServer(logger, port, card, router);
+  return new A2AServer(logger, port, card, router, aiProvider);
 }
 
 export * from './adapters';

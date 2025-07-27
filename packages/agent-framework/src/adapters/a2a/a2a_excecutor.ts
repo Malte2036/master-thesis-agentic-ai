@@ -8,6 +8,7 @@ import { RouterResponse } from '@master-thesis-agentic-ai/types';
 import { randomUUID } from 'crypto';
 import { Router } from '../../agent';
 import { Logger } from '../../logger';
+import { AIProvider, generateFriendlyResponse } from '../../services';
 
 // 1. Define your agent's logic as a AgentExecutor
 export class MyAgentExecutor implements AgentExecutor {
@@ -16,6 +17,7 @@ export class MyAgentExecutor implements AgentExecutor {
   constructor(
     private readonly logger: Logger,
     private readonly router: Router,
+    private readonly aiProvider: AIProvider,
   ) {}
 
   public cancelTask = async (
@@ -100,7 +102,13 @@ export class MyAgentExecutor implements AgentExecutor {
       this.logger.log('Step:', value);
     }
 
-    this.logger.log('Response:', JSON.stringify(results, null, 2));
+    const finalResponse = await generateFriendlyResponse({
+      userPrompt: userMessageText,
+      agentResponse: JSON.stringify(results, null, 2),
+      aiProvider: this.aiProvider,
+    });
+
+    this.logger.log('Final response:', finalResponse);
 
     // 4. Publish final status update
     const finalUpdate: TaskStatusUpdateEvent = {
@@ -116,9 +124,7 @@ export class MyAgentExecutor implements AgentExecutor {
           parts: [
             {
               kind: 'text',
-              text:
-                results.process?.iterationHistory?.at(-1)
-                  ?.naturalLanguageThought ?? 'No response from agent',
+              text: finalResponse,
             },
           ],
           taskId: taskId,

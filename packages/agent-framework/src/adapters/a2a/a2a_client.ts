@@ -11,6 +11,7 @@ import {
 import { Logger } from '../../logger';
 import { randomUUID } from 'crypto';
 import { A2AClient } from '@a2a-js/sdk/client';
+import { AgentCard } from '@a2a-js/sdk';
 
 export class AgentClient {
   private readonly client: A2AClient;
@@ -20,6 +21,10 @@ export class AgentClient {
     private port: number,
   ) {
     this.client = new A2AClient(`http://localhost:${this.port}`);
+  }
+
+  async getAgentCard(): Promise<AgentCard> {
+    return await this.client.getAgentCard();
   }
 
   async call(message: string): Promise<string> {

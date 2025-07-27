@@ -2,6 +2,8 @@ import {
   AgentClient,
   Logger,
   OllamaProvider,
+  generateFriendlyResponse,
+  getAgentTools,
 } from '@master-thesis-agentic-ai/agent-framework';
 import chalk from 'chalk';
 import cors from 'cors';
@@ -116,46 +118,46 @@ expressApp.post('/ask', async (req, res) => {
   });
 
   try {
-    logger.log(chalk.magenta('Sending question to moodle agent:'));
+    const aiProvider = getAIProvider(body.model);
+
+    logger.log(chalk.magenta('Finding out which agent to call first:'));
     const moodleAgent = new AgentClient(logger, 1234);
-    const moodleAgentResponse = await moodleAgent.call(body.prompt);
+    const moodleAgentCard = await moodleAgent.getAgentCard();
+
+    const DecideAgentSchema = z.object({
+      agent: z.string(),
+      prompt: z.string(),
+    });
+
+    const decision = await aiProvider.generateJson(
+      `You are a routing agent for an multi agent ai system.
+      You are given a user's question and a list of agents with their capabilities.
+      Your task is to decide, which agent should be called first to answer the user's question.
+      You need to return the agent name and generate a specific prompt to call the agent with.
+      It should be a question that is specific to the user's question and the agent's capabilities.
+      It should include all information you have at the moment, which might be relevant to the user's question.
+      The user's question is: ${body.prompt}
+      The available agents are:
+      ${JSON.stringify(moodleAgentCard, null, 2)}
+      `,
+      undefined,
+      DecideAgentSchema,
+    );
+
+    const { agent, prompt } = DecideAgentSchema.parse(decision);
+
+    logger.log(chalk.magenta('Agent to call:'), agent);
+    logger.log(chalk.magenta('Prompt to call the agent with:'), prompt);
+
+    logger.log(chalk.magenta('Sending question to moodle agent:'));
+
+    const moodleAgentResponse = await moodleAgent.call(prompt);
     logger.log('Result from moodle agent:', moodleAgentResponse);
 
-    const aiProvider = getAIProvider(body.model);
-    const friendlyResponse = await aiProvider.generateText(body.prompt, {
-      messages: [
-        {
-          role: 'system',
-          content: `You are a helpful assistant.
-    You are given a user question and a list of steps the agent system has taken to answer that question.
-    Each step includes a thought, an action (e.g. agent function call), and the corresponding result.
-    
-    Your task is to now respond to the original user question in a friendly, natural tone—while accurately summarizing what was done and what the current outcome is.
-    
-    You must:
-    - Detect the language of the user's original question and answer in the same language.
-    - Do not include id's, or other internal information, which are not relevant to the user.
-    - Directly answer the user's question based on the available results.
-    - Summarize the steps taken by the agents in a concise and understandable way.
-    - Include any relevant numbers, course names, assignment titles, deadlines, etc., where appropriate. Do not make up any information.
-    - If something failed (e.g. an agent call or calendar entry), explain what happened and suggest what the user could do next.
-    - If the goal was achieved, clearly state that and include key results.
-    - Keep the answer short, helpful, and user-facing. Do not expose internal logs or tool names.
-
-    Format:
-    - Use markdown formatting for your response.
-    - Use bullet points for lists.
-    - Use bold for important information.
-    - Use italic for emphasis.
-    - Use code blocks for code.
-    - Use links for external resources.
-    - Use tables for structured data.
-    
-    The agent execution results:
-    ${moodleAgentResponse}
-    `,
-        },
-      ],
+    const friendlyResponse = await generateFriendlyResponse({
+      userPrompt: body.prompt,
+      agentResponse: moodleAgentResponse,
+      aiProvider,
     });
 
     logger.log(chalk.green('Friendly response:'), friendlyResponse);

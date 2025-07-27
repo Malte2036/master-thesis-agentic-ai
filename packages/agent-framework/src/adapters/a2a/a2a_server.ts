@@ -10,6 +10,7 @@ import express from 'express';
 import { Logger } from '../../logger';
 import { MyAgentExecutor } from './a2a_excecutor';
 import { Router } from '../../agent';
+import { AIProvider } from '../../services';
 
 export type MinimalAgentCard = Pick<
   AgentCard,
@@ -25,6 +26,7 @@ export class A2AServer {
     private port: number,
     card: MinimalAgentCard,
     router: Router,
+    aiProvider: AIProvider,
   ) {
     this.card = {
       ...card,
@@ -45,6 +47,7 @@ export class A2AServer {
     const agentExecutor: AgentExecutor = new MyAgentExecutor(
       this.logger,
       router,
+      aiProvider,
     );
 
     const requestHandler = new DefaultRequestHandler(
