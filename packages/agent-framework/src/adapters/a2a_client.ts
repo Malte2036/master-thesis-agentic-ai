@@ -9,7 +9,7 @@ import {
   TaskQueryParams,
 } from '@a2a-js/sdk';
 import { Logger } from '../logger';
-import { uuidv4 } from 'zod/v4';
+import { randomUUID } from 'crypto';
 import { A2AClient } from '@a2a-js/sdk/client';
 
 export class AgentClient {
@@ -22,16 +22,20 @@ export class AgentClient {
     this.client = new A2AClient(`http://localhost:${this.port}`);
   }
 
-  async call() {
-    const messageId = uuidv4();
+  async call(message: string) {
+    const messageId = randomUUID();
     let taskId: string | undefined;
+
+    this.logger.debug(
+      `[AgentClient] Calling agent with messageId: ${messageId}`,
+    );
 
     try {
       const sendParams: MessageSendParams = {
         message: {
-          messageId: messageId.toString(),
+          messageId: messageId,
           role: 'user',
-          parts: [{ kind: 'text', text: 'Hello, agent!' }],
+          parts: [{ kind: 'text', text: message }],
           kind: 'message',
         },
       };

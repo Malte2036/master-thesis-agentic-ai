@@ -36,6 +36,10 @@ export class MyAgentExecutor implements AgentExecutor {
     const taskId = requestContext.taskId;
     const contextId = requestContext.contextId;
 
+    this.logger.debug(
+      `[MyAgentExecutor] User message: ${JSON.stringify(userMessage, null, 2)}`,
+    );
+
     this.logger.info(
       `[MyAgentExecutor] Processing message ${userMessage.messageId} for task ${taskId} (context: ${contextId})`,
     );

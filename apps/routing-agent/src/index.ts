@@ -240,8 +240,8 @@ expressApp.get('/models', async (req, res) => {
 });
 
 expressApp.get('/test', async (req, res) => {
-  const agentClient = new AgentClient(logger, 1234);
-  const result = await agentClient.call();
+  const moodleAgent = new AgentClient(logger, 1234);
+  const result = await moodleAgent.call('What is my moodle email address?');
   res.json(result);
 });
 

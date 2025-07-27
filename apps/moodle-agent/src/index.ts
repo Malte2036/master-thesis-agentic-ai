@@ -12,7 +12,20 @@ const agentFramework = createA2AFramework(logger, 1234, {
   description:
     'The Moodle Agent is a tool that can be used to manage Moodle courses.',
   version: '1.0.0',
-  skills: [],
+  skills: [
+    {
+      id: 'get-all-courses',
+      name: 'Get All Courses',
+      description: 'Get all courses',
+      tags: ['moodle'],
+    },
+    {
+      id: 'get-user-info',
+      name: 'Get User Info',
+      description: 'Get information about the user',
+      tags: ['moodle'],
+    },
+  ],
 });
 
 agentFramework.listen().catch((error) => {
