@@ -126,25 +126,79 @@ expressApp.post('/ask', async (req, res) => {
 
     const DecideAgentSchema = z.object({
       agent: z.string(),
+      reasoning: z.string(),
       prompt: z.string(),
     });
 
     const decision = await aiProvider.generateJson(
-      `You are a routing agent for an multi agent ai system.
-      You are given a user's question and a list of agents with their capabilities.
-      Your task is to decide, which agent should be called first to answer the user's question.
-      You need to return the agent name and generate a specific prompt to call the agent with.
-      It should be a question that is specific to the user's question and the agent's capabilities.
-      It should include all information you have at the moment, which might be relevant to the user's question.
-      The user's question is: ${body.prompt}
-      The available agents are:
-      ${JSON.stringify(moodleAgentCard, null, 2)}
-      `,
-      undefined,
+      body.prompt,
+      {
+        messages: [
+          {
+            role: 'system',
+            content: `
+            
+You are **RouterGPT**, the dispatcher in a multi-agent system.
+
+──────────── INPUTS ────────────
+• The next message you see from role "user" is the raw user_question.
+• agents_json (see bottom): each object has
+    – name             (string)
+    – description      (string)
+    – skills           (array of objects with id, name, description, and tags)
+
+────────────  OUTPUT  ────────────
+Return ONLY this JSON (no markdown, no extra keys):
+
+{
+  "agent":   "<best agent name | null>",
+  "reasoning":  "Your thinking process"
+  "prompt":  "The prompt to call the agent with to get one step closer to the answer",
+}
+
+────────────  RULES  ────────────
+1. Match the semantic intent of user_question with capability_tags.
+2. Drop irrelevant clauses (e.g. weather if no agent handles weather).
+3. If nothing matches, set "agent" : "null".
+4. Keep the user’s language intact.
+5. Do **not** add any text outside the JSON object.
+
+───────── FEW-SHOT EXAMPLES ────────
+### A
+User: “Ich will mich für einen Job als Softwareentwickler bewerben und es regnet.
+       Was sind meine Abgaben diese Woche?”
+Agents (excerpt):
+[
+  {"name":"moodle-agent","capability_tags":["deadlines"]},
+  {"name":"weather-agent","capability_tags":["weather"]}
+]
+Expected JSON:
+{
+  "agent": "moodle-agent",
+  "prompt": "Was sind meine Abgaben diese Woche?",
+  "reason": "Frage bezieht sich auf Deadlines; Wetter ist irrelevant."
+}
+
+### B
+User: “Brauche ich heute einen Regenschirm?”
+Same agents list.
+Expected JSON:
+{
+  "agent": "weather-agent",
+  "prompt": "Brauche ich heute einen Regenschirm?",
+  "reason": "Frage bezieht sich aufs Wetter."
+}
+
+            `,
+          },
+        ],
+      },
       DecideAgentSchema,
     );
 
-    const { agent, prompt } = DecideAgentSchema.parse(decision);
+    const { agent, reasoning, prompt } = DecideAgentSchema.parse(decision);
+
+    logger.log(chalk.magenta('Reasoning:'), reasoning);
 
     logger.log(chalk.magenta('Agent to call:'), agent);
     logger.log(chalk.magenta('Prompt to call the agent with:'), prompt);
