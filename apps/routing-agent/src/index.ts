@@ -121,7 +121,30 @@ expressApp.post('/ask', async (req, res) => {
 
     logger.log(chalk.magenta('Finding out which agent to call first:'));
     const moodleAgent = new AgentClient(logger, 1234);
-    const moodleAgentCard = await moodleAgent.getAgentCard();
+
+    const mockCalendarAgent = {
+      getAgentCard: async () => ({
+        name: 'calendar-agent',
+        skills: [
+          {
+            id: '1',
+            name: 'calendar',
+            description: 'Calendar agent',
+            tags: ['calendar'],
+          },
+        ],
+      }),
+      call: async (prompt: string) => {
+        return {
+          response: 'The Calendar agent is not implemented yet.',
+        };
+      },
+    } as unknown as AgentClient;
+
+    const availableAgents = [moodleAgent, mockCalendarAgent];
+    const availableAgentsCards = await Promise.all(
+      availableAgents.map((agent) => agent.getAgentCard()),
+    );
 
     const DecideAgentSchema = z.object({
       agent: z.string(),
@@ -156,10 +179,9 @@ Return ONLY this JSON (no markdown, no extra keys):
 }
 
 ────────────  RULES  ────────────
-1. Match the semantic intent of user_question with capability_tags.
+1. You do not need to keep the user's language intact. Write in your own language. Be precise. Be neutral.
 2. Drop irrelevant clauses (e.g. weather if no agent handles weather).
 3. If nothing matches, set "agent" : "null".
-4. Keep the user’s language intact.
 5. Do **not** add any text outside the JSON object.
 
 ───────── FEW-SHOT EXAMPLES ────────
@@ -190,26 +212,47 @@ Expected JSON:
 
             `,
           },
+          {
+            role: 'system',
+            content: `
+            The available agents are:
+            ${JSON.stringify(availableAgentsCards, null, 2)}
+            `,
+          },
         ],
       },
       DecideAgentSchema,
     );
 
-    const { agent, reasoning, prompt } = DecideAgentSchema.parse(decision);
+    const parsedDecision = DecideAgentSchema.parse(decision);
 
-    logger.log(chalk.magenta('Reasoning:'), reasoning);
+    logger.log(chalk.magenta('Reasoning:'), parsedDecision.reasoning);
 
-    logger.log(chalk.magenta('Agent to call:'), agent);
-    logger.log(chalk.magenta('Prompt to call the agent with:'), prompt);
+    logger.log(chalk.magenta('Agent to call:'), parsedDecision.agent);
+    logger.log(
+      chalk.magenta('Prompt to call the agent with:'),
+      parsedDecision.prompt,
+    );
 
-    logger.log(chalk.magenta('Sending question to moodle agent:'));
+    let agentClient = undefined;
+    switch (parsedDecision.agent) {
+      case 'moodle-agent':
+        agentClient = moodleAgent;
+        break;
+      case 'calendar-agent':
+        agentClient = mockCalendarAgent;
+    }
 
-    const moodleAgentResponse = await moodleAgent.call(prompt);
-    logger.log('Result from moodle agent:', moodleAgentResponse);
+    if (!agentClient) {
+      throw new Error(`Agent ${parsedDecision.agent} not found`);
+    }
+
+    const agentResponse = await agentClient.call(parsedDecision.prompt);
+    logger.log('Result from agent:', agentResponse);
 
     const friendlyResponse = await generateFriendlyResponse({
       userPrompt: body.prompt,
-      agentResponse: moodleAgentResponse,
+      agentResponse,
       aiProvider,
     });
 

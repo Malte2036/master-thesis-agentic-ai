@@ -11,7 +11,8 @@ import { AIGenerateTextOptions } from '../../services';
 
 export class ReActPrompt {
   public static readonly BASE_PROMPTS: string[] = [
-    `Current date and time: ${new Date().toLocaleString('en-US', {
+    `Some important information for you:
+    - Current date and time: ${new Date().toLocaleString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -56,9 +57,7 @@ Important rules:
         {
           role: 'system',
           content: `
-You are a Moodle agent.
-
-Moodle is a learning management system (LMS) that helps universities organize online courses, assignments, and user data.
+          ${extendedSystemPrompt}
 
 Decide **exactly one immediate step**—a single function call (or a final answer)—using only the facts you already know.
 
@@ -80,10 +79,6 @@ Strictly forbidden:
 - Calling or referencing any agent or function that is **not** in the available list.
 - Repeating a call with identical parameters.
   `,
-        },
-        {
-          role: 'system',
-          content: extendedSystemPrompt,
         },
         {
           role: 'system',
@@ -131,6 +126,7 @@ Strictly forbidden:
       
       2.  **Generating Tool Calls (ONLY for Action Intents):**
           * You MUST populate the 'functionCalls' array.
+          * You MUST always use the include_in_response parameter in the args of the function call.
           * The 'finalAnswer' field MUST be null.
           * The 'isFinished' field MUST be false.
           * NEVER invent parameters. If a parameter is not in the thought, do not make a call.
@@ -146,19 +142,19 @@ Strictly forbidden:
       Thought: "I need to find the course ID for 'Computer Science'. I will use the moodle-mcp's \`search_courses_by_name\` function to do this."
       Correct JSON:
       {
-        "functionCalls": [{ "function": "search_courses_by_name", "args": { "name": "Computer Science" } }],
+        "functionCalls": [{ "function": "search_courses_by_name", "args": { "name": "Computer Science", "include_in_response": { "summary": true, "completed": true, "hidden": true } } }],
         "isFinished": false,
         "finalAnswer": null
       }
       
       ---
       **Example 2: Descriptive Intent (THIS IS THE MOST IMPORTANT EXAMPLE)**
-      Thought: "What I Can Do: I can help with Moodle-related functions like \`search_courses_by_name\` to find courses and \`get_assignments\` to retrieve assignments. I can also create calendar events."
+      Thought: "What I Can Do: I can help with Moodle-related functions like \`search_courses_by_name\` to find courses and \`get_assignments\` to retrieve assignments."
       Correct JSON:
       {
         "functionCalls": [],
         "isFinished": true,
-        "finalAnswer": "What I Can Do: I can help with Moodle-related functions like \`search_courses_by_name\` to find courses and \`get_assignments\` to retrieve assignments. I can also create calendar events."
+        "finalAnswer": "What I Can Do: I can help with Moodle-related functions like \`search_courses_by_name\` to find courses and \`get_assignments\` to retrieve assignments."
       }
       ---
       

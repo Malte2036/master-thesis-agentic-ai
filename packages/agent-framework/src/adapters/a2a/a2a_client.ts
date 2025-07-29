@@ -15,12 +15,14 @@ import { AgentCard } from '@a2a-js/sdk';
 
 export class AgentClient {
   private readonly client: A2AClient;
+  public readonly id: string;
 
   constructor(
     private readonly logger: Logger,
     private port: number,
   ) {
     this.client = new A2AClient(`http://localhost:${this.port}`);
+    this.id = randomUUID();
   }
 
   async getAgentCard(): Promise<AgentCard> {

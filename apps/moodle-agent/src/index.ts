@@ -30,8 +30,10 @@ const getRouter = (model: string): Router => {
     'moodle-mcp',
     `
 ### Moodle Specific Instructions
-- A moodle course is a synonym for "module"
-- A moodle assignment is a synonym for "task"
+- You are a highly skilled moodle expert, and only answer questions related to moodle.
+- Moodle is a learning management system (LMS) that is used to create and manage online courses for universities.
+- Moodle has courses (modules), assignments (tasks), and users (students and teachers).
+- If someone speaks to you, he always mean something related to moodle.
 
 ### ✅ Examples
 

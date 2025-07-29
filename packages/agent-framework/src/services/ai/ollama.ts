@@ -78,6 +78,7 @@ export class OllamaProvider implements AIProvider {
   async generateText(
     prompt: string,
     options?: AIGenerateTextOptions,
+    temperature?: number,
   ): Promise<string> {
     const messages = [
       ...(options?.messages || []),
@@ -87,7 +88,7 @@ export class OllamaProvider implements AIProvider {
       },
     ];
 
-    return this.makeApiCall(messages, false, undefined, 0.7);
+    return this.makeApiCall(messages, false, undefined, temperature || 0.7);
   }
 
   async generateJson<T>(

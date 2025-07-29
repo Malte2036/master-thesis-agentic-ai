@@ -21,7 +21,8 @@
     "test:routing-agent": "NX_SKIP_NX_CACHE=true nx test routing-agent",
     "clean": "nx run-many -t clean && rm -rf node_modules",
     "format": "prettier --write \"**/*.{ts,tsx,md,js,jsx,json}\"",
-    "graph": "nx graph"
+    "graph": "nx graph",
+    "inspect:mcp": "npx @modelcontextprotocol/inspector"
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
