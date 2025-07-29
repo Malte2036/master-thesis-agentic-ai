@@ -1,8 +1,7 @@
 import { z } from 'zod/v4';
 
 // MCP Agent Call Types
-export const McpAgentCallSchema = z.object({
-  agent: z.string().describe('The name of the agent to call'),
+export const FunctionCallSchema = z.object({
   function: z.string().describe('The name of the function to call'),
   args: z
     .record(
@@ -24,14 +23,12 @@ export const McpAgentCallSchema = z.object({
     ),
 });
 
-export type McpAgentCall = z.infer<typeof McpAgentCallSchema>;
+export type FunctionCall = z.infer<typeof FunctionCallSchema>;
 
-export const McpAgentCallsSchema = z.object({
-  agentCalls: z
-    .array(McpAgentCallSchema)
-    .describe(
-      'The agent calls to make. The agentCalls array must contain only the immediate next function to call. Do not include future function calls.',
-    ),
+export const FunctionCallsSchema = z.object({
+  functionCalls: z
+    .array(FunctionCallSchema)
+    .describe('The function calls to make.'),
 });
 
-export type McpAgentCalls = z.infer<typeof McpAgentCallsSchema>;
+export type FunctionCalls = z.infer<typeof FunctionCallsSchema>;

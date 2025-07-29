@@ -1,4 +1,4 @@
-import { McpAgentCall } from '@master-thesis-agentic-ai/types';
+import { FunctionCall } from '@master-thesis-agentic-ai/types';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { MCPClient } from './mcp_client';
 import { MCPName, getMCPConfig } from '../../config';
@@ -6,8 +6,8 @@ import { Logger } from '../../logger';
 
 export async function callMcpClientInParallel(
   logger: Logger,
-  mcpClients: MCPClient[],
-  agentCalls: McpAgentCall[],
+  mcpClient: MCPClient,
+  functionCalls: FunctionCall[],
   remainingCalls: number,
 ): Promise<CallToolResult[]> {
   if (remainingCalls < 0) {
@@ -17,51 +17,27 @@ export async function callMcpClientInParallel(
   }
 
   return await Promise.all(
-    agentCalls.map(async (agentCall) => {
-      let client = mcpClients.find((client) => client.name === agentCall.agent);
-
-      if (!client) {
-        client = mcpClients.find((client) =>
-          client
-            .listTools()
-            .then((res) =>
-              res.tools.find(
-                (tool: { name: string }) => tool.name === agentCall.function,
-              ),
-            ),
-        );
-        if (client) {
-          logger.warn(
-            `Found agent by reverse function lookup: ${agentCall.agent}. We do not want to do this in the future!`,
-          );
-        }
-      }
-
-      if (!client) {
-        throw new Error(
-          `Agent ${agentCall.agent} not found. So we cannot call tool ${agentCall.function}.`,
-        );
-      }
+    functionCalls.map(async (functionCall) => {
       try {
         logger.log(
-          `Calling tool ${agentCall.function} on agent ${agentCall.agent} with args: ${JSON.stringify(
-            agentCall.args,
+          `Calling tool ${functionCall.function} with args: ${JSON.stringify(
+            functionCall.args,
             null,
             2,
           )}`,
         );
 
-        return await client.callTool(agentCall.function, agentCall.args);
-      } catch (error) {
-        logger.error(
-          `Error calling tool ${agentCall.function} on agent ${agentCall.agent}:`,
-          error,
+        return await mcpClient.callTool(
+          functionCall.function,
+          functionCall.args,
         );
+      } catch (error) {
+        logger.error(`Error calling tool ${functionCall.function}:`, error);
         return {
           content: [
             {
               type: 'text',
-              text: `Error while calling tool ${agentCall.function} on agent ${agentCall.agent}: ${error instanceof Error ? error.message : 'Unknown error occurred'}`,
+              text: `Error while calling tool ${functionCall.function}: ${error instanceof Error ? error.message : 'Unknown error occurred'}`,
             },
           ],
         };

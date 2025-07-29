@@ -3,7 +3,6 @@ import {
   Logger,
   OllamaProvider,
   generateFriendlyResponse,
-  getAgentTools,
 } from '@master-thesis-agentic-ai/agent-framework';
 import chalk from 'chalk';
 import cors from 'cors';

@@ -1,5 +1,5 @@
 import {
-  McpAgentCall,
+  FunctionCall,
   RouterProcess,
   StructuredThoughtResponse,
 } from '@master-thesis-agentic-ai/types';
@@ -28,17 +28,12 @@ Important rules:
   ];
 
   private static getAgentToolsString = (
-    agentTools: Record<string, ListToolsResult>,
+    agentTools: ListToolsResult,
   ): string => {
     return JSON.stringify(
-      Object.entries(agentTools)
-        .map(([agentKey, toolsResult]) => {
-          return toolsResult.tools.map((tool: object) => ({
-            agentName: agentKey,
-            ...tool,
-          }));
-        })
-        .flat(),
+      agentTools.tools.map((tool: object) => ({
+        ...tool,
+      })),
       null,
       2,
     );
@@ -49,7 +44,7 @@ Important rules:
    */
   public static getNaturalLanguageThoughtPrompt = (
     extendedSystemPrompt: string,
-    agentTools: Record<string, ListToolsResult>,
+    agentTools: ListToolsResult,
     routerProcess: RouterProcess,
   ): AIGenerateTextOptions => {
     return {
@@ -105,7 +100,7 @@ Strictly forbidden:
         (it) =>
           `Iteration ${it.iteration}
   - Thought which justifies the next step: ${it.naturalLanguageThought}
-  - The function calls that were made: ${JSON.stringify(it.structuredThought.agentCalls, null, 2)}
+  - The function calls that were made: ${JSON.stringify(it.structuredThought.functionCalls, null, 2)}
   - The observation that was made after seeing the response of the function calls: ${it.observation}
   `,
       )
@@ -121,7 +116,7 @@ Strictly forbidden:
    * Prompt for the structured-thought (JSON) step.
    */
   public static getStructuredThoughtPrompt = (
-    agentTools: Record<string, ListToolsResult>,
+    agentTools: ListToolsResult,
   ): AIGenerateTextOptions => ({
     messages: [
       {
@@ -135,13 +130,13 @@ Strictly forbidden:
           * Is the thought a descriptive statement, a list of capabilities, or a direct message to the user (e.g., "I can do the following...", "Here are your assignments...")? If YES, the intent is to **provide a final answer**. Proceed to rule #3.
       
       2.  **Generating Tool Calls (ONLY for Action Intents):**
-          * You MUST populate the 'agentCalls' array.
+          * You MUST populate the 'functionCalls' array.
           * The 'finalAnswer' field MUST be null.
           * The 'isFinished' field MUST be false.
           * NEVER invent parameters. If a parameter is not in the thought, do not make a call.
       
       3.  **Generating a Final Answer (ONLY for Descriptive Intents):**
-          * The 'agentCalls' array MUST be empty (\`[]\`).
+          * The 'functionCalls' array MUST be empty (\`[]\`).
           * The 'isFinished' field MUST be true.
           * The 'finalAnswer' field MUST contain the full text of the thought, as this is the message intended for the user.
           * **CRITICAL:** If a function name is mentioned as part of a list or description (e.g., "I can use the \`search_courses\` function"), you MUST NOT treat it as a tool call.
@@ -151,7 +146,7 @@ Strictly forbidden:
       Thought: "I need to find the course ID for 'Computer Science'. I will use the moodle-mcp's \`search_courses_by_name\` function to do this."
       Correct JSON:
       {
-        "agentCalls": [{ "agent": "moodle-mcp", "function": "search_courses_by_name", "args": { "name": "Computer Science" } }],
+        "functionCalls": [{ "function": "search_courses_by_name", "args": { "name": "Computer Science" } }],
         "isFinished": false,
         "finalAnswer": null
       }
@@ -161,7 +156,7 @@ Strictly forbidden:
       Thought: "What I Can Do: I can help with Moodle-related functions like \`search_courses_by_name\` to find courses and \`get_assignments\` to retrieve assignments. I can also create calendar events."
       Correct JSON:
       {
-        "agentCalls": [],
+        "functionCalls": [],
         "isFinished": true,
         "finalAnswer": "What I Can Do: I can help with Moodle-related functions like \`search_courses_by_name\` to find courses and \`get_assignments\` to retrieve assignments. I can also create calendar events."
       }
@@ -171,7 +166,7 @@ Strictly forbidden:
       },
       {
         role: 'system',
-        content: `Possible agent calls: ${JSON.stringify(agentTools, null, 2)}`,
+        content: `Possible function calls: ${JSON.stringify(agentTools, null, 2)}`,
       },
     ],
   });
@@ -180,13 +175,13 @@ Strictly forbidden:
    * Prompt for the observation-summarisation step.
    */
   public static getNaturalLanguageObservationPrompt = (
-    agentCalls: McpAgentCall[],
+    functionCalls: FunctionCall[],
     agentResponses: CallToolResult[],
     structuredThought?: StructuredThoughtResponse,
   ): AIGenerateTextOptions => {
     const merged = {
       ...structuredThought,
-      agentCalls: agentCalls.map((call, i) => ({
+      functionCalls: functionCalls.map((call, i) => ({
         ...call,
         response: {
           isError: agentResponses[i].isError ?? false,

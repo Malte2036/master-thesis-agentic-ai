@@ -1,6 +1,6 @@
 import {
   addIterationToRouterProcess,
-  McpAgentCall,
+  FunctionCall,
   RouterProcess,
   RouterResponse,
   StructuredThoughtResponse,
@@ -17,7 +17,7 @@ import {
   ListToolsResult,
   CallToolResult,
 } from '@modelcontextprotocol/sdk/types.js';
-import { MCPClient, getAgentTools, AgentTools } from '../../adapters';
+import { MCPClient } from '../../adapters';
 import { Logger } from '../../logger';
 import { AIProvider } from '../../services';
 import { Router } from '../router';
@@ -44,7 +44,7 @@ export class ReActRouter implements Router {
       maxIterations,
       iterationHistory: [],
     };
-    const generator = this.iterate([mcpClient], routerProcess);
+    const generator = this.iterate(mcpClient, routerProcess);
     while (true) {
       const { done, value } = await generator.next();
       if (done) {
@@ -56,10 +56,10 @@ export class ReActRouter implements Router {
   }
 
   async *iterate(
-    agents: MCPClient[],
+    mcpClient: MCPClient,
     routerProcess: RouterProcess,
   ): AsyncGenerator<RouterProcess, RouterResponse, unknown> {
-    const agentTools = await getAgentTools(agents);
+    const agentTools = await mcpClient.listTools();
 
     const maxIterations = routerProcess.maxIterations;
     let currentIteration = routerProcess.iterationHistory?.length ?? 0;
@@ -99,7 +99,7 @@ export class ReActRouter implements Router {
         };
       }
 
-      if (!structuredThought.agentCalls) {
+      if (!structuredThought.functionCalls) {
         this.logger.log(chalk.magenta('No agent calls found.'));
         return {
           process: routerProcess,
@@ -108,13 +108,16 @@ export class ReActRouter implements Router {
       }
 
       if (
-        this.hasDuplicateAgentCalls(routerProcess, structuredThought.agentCalls)
+        this.hasDuplicateFunctionCalls(
+          routerProcess,
+          structuredThought.functionCalls,
+        )
       ) {
         this.logger.log(
           chalk.red(
             'Detected loop with repeated agent calls. Breaking iteration. Wanted to call:',
           ),
-          JSON.stringify(structuredThought.agentCalls, null, 2),
+          JSON.stringify(structuredThought.functionCalls, null, 2),
         );
         return {
           process: routerProcess,
@@ -123,12 +126,12 @@ export class ReActRouter implements Router {
         };
       }
 
-      this.logAgentCalls(structuredThought.agentCalls);
+      this.logFunctionCalls(structuredThought.functionCalls);
 
       const agentResponses = await callMcpClientInParallel(
         this.logger,
-        agents,
-        structuredThought.agentCalls,
+        mcpClient,
+        structuredThought.functionCalls,
         maxIterations - currentIteration,
       );
 
@@ -176,7 +179,7 @@ export class ReActRouter implements Router {
   }
 
   async getNaturalLanguageThought(
-    agentTools: AgentTools,
+    agentTools: ListToolsResult,
     routerProcess: RouterProcess,
   ): Promise<string> {
     const systemPrompt = ReActPrompt.getNaturalLanguageThoughtPrompt(
@@ -203,7 +206,7 @@ export class ReActRouter implements Router {
 
   async getStructuredThought(
     responseString: string,
-    agentTools: Record<string, ListToolsResult>,
+    agentTools: ListToolsResult,
   ): Promise<StructuredThoughtResponse> {
     this.logger.log(chalk.magenta('Generating structured thought...'));
     const structuredSystemPrompt =
@@ -226,14 +229,14 @@ export class ReActRouter implements Router {
 
   async observeAndSummarizeAgentResponses(
     question: string,
-    agentCalls: McpAgentCall[],
+    functionCalls: FunctionCall[],
     agentResponses: CallToolResult[],
     structuredThought?: StructuredThoughtResponse,
   ): Promise<string> {
     this.logger.log(chalk.cyan('Observing and summarizing agent responses'));
 
     const systemPrompt = ReActPrompt.getNaturalLanguageObservationPrompt(
-      agentCalls,
+      functionCalls,
       agentResponses,
       structuredThought,
     );
@@ -250,25 +253,24 @@ export class ReActRouter implements Router {
     return response;
   }
 
-  private logAgentCalls(agentCalls: McpAgentCall[]) {
-    this.logger.log(chalk.cyan('Agent calls:'));
-    const flattenedCalls = agentCalls.flatMap((agentCall) => [
+  private logFunctionCalls(functionCalls: FunctionCall[]) {
+    this.logger.log(chalk.cyan('Function calls:'));
+    const flattenedCalls = functionCalls.flatMap((functionCall) => [
       {
-        agent: agentCall.agent,
-        function: agentCall.function,
-        parameters: JSON.stringify(agentCall.args, null, 2),
+        function: functionCall.function,
+        parameters: JSON.stringify(functionCall.args, null, 2),
       },
     ]);
     this.logger.log(flattenedCalls);
   }
 
-  private hasDuplicateAgentCalls(
+  private hasDuplicateFunctionCalls(
     routerProcess: RouterProcess,
-    agentCalls: McpAgentCall[],
+    functionCalls: FunctionCall[],
   ): boolean {
     // Serialize current agent calls to check for duplicates
-    const currentAgentCallsStr = JSON.stringify(
-      agentCalls.map((a) => ({
+    const currentFunctionCallsStr = JSON.stringify(
+      functionCalls.map((a) => ({
         ...a,
         description: undefined,
       })),
@@ -277,8 +279,8 @@ export class ReActRouter implements Router {
     return (
       routerProcess.iterationHistory?.some(
         (response) =>
-          JSON.stringify(response.structuredThought.agentCalls) ===
-          currentAgentCallsStr,
+          JSON.stringify(response.structuredThought.functionCalls) ===
+          currentFunctionCallsStr,
       ) ?? false
     );
   }
