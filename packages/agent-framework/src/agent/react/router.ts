@@ -29,6 +29,7 @@ export class ReActRouter implements Router {
     private readonly structuredAiProvider: AIProvider,
     private readonly logger: Logger,
     private readonly mcpName: MCPName,
+    private readonly extendedNaturalLanguageThoughtSystemPrompt: string,
   ) {}
 
   async *routeQuestion(
@@ -179,6 +180,7 @@ export class ReActRouter implements Router {
     routerProcess: RouterProcess,
   ): Promise<string> {
     const systemPrompt = ReActPrompt.getNaturalLanguageThoughtPrompt(
+      this.extendedNaturalLanguageThoughtSystemPrompt,
       agentTools,
       routerProcess,
     );
