@@ -35,6 +35,9 @@ const getRouter = (model: string): Router => {
 - Moodle has courses (modules), assignments (tasks), and users (students and teachers).
 - If someone speaks to you, he always mean something related to moodle.
 
+- There are functions, which can be called to get information about the user, courses, assignments, etc.
+- There are functions which apply to all courses, and functions which apply to a specific course.
+
 ### ✅ Examples
 
 **User**: What can you do?  

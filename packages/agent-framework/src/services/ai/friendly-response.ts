@@ -37,6 +37,7 @@ TASK
    • If nothing was created, do not claim that something was created.
 6. If the answer is unknown, politely say so and offer a waypoint.
 7. Keep it concise (< 150 words) and user-oriented; hide internal logs.
+8. Only include information that is explicitly present in *agent_response*. Do not invent information from your own knowledge.
 
 FORMAT
 ------

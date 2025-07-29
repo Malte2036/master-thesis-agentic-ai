@@ -423,8 +423,8 @@ mcpServer.tool(
 );
 
 mcpServer.tool(
-  'get_all_assignments_for_all_courses',
-  'Get all assignments the user has access to. Prefer "assignments_for_course" if you need to get assignments for a specific course.',
+  'get_assignments_for_all_courses',
+  'Get all assignments for the user in all courses. Prefer "get_assignments_for_course" if you need to get assignments for a specific course.',
   {
     due_after: z
       .string()
@@ -472,7 +472,7 @@ mcpServer.tool(
 
 mcpServer.tool(
   'get_assignments_for_course',
-  'Get all assignments for a specific course. Prefer this over "assignments" if you need to get assignments for a specific course.',
+  'Get all assignments for a specific course. Prefer this over "get_assignments_for_all_courses" if you need to get assignments for a specific course.',
   {
     course_id: z.number().describe('ID of the course to get assignments for'),
     include_in_response: includeAssignmentInResponseSchema,
