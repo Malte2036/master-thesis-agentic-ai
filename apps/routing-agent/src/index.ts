@@ -1,4 +1,6 @@
 import {
+  AgentCard,
+  AgentSkill,
   AgentClient,
   Logger,
   OllamaProvider,
@@ -152,6 +154,18 @@ expressApp.post('/ask', async (req, res) => {
       prompt: z.string(),
     });
 
+    const minimalAgentsCards = availableAgentsCards.map((agent: AgentCard) => ({
+      name: agent.name,
+      description: agent.capabilities,
+      skills: agent.skills.map((skill: AgentSkill) => ({
+        name: skill.name,
+        description: skill.description,
+        tags: skill.tags,
+      })),
+    }));
+    logger.log(chalk.magenta('Available agents:'));
+    logger.table(minimalAgentsCards);
+
     const decision = await aiProvider.generateJson(
       body.prompt,
       {
@@ -167,7 +181,7 @@ You are **RouterGPT**, the dispatcher in a multi-agent system.
 • agents_json (see bottom): each object has
     – name             (string)
     – description      (string)
-    – skills           (array of objects with id, name, description, and tags)
+    – skills           (array of objects with name, description, and tags)
 
 ────────────  OUTPUT  ────────────
 Return ONLY this JSON (no markdown, no extra keys):
@@ -182,7 +196,8 @@ Return ONLY this JSON (no markdown, no extra keys):
 1. You do not need to keep the user's language intact. Write in your own language. Be precise. Be neutral.
 2. Drop irrelevant clauses (e.g. weather if no agent handles weather).
 3. If nothing matches, set "agent" : "null".
-5. Do **not** add any text outside the JSON object.
+4. Do **not** add any text outside the JSON object.
+
 
 ───────── FEW-SHOT EXAMPLES ────────
 ### A
@@ -216,7 +231,7 @@ Expected JSON:
             role: 'system',
             content: `
             The available agents are:
-            ${JSON.stringify(availableAgentsCards, null, 2)}
+            ${JSON.stringify(minimalAgentsCards, null, 2)}
             `,
           },
         ],
@@ -243,16 +258,19 @@ Expected JSON:
         agentClient = mockCalendarAgent;
     }
 
-    if (!agentClient) {
-      throw new Error(`Agent ${parsedDecision.agent} not found`);
+    let agentResponse = '';
+
+    if (agentClient) {
+      agentResponse = await agentClient.call(parsedDecision.prompt);
+    } else {
+      logger.log('No agent were called');
     }
 
-    const agentResponse = await agentClient.call(parsedDecision.prompt);
     logger.log('Result from agent:', agentResponse);
 
     const friendlyResponse = await generateFriendlyResponse({
       userPrompt: body.prompt,
-      agentResponse,
+      agentResponse: agentResponse,
       aiProvider,
     });
 

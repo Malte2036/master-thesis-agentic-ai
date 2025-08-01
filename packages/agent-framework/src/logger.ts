@@ -45,6 +45,7 @@ class Logger {
     info: typeof console.info;
     debug: typeof console.debug;
     trace: typeof console.trace;
+    table: typeof console.table;
   };
   constructor(private config: LoggerConfig = {}) {
     // Store original console methods
@@ -55,6 +56,7 @@ class Logger {
       info: console.info,
       debug: console.debug,
       trace: console.trace,
+      table: console.table,
     };
 
     this.logFilePath = this.setupLogFile();
@@ -134,6 +136,11 @@ class Logger {
     if (!this.config.hideDebugInConsole) {
       this.originalConsole.debug(...args);
     }
+  }
+
+  public table(...args: unknown[]): void {
+    this.writeToLogFile('table', args);
+    this.originalConsole.table(...args);
   }
 }
 
