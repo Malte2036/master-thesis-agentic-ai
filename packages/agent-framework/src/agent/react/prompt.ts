@@ -9,6 +9,14 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { AIGenerateTextOptions } from '../../services';
 
+interface SchemaProperty {
+  type: string;
+  description?: string;
+  enum?: string[];
+  properties?: { [key: string]: SchemaProperty };
+  required?: string[];
+}
+
 export class ReActPrompt {
   public static readonly BASE_PROMPTS: string[] = [
     `Some important information for you:
@@ -28,12 +36,55 @@ Important rules:
 `,
   ];
 
+  // ensure that there aren't to much information in the prompt
   private static getAgentToolsString = (
     agentTools: ListToolsResult,
   ): string => {
+    const processProperties = (properties: {
+      [key: string]: SchemaProperty;
+    }): { [key: string]: SchemaProperty } => {
+      return Object.fromEntries(
+        Object.entries(properties).map(([key, value]) => {
+          if (value.type === 'object' && value.properties) {
+            return [
+              key,
+              {
+                type: 'object',
+                description: value.description,
+                properties: processProperties(value.properties),
+                ...(value.required &&
+                  value.required.length > 0 && { required: value.required }),
+              },
+            ];
+          }
+          return [
+            key,
+            {
+              type: value.type,
+              description: value.description,
+              ...(value.enum && { enum: value.enum }),
+            },
+          ];
+        }),
+      );
+    };
+
     return JSON.stringify(
-      agentTools.tools.map((tool: object) => ({
-        ...tool,
+      agentTools.tools.map((tool) => ({
+        name: tool.name,
+        description: tool.description,
+        parameters: {
+          type: 'object',
+          properties: processProperties(
+            (tool.inputSchema?.properties as {
+              [key: string]: SchemaProperty;
+            }) ?? {},
+          ),
+          ...(tool.inputSchema?.required &&
+            tool.inputSchema.required.length > 0 && {
+              required: tool.inputSchema.required,
+            }),
+        },
       })),
       null,
       2,
@@ -60,6 +111,15 @@ Important rules:
           ${extendedSystemPrompt}
 
 Decide **exactly one immediate step**—a single function call (or a final answer)—using only the facts you already know.
+
+
+Process (follow in order, and do each step at most once):
+1) Read the TOOLS SNAPSHOT (below) exactly once and extract tool names.
+   - Write a single line: "Tools found: <comma-separated names>" and do not repeat this line again in this iteration.
+2) Distinguish intent:
+   - If the user asks about capabilities, respond descriptively (no tool calls).
+   - If acting, choose **one** tool only if **all required parameters are present**.
+3) Move the user one step closer to their goal.
 
 Principles:
 - Answer with your thought process.
