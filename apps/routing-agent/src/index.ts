@@ -205,14 +205,14 @@ User: “Ich will mich für einen Job als Softwareentwickler bewerben und es reg
        Was sind meine Abgaben diese Woche?”
 Agents (excerpt):
 [
-  {"name":"moodle-agent","capability_tags":["deadlines"]},
+  {"name":"moodle-agent","capability_tags":["assignments", "user-info"]},
   {"name":"weather-agent","capability_tags":["weather"]}
 ]
 Expected JSON:
 {
   "agent": "moodle-agent",
-  "prompt": "Was sind meine Abgaben diese Woche?",
-  "reason": "Frage bezieht sich auf Deadlines; Wetter ist irrelevant."
+  "prompt": "Was sind meine Assignments diese Woche?",
+  "reason": "Frage bezieht sich auf Assignments; Wetter ist irrelevant."
 }
 
 ### B
@@ -223,6 +223,17 @@ Expected JSON:
   "agent": "weather-agent",
   "prompt": "Brauche ich heute einen Regenschirm?",
   "reason": "Frage bezieht sich aufs Wetter."
+}
+
+### C
+
+User: “Can you remind me what email I use here and tell me what deadlines are due this week?”
+Same agents list.
+Expected JSON:
+{
+  "agent": "moodle-agent",
+  "prompt": "What’s my email address and what are my assignments this week?",
+  "reason": "Question is about the email, which might be included in user info and assignments."
 }
 
             `,
