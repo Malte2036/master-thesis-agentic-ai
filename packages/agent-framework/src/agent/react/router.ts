@@ -22,6 +22,8 @@ import { Logger } from '../../logger';
 import { AIProvider } from '../../services';
 import { Router } from '../router';
 import { MCPName } from '../../config';
+import { getNaturalLanguageThought } from './get-natural-language-thought';
+import { getStructuredThought } from './get-structured-thought';
 
 export class ReActRouter implements Router {
   constructor(
@@ -74,14 +76,19 @@ export class ReActRouter implements Router {
       );
       this.logger.log(chalk.magenta('--------------------------------'));
 
-      const naturalLanguageThought = await this.getNaturalLanguageThought(
+      const naturalLanguageThought = await getNaturalLanguageThought(
         agentTools,
         routerProcess,
+        this.aiProvider,
+        this.logger,
+        this.extendedNaturalLanguageThoughtSystemPrompt,
       );
 
-      const structuredThought = await this.getStructuredThought(
+      const structuredThought = await getStructuredThought(
         naturalLanguageThought,
         agentTools,
+        this.structuredAiProvider,
+        this.logger,
       );
 
       if (structuredThought.isFinished) {
@@ -176,55 +183,6 @@ export class ReActRouter implements Router {
       error: 'Maximum number of iterations reached.',
       process: routerProcess,
     };
-  }
-
-  async getNaturalLanguageThought(
-    agentTools: ListToolsResult,
-    routerProcess: RouterProcess,
-  ): Promise<string> {
-    const systemPrompt = ReActPrompt.getNaturalLanguageThoughtPrompt(
-      this.extendedNaturalLanguageThoughtSystemPrompt,
-      agentTools,
-      routerProcess,
-    );
-
-    this.logger.log(chalk.magenta('Generating natural language thought...'));
-
-    const responseString = await this.aiProvider.generateText?.(
-      routerProcess.question,
-      systemPrompt,
-    );
-
-    if (!responseString) {
-      throw new Error('No response from AI provider');
-    }
-
-    this.logger.log(chalk.magenta('Natural language thought:'), responseString);
-
-    return responseString;
-  }
-
-  async getStructuredThought(
-    responseString: string,
-    agentTools: ListToolsResult,
-  ): Promise<StructuredThoughtResponse> {
-    this.logger.log(chalk.magenta('Generating structured thought...'));
-    const structuredSystemPrompt =
-      ReActPrompt.getStructuredThoughtPrompt(agentTools);
-
-    const structuredResponse =
-      await this.structuredAiProvider.generateJson<StructuredThoughtResponse>(
-        responseString,
-        structuredSystemPrompt,
-        StructuredThoughtResponseSchema,
-        0.1,
-      );
-
-    this.logger.log(
-      chalk.magenta('Structured thought:'),
-      JSON.stringify(structuredResponse, null, 2),
-    );
-    return structuredResponse;
   }
 
   async observeAndSummarizeAgentResponses(
