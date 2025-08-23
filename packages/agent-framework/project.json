@@ -14,6 +14,16 @@
         "tsConfig": "packages/agent-framework/tsconfig.lib.json",
         "assets": ["packages/agent-framework/*.md"]
       }
+    },
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{workspaceRoot}/coverage/packages/agent-framework"],
+      "options": {
+        "cwd": "packages/agent-framework",
+        "config": "packages/agent-framework/vitest.config.ts",
+        "passWithNoTests": true,
+        "reportsDirectory": "{workspaceRoot}/coverage/packages/agent-framework"
+      }
     }
   }
 }
