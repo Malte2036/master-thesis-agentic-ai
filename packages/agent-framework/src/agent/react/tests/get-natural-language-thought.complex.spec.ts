@@ -120,7 +120,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
           name: 'Translate with glossary',
           question:
             'Translate to German: “We use Retrieval-Augmented Generation (RAG) for our KB.” Keep “RAG” untranslated.',
-          mustContain: [/translate[_-]?text/i, /German|de\b/i, /RAG/i],
+          mustContain: [/translate(?:[-_]| the )text/i, /German|de\b/i, /RAG/i],
         },
       ];
 

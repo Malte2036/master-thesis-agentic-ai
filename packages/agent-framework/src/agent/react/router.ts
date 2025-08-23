@@ -185,32 +185,6 @@ export class ReActRouter implements Router {
     };
   }
 
-  async observeAndSummarizeAgentResponses(
-    question: string,
-    functionCalls: FunctionCall[],
-    agentResponses: CallToolResult[],
-    structuredThought?: StructuredThoughtResponse,
-  ): Promise<string> {
-    this.logger.log(chalk.cyan('Observing and summarizing agent responses'));
-
-    const systemPrompt = ReActPrompt.getNaturalLanguageObservationPrompt(
-      functionCalls,
-      agentResponses,
-      structuredThought,
-    );
-
-    const response = await this.aiProvider.generateText?.(
-      question,
-      systemPrompt,
-    );
-
-    if (!response) {
-      throw new Error('No response from AI provider');
-    }
-
-    return response;
-  }
-
   private logFunctionCalls(functionCalls: FunctionCall[]) {
     this.logger.log(chalk.cyan('Function calls:'));
     const flattenedCalls = functionCalls.flatMap((functionCall) => [

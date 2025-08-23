@@ -178,49 +178,111 @@ Strictly forbidden:
     messages: [
       {
         role: 'system',
-        content: `You are a highly precise system that translates an assistant's thought process into a structured JSON object. Your single most important job is to distinguish between a plan to **execute a tool** and a plan to **provide a final text answer**.
-      
-      Follow these rules with absolute precision:
-      
-      1.  **Identify the Core Intent:**
-          * Does the thought contain explicit action phrases like "I will call...", "I will use...", "I need to execute..."? If YES, the intent is to **call a tool**. Proceed to rule #2.
-          * Is the thought a descriptive statement, a list of capabilities, or a direct message to the user (e.g., "I can do the following...", "Here are your assignments...")? If YES, the intent is to **provide a final answer**. Proceed to rule #3.
-      
-      2.  **Generating Tool Calls (ONLY for Action Intents):**
-          * You MUST populate the 'functionCalls' array.
-          * You MUST always use the include_in_response parameter in the args of the function call.
-          * The 'finalAnswer' field MUST be null.
-          * The 'isFinished' field MUST be false.
-          * NEVER invent parameters. If a parameter is not in the thought, do not make a call.
-      
-      3.  **Generating a Final Answer (ONLY for Descriptive Intents):**
-          * The 'functionCalls' array MUST be empty (\`[]\`).
-          * The 'isFinished' field MUST be true.
-          * The 'finalAnswer' field MUST contain the full text of the thought, as this is the message intended for the user.
-          * **CRITICAL:** If a function name is mentioned as part of a list or description (e.g., "I can use the \`search_courses\` function"), you MUST NOT treat it as a tool call.
-      
-      ---
-      **Example 1: Action Intent**
-      Thought: "I need to find the course ID for 'Computer Science'. I will use the moodle-mcp's \`search_courses_by_name\` function to do this."
-      Correct JSON:
-      {
-        "functionCalls": [{ "function": "search_courses_by_name", "args": { "name": "Computer Science", "include_in_response": { "summary": true, "completed": true, "hidden": true } } }],
-        "isFinished": false,
-        "finalAnswer": null
+        content: `You are a highly precise system that translates an assistant's thought process into a structured JSON object.
+Your single most important job is to distinguish between a plan to **execute a tool** and a plan to **provide a final text answer**.
+
+Global execution policy:
+• All "functionCalls" you output are executed **in parallel** within the same iteration (no chaining/order guarantees).
+• If a potential call **depends on the output** of another call and its **required arguments are not explicitly present** in the thought, **omit** that dependent call from this iteration.
+• **Deduplicate**: if the thought repeats the **same tool with identical arguments**, include it **only once** in "functionCalls". (Same function name + the same args fields with the same values ⇒ identical.)
+• Do **not** add, infer, or invent arguments that are not explicitly stated.
+• If information is missing, do not make a call. Set the "isFinished" field to true.
+
+Follow these rules with absolute precision:
+
+1) Identify the Core Intent
+   • If the thought contains explicit action phrases like "I will call...", "I will use...", "I need to execute...", the intent is to **call a tool**. Proceed to Rule 2.
+   • If the thought is a descriptive statement, a list of capabilities, or a direct message to the user (e.g., "I can do the following...", "Here are your assignments..."), the intent is to **provide a final answer**. Proceed to Rule 3.
+
+2) Generating Tool Calls (ONLY for Action Intents)
+   • You MUST populate the "functionCalls" array.
+   • You MUST include the "include_in_response" parameter in the args of **every** function call.
+   • The "finalAnswer" field MUST be null.
+   • The "isFinished" field MUST be false.
+   • NEVER invent parameters. If a required parameter is not in the thought, do not make that call in this iteration.
+   • Omit any **dependent** call that lacks its required arguments (e.g., do not call "kb_fetch_document" without a literal "docId" in the thought).
+   • **Deduplicate** identical calls (same function + identical args).
+
+3) Generating a Final Answer (ONLY for Descriptive Intents)
+   • The "functionCalls" array MUST be empty ([]).
+   • The "isFinished" field MUST be true.
+   • The "finalAnswer" field MUST contain the full text of the thought, as this is the message intended for the user.
+   • CRITICAL: If a function name is mentioned as part of a list or description (e.g., "I can use the \`search_courses\` function"), you MUST NOT treat it as a tool call.
+
+---
+Example 1: Action Intent (Single Call)
+Thought: "I need to find the course ID for 'Computer Science'. I will use the moodle-mcp's \`search_courses_by_name\` function to do this."
+Correct JSON:
+{
+  "functionCalls": [
+    {
+      "function": "search_courses_by_name",
+      "args": {
+        "name": "Computer Science",
+        "include_in_response": { "summary": true, "completed": true, "hidden": true }
       }
-      
-      ---
-      **Example 2: Descriptive Intent (THIS IS THE MOST IMPORTANT EXAMPLE)**
-      Thought: "What I Can Do: I can help with Moodle-related functions like \`search_courses_by_name\` to find courses and \`get_assignments\` to retrieve assignments."
-      Correct JSON:
-      {
-        "functionCalls": [],
-        "isFinished": true,
-        "finalAnswer": "What I Can Do: I can help with Moodle-related functions like \`search_courses_by_name\` to find courses and \`get_assignments\` to retrieve assignments."
+    }
+  ],
+  "isFinished": false,
+  "finalAnswer": null
+}
+
+---
+Example 2: Descriptive Intent (THIS IS THE MOST IMPORTANT EXAMPLE)
+Thought: "What I Can Do: I can help with Moodle-related functions like \`search_courses_by_name\` to find courses and \`get_assignments\` to retrieve assignments."
+Correct JSON:
+{
+  "functionCalls": [],
+  "isFinished": true,
+  "finalAnswer": "What I Can Do: I can help with Moodle-related functions like \`search_courses_by_name\` to find courses and \`get_assignments\` to retrieve assignments."
+}
+
+---
+Example 3: Parallel + Deduplication
+Thought: "Run translate_text on 'Hello' to 'de'. Also translate_text on 'Hello' to 'de'. And run kb_vector_search with query 'atlas' (topK 3) and include the snippet, scores and metadata."
+Correct JSON (deduplicated translate_text):
+{
+  "functionCalls": [
+    {
+      "function": "translate_text",
+      "args": {
+        "text": "Hello",
+        "targetLang": "de",
+        "include_in_response": { "targetLang": true, "sourceLang": false }
       }
-      ---
-      
-      Now, parse the following thought with zero deviation from these rules.`,
+    },
+    {
+      "function": "kb_vector_search",
+      "args": {
+        "query": "atlas",
+        "topK": 3,
+        "include_in_response": { "snippet": true, "scores": true, "metadata": true }
+      }
+    }
+  ],
+  "isFinished": false,
+  "finalAnswer": null
+}
+
+---
+Example 4: Dependent Call Omitted (No docId present)
+Thought: "First search for the atlas runbook, then fetch the document. I don't know the docId yet."
+Correct JSON (omit kb_fetch_document this iteration):
+{
+  "functionCalls": [
+    {
+      "function": "kb_vector_search",
+      "args": {
+        "query": "atlas runbook",
+        "include_in_response": { "snippet": true, "scores": true, "metadata": false }
+      }
+    }
+  ],
+  "isFinished": false,
+  "finalAnswer": null
+}
+---
+Now, parse the following thought with zero deviation from these rules.`,
       },
       {
         role: 'system',
@@ -228,59 +290,4 @@ Strictly forbidden:
       },
     ],
   });
-
-  /**
-   * Prompt for the observation-summarisation step.
-   */
-  public static getNaturalLanguageObservationPrompt = (
-    functionCalls: FunctionCall[],
-    agentResponses: CallToolResult[],
-    structuredThought?: StructuredThoughtResponse,
-  ): AIGenerateTextOptions => {
-    const merged = {
-      ...structuredThought,
-      functionCalls: functionCalls.map((call, i) => ({
-        ...call,
-        response: {
-          isError: agentResponses[i].isError ?? false,
-          content: agentResponses[i].content,
-          structuredContent: agentResponses[i].structuredContent,
-        },
-      })),
-    };
-
-    return {
-      messages: [
-        ...this.BASE_PROMPTS.map((content) => ({
-          role: 'system' as const,
-          content,
-        })),
-        {
-          role: 'system',
-          content: `You are an expert summariser. Create direct, factual summaries of agent responses.
-
-Rules:
-• List ALL information from the responses as simple bullet points
-• Use ONLY information explicitly present in the responses
-• Preserve exact details, numbers, and facts
-• Do not add any thinking process or commentary
-• Do not add any formatting like bold or italics
-• Do not add any section headers or categories
-
-DO NOT:
-• Add external facts or assumptions
-• Include suggestions not in the responses
-• Modify or interpret the information
-• Shorten or abbreviate any names, titles, or other identifiers.
-• Omit significant details
-• Add any thinking process or analysis
-• Add any formatting or styling`,
-        },
-        {
-          role: 'assistant',
-          content: `The agent responses: ${JSON.stringify(merged, null, 2)}`,
-        },
-      ],
-    };
-  };
 }
