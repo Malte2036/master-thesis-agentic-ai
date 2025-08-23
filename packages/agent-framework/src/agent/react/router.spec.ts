@@ -1,60 +1,88 @@
-import { describe, it, expect, vi } from 'vitest';
-import { ReActRouter } from './router';
-import { AIProvider } from '../../services';
-import { Logger } from '../../logger';
-import { MCPName } from '../../config';
-import { ListToolsResult } from '@modelcontextprotocol/sdk/types.js';
 import { RouterProcess } from '@master-thesis-agentic-ai/types';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { Logger } from '../../logger';
+import { AIProvider, OllamaProvider } from '../../services';
+import { ReActRouter } from './router';
+import { getMockAgentTools, TEST_AI_PROVIDERS } from './router.spec.config';
+import { MCPName } from '../../config';
+
+const OllamaBaseUrl = 'http://10.50.60.153:11434';
+
+vi.setConfig({ testTimeout: 10000 });
 
 describe('ReActRouter', () => {
-  describe('getNaturalLanguageThought', () => {
-    it('should return a natural language thought', async () => {
-      const aiProvider = {
-        generateText: vi.fn().mockResolvedValue('This is a thought.'),
-      } as unknown as AIProvider;
-      const logger = {
-        log: vi.fn(),
-        debug: vi.fn(),
-      } as unknown as Logger;
-      const mcpName = 'test-mcp' as MCPName;
-      const extendedNaturalLanguageThoughtSystemPrompt = 'extended-prompt';
+  for (const { provider, model, structuredModel } of TEST_AI_PROVIDERS) {
+    describe(`with model ${model} and structured model ${structuredModel ?? model}`, () => {
+      let aiProvider: AIProvider;
+      let structuredAiProvider: AIProvider;
+      let logger: Logger;
 
-      const router = new ReActRouter(
-        aiProvider,
-        aiProvider,
-        logger,
-        mcpName,
-        extendedNaturalLanguageThoughtSystemPrompt,
-      );
+      beforeEach(() => {
+        const testName = expect.getState().currentTestName || 'unknown-test';
+        const sanitizedTestName = testName
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '');
 
-      const agentTools = {
-        tools: [
-          {
-            function: {
-              name: 'test-tool',
-              description: 'A test tool.',
-              parameters: {
-                type: 'object',
-                properties: {},
-                required: [],
-              },
-            },
-          },
-        ],
-      } as unknown as ListToolsResult;
-      const routerProcess: RouterProcess = {
-        question: 'What is the weather like?',
-        maxIterations: 1,
-        iterationHistory: [],
-      };
+        logger = new Logger({
+          agentName: sanitizedTestName,
+          logsSubDir: `${model}-${structuredModel ?? model}`,
+        });
 
-      const thought = await router.getNaturalLanguageThought(
-        agentTools,
-        routerProcess,
-      );
+        if (provider === 'ollama') {
+          aiProvider = new OllamaProvider(logger, {
+            baseUrl: OllamaBaseUrl,
+            model,
+          });
+        } else {
+          throw new Error(`Unsupported provider: ${provider}`);
+        }
 
-      expect(thought).toBe('This is a thought.');
-      expect(aiProvider.generateText).toHaveBeenCalledOnce();
+        if (structuredModel) {
+          structuredAiProvider = new OllamaProvider(logger, {
+            baseUrl: OllamaBaseUrl,
+            model: structuredModel,
+          });
+          logger.log(`Using structured model: ${structuredModel} for ${model}`);
+        } else {
+          structuredAiProvider = aiProvider;
+        }
+      });
+
+      describe('getNaturalLanguageThought', () => {
+        it('should generate natural language thought containing relevant keywords', async () => {
+          const routerProcess: RouterProcess = {
+            question: 'What is the weather in Tokyo?',
+            maxIterations: 3,
+            iterationHistory: [],
+          };
+
+          const router = new ReActRouter(
+            aiProvider,
+            structuredAiProvider,
+            logger,
+            'weather-mcp' as MCPName,
+            '',
+          );
+
+          const agentTools = getMockAgentTools();
+
+          const result = await router.getNaturalLanguageThought(
+            agentTools,
+            routerProcess,
+          );
+
+          expect(result).toBeDefined();
+          expect(typeof result).toBe('string');
+          expect(result.length).toBeGreaterThan(0);
+
+          const lowerResult = result.toLowerCase();
+
+          expect(lowerResult).toMatch(/get.?weather/);
+          expect(lowerResult).toMatch(/tokyo/);
+        });
+      });
     });
-  });
+  }
 });
