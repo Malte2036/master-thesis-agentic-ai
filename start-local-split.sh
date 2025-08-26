@@ -19,7 +19,7 @@ delay 0.2
 
 tell application "System Events"
   set titles to {"routing-agent", "moodle-agent", "moodle-mcp", "chainlit"}
-  set commands to {"pnpm run dev:routing-agent", "pnpm run dev:moodle-agent", "pnpm run dev:moodle-mcp", "pnpm run dev:chainlit"}
+  set commands to {"pnpm run build:agent-framework && pnpm run dev:routing-agent", "pnpm run build:agent-framework && pnpm run dev:moodle-agent", "pnpm run build:agent-framework && pnpm run dev:moodle-mcp", "pnpm run build:agent-framework && pnpm run dev:chainlit"}
 
   -- Maximize the frontmost Ghostty window (not fullscreen)
   tell application "Finder"

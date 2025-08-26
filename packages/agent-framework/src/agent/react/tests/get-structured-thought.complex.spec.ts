@@ -4,7 +4,7 @@ import { Logger } from '../../../logger';
 import { AIProvider, OllamaProvider } from '../../../services';
 import { getStructuredThought } from '../get-structured-thought';
 import { TEST_AI_PROVIDERS, TEST_OLLAMA_BASE_URL } from './spec.config';
-import { getMockAgentToolsComplex } from './router.spec.config.complex'; // from previous message
+import mockAgentToolsComplex from './router.spec.config.complex';
 
 vi.setConfig({ testTimeout: 15000 });
 
@@ -13,7 +13,6 @@ describe('getStructuredThought (parallel execution semantics)', () => {
     describe(`with model ${model} and structured model ${structuredModel ?? model}`, () => {
       let aiProvider: AIProvider;
       let logger: Logger;
-      const tools = getMockAgentToolsComplex();
 
       beforeEach(() => {
         const testName = expect.getState().currentTestName || 'unknown-test';
@@ -46,7 +45,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         `;
         const res = await getStructuredThought(
           thought,
-          tools,
+          mockAgentToolsComplex,
           aiProvider,
           logger,
         );
@@ -75,7 +74,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         `;
         const res = await getStructuredThought(
           thought,
-          tools,
+          mockAgentToolsComplex,
           aiProvider,
           logger,
         );
@@ -92,7 +91,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         `;
         const res = await getStructuredThought(
           thought,
-          tools,
+          mockAgentToolsComplex,
           aiProvider,
           logger,
         );
@@ -110,7 +109,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         `;
         const res = await getStructuredThought(
           thought,
-          tools,
+          mockAgentToolsComplex,
           aiProvider,
           logger,
         );
@@ -129,7 +128,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         `;
         const res = await getStructuredThought(
           thought,
-          tools,
+          mockAgentToolsComplex,
           aiProvider,
           logger,
         );
@@ -149,7 +148,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         `;
         const res = await getStructuredThought(
           thought,
-          tools,
+          mockAgentToolsComplex,
           aiProvider,
           logger,
         );
@@ -181,7 +180,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         `;
         const res = await getStructuredThought(
           thought,
-          tools,
+          mockAgentToolsComplex,
           aiProvider,
           logger,
         );
@@ -194,7 +193,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         const thought = `I will use search_flights soon (but I have not provided origin/destination/date).`;
         const res = await getStructuredThought(
           thought,
-          tools,
+          mockAgentToolsComplex,
           aiProvider,
           logger,
         );
@@ -211,7 +210,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         `;
         const res = await getStructuredThought(
           thought,
-          tools,
+          mockAgentToolsComplex,
           aiProvider,
           logger,
         );

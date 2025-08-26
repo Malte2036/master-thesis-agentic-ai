@@ -1,10 +1,9 @@
-import { RouterProcess } from '@master-thesis-agentic-ai/types';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Logger } from '../../../logger';
 import { AIProvider, OllamaProvider } from '../../../services';
 import { getStructuredThought } from '../get-structured-thought';
-import { getMockAgentTools } from './router.spec.config';
-import { TEST_OLLAMA_BASE_URL, TEST_AI_PROVIDERS } from './spec.config';
+import { mockAgentTools } from './router.spec.config';
+import { TEST_AI_PROVIDERS, TEST_OLLAMA_BASE_URL } from './spec.config';
 
 vi.setConfig({ testTimeout: 10000 });
 
@@ -40,11 +39,9 @@ describe('getStructuredThought', () => {
       });
 
       it('should generate structured thought containing relevant keywords', async () => {
-        const agentTools = getMockAgentTools();
-
         const result = await getStructuredThought(
           'I need to find get the weather in Tokyo. For this, I will use the `get_weather` function with the location "Tokyo".',
-          agentTools,
+          mockAgentTools,
           aiProvider,
           logger,
         );

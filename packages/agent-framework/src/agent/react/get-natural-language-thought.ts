@@ -4,9 +4,10 @@ import chalk from 'chalk';
 import { AIProvider } from '../../services';
 import { Logger } from '../../logger';
 import { ReActPrompt } from './prompt';
+import { AgentTool } from './types';
 
 export async function getNaturalLanguageThought(
-  agentTools: ListToolsResult,
+  agentTools: AgentTool[],
   routerProcess: RouterProcess,
   aiProvider: AIProvider,
   logger: Logger,

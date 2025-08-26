@@ -7,10 +7,11 @@ import chalk from 'chalk';
 import { AIProvider } from '../../services';
 import { Logger } from '../../logger';
 import { ReActPrompt } from './prompt';
+import { AgentTool } from './types';
 
 export async function getStructuredThought(
   responseString: string,
-  agentTools: ListToolsResult,
+  agentTools: AgentTool[],
   structuredAiProvider: AIProvider,
   logger: Logger,
 ): Promise<StructuredThoughtResponse> {

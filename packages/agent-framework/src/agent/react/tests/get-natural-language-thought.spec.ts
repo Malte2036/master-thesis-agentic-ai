@@ -3,8 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Logger } from '../../../logger';
 import { AIProvider, OllamaProvider } from '../../../services';
 import { getNaturalLanguageThought } from '../get-natural-language-thought';
-import { getMockAgentTools } from './router.spec.config';
+import mockAgentToolsComplex from './router.spec.config.complex';
 import { TEST_OLLAMA_BASE_URL, TEST_AI_PROVIDERS } from './spec.config';
+import { mockAgentTools } from './router.spec.config';
 
 vi.setConfig({ testTimeout: 10000 });
 
@@ -46,10 +47,8 @@ describe('getNaturalLanguageThought', () => {
           iterationHistory: [],
         };
 
-        const agentTools = getMockAgentTools();
-
         const result = await getNaturalLanguageThought(
-          agentTools,
+          mockAgentTools,
           routerProcess,
           aiProvider,
           logger,

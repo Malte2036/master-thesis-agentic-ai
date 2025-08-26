@@ -3,27 +3,21 @@ import {
   FunctionCall,
   RouterProcess,
   RouterResponse,
-  StructuredThoughtResponse,
-  StructuredThoughtResponseSchema,
 } from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
 
+import { MCPClient } from '../../adapters';
 import {
   callMcpClientInParallel,
   getMcpClient,
 } from '../../adapters/mcp/mcp_client_utils';
-import { ReActPrompt } from './prompt';
-import {
-  ListToolsResult,
-  CallToolResult,
-} from '@modelcontextprotocol/sdk/types.js';
-import { MCPClient } from '../../adapters';
+import { MCPName } from '../../config';
 import { Logger } from '../../logger';
 import { AIProvider } from '../../services';
 import { Router } from '../router';
-import { MCPName } from '../../config';
 import { getNaturalLanguageThought } from './get-natural-language-thought';
 import { getStructuredThought } from './get-structured-thought';
+import { listAgentsToolsToAgentTools } from '../utils';
 
 export class ReActRouter implements Router {
   constructor(
@@ -61,7 +55,8 @@ export class ReActRouter implements Router {
     mcpClient: MCPClient,
     routerProcess: RouterProcess,
   ): AsyncGenerator<RouterProcess, RouterResponse, unknown> {
-    const agentTools = await mcpClient.listTools();
+    const listAgentsTools = await mcpClient.listTools();
+    const agentTools = listAgentsToolsToAgentTools(listAgentsTools);
 
     const maxIterations = routerProcess.maxIterations;
     let currentIteration = routerProcess.iterationHistory?.length ?? 0;

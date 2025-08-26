@@ -8,6 +8,7 @@ import {
   CallToolResult,
 } from '@modelcontextprotocol/sdk/types.js';
 import { AIGenerateTextOptions } from '../../services';
+import { AgentTool } from './types';
 
 interface SchemaProperty {
   type: string;
@@ -36,67 +37,12 @@ Important rules:
 `,
   ];
 
-  // ensure that there aren't to much information in the prompt
-  private static getAgentToolsString = (
-    agentTools: ListToolsResult,
-  ): string => {
-    const processProperties = (properties: {
-      [key: string]: SchemaProperty;
-    }): { [key: string]: SchemaProperty } => {
-      return Object.fromEntries(
-        Object.entries(properties).map(([key, value]) => {
-          if (value.type === 'object' && value.properties) {
-            return [
-              key,
-              {
-                type: 'object',
-                description: value.description,
-                properties: processProperties(value.properties),
-                ...(value.required &&
-                  value.required.length > 0 && { required: value.required }),
-              },
-            ];
-          }
-          return [
-            key,
-            {
-              type: value.type,
-              description: value.description,
-              ...(value.enum && { enum: value.enum }),
-            },
-          ];
-        }),
-      );
-    };
-
-    return JSON.stringify(
-      agentTools.tools.map((tool) => ({
-        name: tool.name,
-        description: tool.description,
-        parameters: {
-          type: 'object',
-          properties: processProperties(
-            (tool.inputSchema?.properties as {
-              [key: string]: SchemaProperty;
-            }) ?? {},
-          ),
-          ...(tool.inputSchema?.required &&
-            tool.inputSchema.required.length > 0 && {
-              required: tool.inputSchema.required,
-            }),
-        },
-      })),
-      null,
-      2,
-    );
-  };
-
   /**
    * Prompt for the natural-language "thought" step.
    */
   public static getNaturalLanguageThoughtPrompt = (
     extendedSystemPrompt: string,
-    agentTools: ListToolsResult,
+    agentTools: AgentTool[],
     routerProcess: RouterProcess,
   ): AIGenerateTextOptions => {
     return {
@@ -108,62 +54,97 @@ Important rules:
         {
           role: 'system',
           content: `
-          ${extendedSystemPrompt}
+${extendedSystemPrompt}
 
-Decide **exactly one immediate step**—a single function call (or a final answer)—using only the facts you already know.
+Decide **exactly one immediate step** — a single function call (or a final answer) — using only the facts you already know.
 
-
-Process (follow in order, and do each step at most once):
-1) Read the TOOLS SNAPSHOT (below) exactly once and extract tool names.
-   - Write a single line: "Tools found: <comma-separated names>" and do not repeat this line again in this iteration.
+Process (follow in order, do each step at most once):
+1) Read the TOOLS SNAPSHOT (below) exactly once and extract relevant informations.
 2) Distinguish intent:
-   - If the user asks about capabilities, respond descriptively (no tool calls).
-   - If acting, choose **one** tool only if **all required parameters are present**.
+   - If the user asks about capabilities, respond *descriptively* (no tool calls) and **do not plan execution**.
+   - If acting, choose **one** tool **only if all required parameters are present**.
 3) Move the user one step closer to their goal.
 
+Parameter-echo mandate (CRITICAL for action):
+- When you decide to execute a function, you MUST **explicitly restate every required parameter and its concrete value** that you will pass.
+- Restate parameter names exactly as in the tool schema and values **verbatim** as found in the user request/iteration history. If an ISO date is present (YYYY-MM-DD), include that exact token in your thought.
+- If a required parameter is **missing or ambiguous**, you MUST NOT execute any function. Instead, ask for the missing info in your thought and stop.
+
 Principles:
-- Answer with your thought process.
-- **Distinguish Intent**:
-    - To **execute** a function for a task, use active phrasing like "I will now use..." or "I need to call...". This is for actively solving a user's request.
-    - To **describe** a function because the user is asking about your abilities, state "I have the capability to..." and describe the function without planning to execute it.
-- Move the user one step closer to their goal in every iteration.
-- Choose a function to **execute** only when **all required parameters are fully specified**.
-- When planning a function call, describe it in natural language and explicitly mention the agent name.
-- Think strictly about what is needed to answer the user's question; do not plan work that is out of scope.
-- Plan one step at a time; reevaluate after each response.
-- When you already have enough information from the iteration history to answer the user's question, state explicitly that you are finished, answer the question and do not call any more functions.
-- You are scoped to only a single specific domain. Do not think about other domains. Other AI Agents will be used to handle other domains.
-- If there are ambiguities in the request, it always refers to your domain.
+- Answer with your thought process (natural language).
+- **Distinguish Intent** clearly:
+  - Execute: “I will now use {agent}/{function} with: param1=…, param2=…, …”
+  - Describe: “I have the capability to …” (no call now)
+- Choose a function only when **all required parameters are fully specified**.
+- Mention the **agent/function name** you intend to use and **list each required arg with its exact value**.
+- Stay in your domain; if ambiguous, assume the request is in your domain.
+- One step at a time; reevaluate after each response.
+- If you already have enough info to answer directly, finish and provide the answer (no function).
 
 Strictly forbidden:
-- Fabricating, translating or abbreviating parameter values.
+- Fabricating, translating, abbreviating, coercing, or inferring parameter values not stated.
 - Ignoring facts from the question or iteration history.
-- Calling or referencing any agent or function that is **not** in the available list.
+- Calling or referencing any agent/function **not** in the available list.
 - Repeating a call with identical parameters.
-  `,
-        },
-        {
-          role: 'system',
-          content: `Available agents and functions:
-  ${this.getAgentToolsString(agentTools)}
-  `,
+- Vague phrasing like “with the specified dates” — **you must restate the actual values** (e.g., \`date=2025-10-05\`, \`returnDate=2025-10-18\`).
+
+Failure modes to avoid (these will fail tests):
+- Missing any required parameter in the thought.
+- Omitting concrete tokens like dates (“2025-10-05”), locations (“BER”, “HND”), counts (“passengers=2”).
+
+— — —
+### Examples
+(Available Tools for this examples:  search_flights, get_flight_status, query_finance_price, get_exchange_rate, kb_vector_search, kb_fetch_document, create_calendar_event, run_sql_query, web_retrieve_and_summarize, translate_text)
+
+# A) Action (Travel planning; all params present)
+I will now use the **search_flights** agent to find a round-trip. **Parameters** I will pass:
+- origin="BER"
+- destination="HND"
+- date="2025-10-05"
+- returnDate="2025-10-18"
+- passengers=2
+- cabin="premium"
+
+# B) Descriptive (Capabilities; no execution)
+I have the capability to use **search_flights** for trip discovery and **get_flight_status** for live status checks. Since the user asked about capabilities, I will not execute any function now.
+
+# C) Missing required params (ask, do not execute)
+I cannot execute **search_flights** yet. **Missing required parameters**:
+- origin (e.g., "BER")
+- date (YYYY-MM-DD)
+Please provide origin and an exact departure date. I will proceed once I have them.
+
+# D) RAG ask but one-step only (dependent data missing)
+I will call **kb_vector_search** with:
+- query="atlas incident runbook"
+(topK is optional; if I choose it, I must state the exact value, e.g., topK=3)
+I will NOT call **kb_fetch_document** now because no literal docId is present yet.
+
+# E) No tool available to answer the question (no tool calls)
+I cannot answer the question because no tool is available to answer it.
+
+— — —
+
+TOOLS SNAPSHOT:
+${JSON.stringify(agentTools, null, 2)}
+`,
         },
         {
           role: 'assistant',
           content: `Iteration history (oldest → newest):
-  ${
-    routerProcess.iterationHistory
-      ?.map(
-        (it) =>
-          `Iteration ${it.iteration}
-  - Thought which justifies the next step: ${it.naturalLanguageThought}
-  - The function calls that were made: ${JSON.stringify(it.structuredThought.functionCalls, null, 2)}
-  - The observation that was made after seeing the response of the function calls: ${it.observation}
-  `,
-      )
-      .join('\n') ?? '— none —'
-  }
-  `,
+${
+  routerProcess.iterationHistory
+    ?.map(
+      (it) =>
+        `Iteration ${it.iteration}
+- Thought which justifies the next step: ${it.naturalLanguageThought}
+- The function calls that were made: ${JSON.stringify(it.structuredThought.functionCalls, null, 2)}
+- The observation that was made after seeing the response of the function calls: ${it.observation}
+`,
+    )
+    .join('\n') ?? '— none —'
+}
+`,
         },
       ],
     };
@@ -173,7 +154,7 @@ Strictly forbidden:
    * Prompt for the structured-thought (JSON) step.
    */
   public static getStructuredThoughtPrompt = (
-    agentTools: ListToolsResult,
+    agentTools: AgentTool[],
   ): AIGenerateTextOptions => ({
     messages: [
       {
@@ -196,7 +177,7 @@ Follow these rules with absolute precision:
 
 2) Generating Tool Calls (ONLY for Action Intents)
    • You MUST populate the "functionCalls" array.
-   • You MUST include the "include_in_response" parameter in the args of **every** function call.
+   • You MUST include the "include_in_response" parameter (object) in the args of **every** function call.
    • The "finalAnswer" field MUST be null.
    • The "isFinished" field MUST be false.
    • NEVER invent parameters. If a required parameter is not in the thought, do not make that call in this iteration.

@@ -1,20 +1,20 @@
-import { ListToolsResult } from '@modelcontextprotocol/sdk/types.js';
+import { AgentTool } from '../types';
 
-export const getMockAgentTools = (): ListToolsResult => ({
-  tools: [
-    {
-      name: 'get_weather',
-      description: 'Get the weather for a location',
-      inputSchema: {
+export const mockAgentTools: AgentTool[] = [
+  {
+    name: 'get_weather',
+    description: 'Get the weather for a location',
+    args: {
+      location: {
+        type: 'string',
+        description: 'The location to get the weather for',
+        required: true,
+      },
+      include_in_response: {
         type: 'object',
-        properties: {
-          location: {
-            type: 'string',
-            description: 'The location to get the weather for',
-          },
-        },
-        required: ['location'],
+        properties: {},
+        required: true,
       },
     },
-  ],
-});
+  },
+];

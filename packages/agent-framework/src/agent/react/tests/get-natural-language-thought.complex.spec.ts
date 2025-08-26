@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Logger } from '../../../logger';
 import { AIProvider, OllamaProvider } from '../../../services';
 import { getNaturalLanguageThought } from '../get-natural-language-thought';
-import { getMockAgentToolsComplex } from './router.spec.config.complex';
 import { TEST_OLLAMA_BASE_URL, TEST_AI_PROVIDERS } from './spec.config';
+import mockAgentToolsComplex from './router.spec.config.complex';
 
 vi.setConfig({ testTimeout: 15000 });
 
@@ -39,8 +39,6 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
           throw new Error(`Unsupported provider: ${provider}`);
         }
       });
-
-      const agentTools = getMockAgentToolsComplex();
 
       type Case = {
         name: string;
@@ -134,7 +132,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
             };
 
             const thought = await getNaturalLanguageThought(
-              agentTools,
+              mockAgentToolsComplex,
               routerProcess,
               aiProvider,
               logger,
