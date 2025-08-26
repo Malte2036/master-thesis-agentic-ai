@@ -219,6 +219,31 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           expect(c.args['include_in_response']).toBeInstanceOf(Object);
         }
       });
+
+      it('Complete user information present → should finish loop instead of making another call', async () => {
+        const thought = `
+          The user's personal information is as follows:
+
+          - **Username**: student
+          - **First Name**: Sabrina
+          - **Last Name**: Studentin
+          - **Site URL**: http://localhost:8080
+          - **User Picture URL**: http://localhost:8080/theme/image.php/boost/core/1746531048/u/f1
+          - **User Language**: (Not explicitly listed in the response, but the tool's parameters include \`userlang\` as a required field. The value may be inferred from the context or missing in the provided observation.)
+
+            Let me know if you need further details!
+        `;
+        const res = await getStructuredThought(
+          thought,
+          mockAgentToolsComplex,
+          aiProvider,
+          logger,
+        );
+
+        // Should recognize that we have complete information and finish
+        expect(res.functionCalls).toEqual([]);
+        expect(res.isFinished).toBe(true);
+      });
     });
   }
 });

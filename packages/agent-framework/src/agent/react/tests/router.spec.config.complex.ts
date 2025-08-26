@@ -2,6 +2,43 @@ import { AgentTool } from '../types';
 
 export const mockAgentToolsComplex: AgentTool[] = [
   {
+    name: 'get_user_info',
+    description:
+      'Get personal information about the user who asked the question. This function cannot get information about other users.',
+    args: {
+      include_in_response: {
+        type: 'object',
+        properties: {
+          username: {
+            type: 'boolean',
+            required: true,
+          },
+          firstname: {
+            type: 'boolean',
+            required: true,
+          },
+          lastname: {
+            type: 'boolean',
+            required: true,
+          },
+          siteurl: {
+            type: 'boolean',
+            required: true,
+          },
+          userpictureurl: {
+            type: 'boolean',
+            required: true,
+          },
+          userlang: {
+            type: 'boolean',
+            required: true,
+          },
+        },
+        required: true,
+      },
+    },
+  },
+  {
     name: 'search_flights',
     description: 'Search one-way or round-trip flights',
     args: {
