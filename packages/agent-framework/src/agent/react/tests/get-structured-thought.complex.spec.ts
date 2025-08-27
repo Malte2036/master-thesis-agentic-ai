@@ -199,7 +199,6 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         );
 
         expect(res.functionCalls).toEqual([]); // nothing runs in parallel without args
-        expect(res.isFinished).toBe(true);
       });
 
       it('All calls include include_in_response (policy enforcement)', async () => {

@@ -1,12 +1,4 @@
-import {
-  FunctionCall,
-  RouterProcess,
-  StructuredThoughtResponse,
-} from '@master-thesis-agentic-ai/types';
-import {
-  ListToolsResult,
-  CallToolResult,
-} from '@modelcontextprotocol/sdk/types.js';
+import { RouterProcess } from '@master-thesis-agentic-ai/types';
 import { AIGenerateTextOptions } from '../../services';
 import { AgentTool } from './types';
 
