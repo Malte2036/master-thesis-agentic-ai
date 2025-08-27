@@ -1,5 +1,5 @@
 {
-  "name": "@master-thesis-agentic-rag/calendar-mcp",
+  "name": "@master-thesis-agentic-ai/calendar-mcp",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/calendar-mcp/src",
   "projectType": "application",
@@ -20,7 +20,7 @@
     "serve": {
       "executor": "@nx/js:node",
       "options": {
-        "buildTarget": "@master-thesis-agentic-rag/calendar-mcp:build",
+        "buildTarget": "@master-thesis-agentic-ai/calendar-mcp:build",
         "watch": true
       }
     },

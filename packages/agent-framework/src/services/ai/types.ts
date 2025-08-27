@@ -11,6 +11,7 @@ export interface AIProvider {
   generateText(
     prompt: string,
     options?: AIGenerateTextOptions,
+    temperature?: number,
   ): Promise<string>;
 
   getModels(): Promise<{ name: string; size: number }[]>;

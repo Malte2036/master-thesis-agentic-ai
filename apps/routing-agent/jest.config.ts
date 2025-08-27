@@ -1,5 +1,5 @@
 export default {
-  displayName: '@master-thesis-agentic-rag/routing-agent',
+  displayName: '@master-thesis-agentic-ai/routing-agent',
   preset: '../../jest.preset.js',
   testEnvironment: 'node',
   transform: {
@@ -14,7 +14,7 @@ export default {
   moduleFileExtensions: ['ts', 'js', 'html'],
   coverageDirectory: '../../coverage/apps/routing-agent',
   transformIgnorePatterns: [
-    'node_modules/(?!(zod|@master-thesis-agentic-rag)/)',
+    'node_modules/(?!(zod|@master-thesis-agentic-ai)/)',
   ],
   moduleNameMapper: {
     '^zod/v4$': 'zod/dist/cjs/v4/index.js',

@@ -1,5 +1,5 @@
 {
-  "name": "@master-thesis-agentic-rag/agent-framework",
+  "name": "@master-thesis-agentic-ai/agent-framework",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/agent-framework/src",
   "projectType": "library",
@@ -13,6 +13,16 @@
         "main": "packages/agent-framework/src/index.ts",
         "tsConfig": "packages/agent-framework/tsconfig.lib.json",
         "assets": ["packages/agent-framework/*.md"]
+      }
+    },
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{workspaceRoot}/coverage/packages/agent-framework"],
+      "options": {
+        "cwd": "packages/agent-framework",
+        "config": "packages/agent-framework/vitest.config.ts",
+        "passWithNoTests": true,
+        "reportsDirectory": "{workspaceRoot}/coverage/packages/agent-framework"
       }
     }
   }

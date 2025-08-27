@@ -1,12 +1,10 @@
 import { z } from 'zod/v4';
-import { McpAgentCallSchema } from './agent';
+import { FunctionCallSchema as FunctionCallSchema } from './agent';
 
 export const StructuredThoughtResponseSchema = z.object({
-  agentCalls: z
-    .array(McpAgentCallSchema)
-    .describe(
-      'The agent calls to make. The agentCalls array must contain only the immediate next function to call. Do not include future function calls.',
-    ),
+  functionCalls: z
+    .array(FunctionCallSchema)
+    .describe('The function calls to make.'),
   isFinished: z
     .boolean()
     .describe('Whether the agent has finished its task.')

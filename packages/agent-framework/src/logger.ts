@@ -36,6 +36,14 @@ interface LoggerConfig {
   hideDebugInConsole?: boolean;
 }
 
+// Helper function to truncate and clean strings for file paths
+function sanitizeForPath(str: string, maxLength = 100): string {
+  // Replace problematic characters with a hyphen
+  const cleaned = str.replace(/[:/\\?#%*|"<>]/g, '-');
+  // Truncate if the string is too long
+  return cleaned.length > maxLength ? cleaned.substring(0, maxLength) : cleaned;
+}
+
 class Logger {
   private logFilePath: string;
   private originalConsole: {
@@ -45,6 +53,7 @@ class Logger {
     info: typeof console.info;
     debug: typeof console.debug;
     trace: typeof console.trace;
+    table: typeof console.table;
   };
   constructor(private config: LoggerConfig = {}) {
     // Store original console methods
@@ -55,6 +64,7 @@ class Logger {
       info: console.info,
       debug: console.debug,
       trace: console.trace,
+      table: console.table,
     };
 
     this.logFilePath = this.setupLogFile();
@@ -69,7 +79,7 @@ class Logger {
     const sessionLogsDir = path.join(
       baseLogsDir,
       sessionTimestamp,
-      this.config.logsSubDir || '',
+      sanitizeForPath(this.config.logsSubDir || ''),
     );
 
     // Create timestamped logs directory if it doesn't exist
@@ -79,7 +89,7 @@ class Logger {
 
     // Create log file with agent name
     const agentName = this.config.agentName || 'agent-framework';
-    const logFileName = `${agentName}.log`;
+    const logFileName = `${sanitizeForPath(agentName)}.log`;
 
     return path.join(sessionLogsDir, logFileName);
   }
@@ -87,7 +97,7 @@ class Logger {
   private formatLogMessage(level: string, args: unknown[]): string {
     const timestamp = new Date().toISOString();
     // Create ANSI escape sequence regex to avoid linter warning
-    const ansiRegex = new RegExp(String.fromCharCode(27) + '\\[[0-9;]*m', 'g');
+    const ansiRegex = new RegExp(String.fromCharCode(27) + '\[[0-9;]*m', 'g');
     const message = args
       .map((arg) =>
         typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg),
@@ -134,6 +144,11 @@ class Logger {
     if (!this.config.hideDebugInConsole) {
       this.originalConsole.debug(...args);
     }
+  }
+
+  public table(...args: unknown[]): void {
+    this.writeToLogFile('table', args);
+    this.originalConsole.table(...args);
   }
 }
 

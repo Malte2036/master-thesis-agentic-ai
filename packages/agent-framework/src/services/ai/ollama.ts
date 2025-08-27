@@ -2,6 +2,7 @@ import { z } from 'zod/v4';
 import { AIProvider, AIGenerateTextOptions } from './types';
 import { Ollama } from 'ollama';
 import { Logger } from '../../logger';
+import chalk from 'chalk';
 
 export class OllamaProvider implements AIProvider {
   private readonly client: Ollama;
@@ -78,6 +79,7 @@ export class OllamaProvider implements AIProvider {
   async generateText(
     prompt: string,
     options?: AIGenerateTextOptions,
+    temperature?: number,
   ): Promise<string> {
     const messages = [
       ...(options?.messages || []),
@@ -87,7 +89,21 @@ export class OllamaProvider implements AIProvider {
       },
     ];
 
-    return this.makeApiCall(messages, false, undefined, 0.7);
+    let response = await this.makeApiCall(
+      messages,
+      false,
+      undefined,
+      temperature || 0.7,
+    );
+
+    if (response.startsWith('<think>')) {
+      response = response.slice(response.indexOf('</think>') + 8);
+      this.logger.log(
+        chalk.magenta('Stripped <think> tags from natural language thought'),
+      );
+    }
+
+    return response.trim();
   }
 
   async generateJson<T>(

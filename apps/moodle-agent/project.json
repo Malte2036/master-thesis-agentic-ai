@@ -1,0 +1,44 @@
+{
+  "name": "@master-thesis-agentic-ai/moodle-agent",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/moodle-agent/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/moodle-agent",
+        "main": "apps/moodle-agent/src/index.ts",
+        "tsConfig": "apps/moodle-agent/tsconfig.json",
+        "assets": [
+          "apps/moodle-agent/src/assets",
+          "apps/moodle-agent/package.json"
+        ]
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "@master-thesis-agentic-ai/moodle-agent:build",
+        "watch": true
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
+    },
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": [
+        "{workspaceRoot}/coverage/apps/moodle-agent"
+      ],
+      "options": {
+        "passWithNoTests": true,
+        "reportsDirectory": "{workspaceRoot}/coverage/apps/moodle-agent"
+      }
+    }
+    
+  },
+  "tags": []
+}

@@ -1,6 +1,6 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { AgentConfig } from '../config';
+import { AgentConfig } from '../../config';
 import {
   ListToolsRequest,
   ListToolsResultSchema,
@@ -17,7 +17,7 @@ import {
   CallToolResult,
   ListToolsResult,
 } from '@modelcontextprotocol/sdk/types.js';
-import { Logger } from '../logger';
+import { Logger } from '../../logger';
 
 export class MCPClient {
   private client: Client;

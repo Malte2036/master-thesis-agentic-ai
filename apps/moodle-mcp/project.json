@@ -1,5 +1,5 @@
 {
-  "name": "@master-thesis-agentic-rag/moodle-mcp",
+  "name": "@master-thesis-agentic-ai/moodle-mcp",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/moodle-mcp/src",
   "projectType": "application",
@@ -17,7 +17,7 @@
     "serve": {
       "executor": "@nx/js:node",
       "options": {
-        "buildTarget": "@master-thesis-agentic-rag/moodle-mcp:build",
+        "buildTarget": "@master-thesis-agentic-ai/moodle-mcp:build",
         "watch": true
       }
     },

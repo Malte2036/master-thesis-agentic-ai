@@ -104,7 +104,7 @@ async def stream_updates(session_id: str, agentic_viewer_element: cl.CustomEleme
                             
                             elif update_type == 'final_response':
                                 # Update with final response
-                                final_response = update_data.get('friendlyResponse', 'Processing complete.')
+                                final_response = update_data.get('finalResponse', 'Processing complete.')
 
                                 agentic_viewer_element.props['iterations'] = iterations
                                 agentic_viewer_element.props['finalResponse'] = final_response

@@ -1,8 +1,9 @@
 import {
-  createAgentFramework,
+  compareTimes,
+  createMCPServerFramework,
   Logger,
-} from '@master-thesis-agentic-rag/agent-framework';
-import { createResponseError } from '@master-thesis-agentic-rag/types';
+} from '@master-thesis-agentic-ai/agent-framework';
+import { createResponseError } from '@master-thesis-agentic-ai/types';
 import dotenv from 'dotenv';
 import { z } from 'zod';
 import { MoodleProvider } from './providers/moodleProvider';
@@ -23,8 +24,8 @@ if (!moodleBaseUrl) {
 
 const moodleProvider = new MoodleProvider(logger, moodleBaseUrl);
 
-const agentFramework = createAgentFramework(logger, 'moodle-mcp');
-const mcpServer = agentFramework.getServer();
+const mcpServerFramework = createMCPServerFramework(logger, 'moodle-mcp');
+const mcpServer = mcpServerFramework.getServer();
 
 const moodleToken = process.env.MOODLE_TOKEN;
 if (!moodleToken) {
@@ -97,11 +98,90 @@ const includeCourseContentInResponseSchema = z
   .nullish();
 
 const includeAssignmentInResponseSchema = z.object({
-  name: z.boolean().nullish(),
-  description: z.boolean().nullish(),
-  due: z.boolean().nullish(),
-  grading: z.boolean().nullish(),
-  submission: z.boolean().nullish(),
+  course: z
+    .boolean()
+    .nullish()
+    .describe(
+      'Whether to include the course id the assignment belongs to in the response.',
+    ),
+  nosubmissions: z
+    .boolean()
+    .nullish()
+    .describe(
+      'Whether to include the assignment no submissions in the response.',
+    ),
+  submissiondrafts: z
+    .boolean()
+    .nullish()
+    .describe(
+      'Whether to include the assignment submission drafts in the response.',
+    ),
+  duedate: z
+    .boolean()
+    .nullish()
+    .describe('Whether to include the assignment due date in the response.'),
+  allowsubmissionsfromdate: z
+    .boolean()
+    .nullish()
+    .describe(
+      'Whether to include the assignment allow submissions from date in the response.',
+    ),
+  grade: z
+    .boolean()
+    .nullish()
+    .describe('Whether to include the assignment grade in the response.'),
+  timemodified: z
+    .boolean()
+    .nullish()
+    .describe(
+      'Whether to include the assignment timemodified in the response.',
+    ),
+  completionsubmit: z
+    .boolean()
+    .nullish()
+    .describe(
+      'Whether to include the assignment completionsubmit in the response.',
+    ),
+  cutoffdate: z
+    .boolean()
+    .nullish()
+    .describe('Whether to include the assignment cutoffdate in the response.'),
+  gradingduedate: z
+    .boolean()
+    .nullish()
+    .describe(
+      'Whether to include the assignment gradingduedate in the response.',
+    ),
+  teamsubmission: z
+    .boolean()
+    .nullish()
+    .describe(
+      'Whether to include the assignment teamsubmission in the response.',
+    ),
+  requireallteammemberssubmit: z
+    .boolean()
+    .nullish()
+    .describe(
+      'Whether to include the assignment requireallteammemberssubmit in the response.',
+    ),
+  teamsubmissiongroupingid: z
+    .boolean()
+    .nullish()
+    .describe(
+      'Whether to include the assignment teamsubmissiongroupingid in the response.',
+    ),
+  maxattempts: z
+    .boolean()
+    .nullish()
+    .describe('Whether to include the assignment maxattempts in the response.'),
+  intro: z
+    .boolean()
+    .nullish()
+    .describe('Whether to include the assignment intro in the response.'),
+  timelimit: z
+    .boolean()
+    .nullish()
+    .describe('Whether to include the assignment timelimit in the response.'),
 });
 
 const includeUserInfoInResponseSchema = z.object({
@@ -343,17 +423,44 @@ mcpServer.tool(
 );
 
 mcpServer.tool(
-  'get_all_assignments_for_all_courses',
-  'Get all assignments the user has access to. Prefer "assignments_for_course" if you need to get assignments for a specific course.',
+  'get_assignments_for_all_courses',
+  'Get all assignments for the user in all courses. Prefer "get_assignments_for_course" if you need to get assignments for a specific course.',
   {
+    due_after: z
+      .string()
+      .or(z.number())
+      .nullish()
+      .describe(
+        'Get assignments due after this date. It can be a date string or a timestamp. For date strings include the timezone in the format "YYYY-MM-DD HH:MM:SS TZ" (e.g. "2025-01-01 00:00:00 UTC")',
+      ),
+    due_before: z
+      .string()
+      .or(z.number())
+      .nullish()
+      .describe(
+        'Get assignments due before this date. It can be a date string or a timestamp. For date strings include the timezone in the format "YYYY-MM-DD HH:MM:SS TZ" (e.g. "2025-01-01 00:00:00 UTC")',
+      ),
     include_in_response: includeAssignmentInResponseSchema,
   },
-  async ({ include_in_response }) => {
+  async ({ include_in_response, due_after, due_before }) => {
     const assignmentsResponse =
       await moodleProvider.getAssignments(moodleToken);
-    const allAssignments = assignmentsResponse.courses.flatMap(
+    let allAssignments = assignmentsResponse.courses.flatMap(
       (course) => course.assignments ?? [],
     );
+
+    if (due_after) {
+      allAssignments = allAssignments.filter((assignment) =>
+        compareTimes(assignment.duedate, due_after),
+      );
+    }
+
+    if (due_before) {
+      allAssignments = allAssignments.filter((assignment) =>
+        compareTimes(due_before, assignment.duedate),
+      );
+    }
+
     const filteredAssignments = allAssignments.map((assignment) =>
       filterAssignmentByInclude(assignment, include_in_response),
     );
@@ -365,7 +472,7 @@ mcpServer.tool(
 
 mcpServer.tool(
   'get_assignments_for_course',
-  'Get all assignments for a specific course. Prefer this over "assignments" if you need to get assignments for a specific course.',
+  'Get all assignments for a specific course. Prefer this over "get_assignments_for_all_courses" if you need to get assignments for a specific course.',
   {
     course_id: z.number().describe('ID of the course to get assignments for'),
     include_in_response: includeAssignmentInResponseSchema,
@@ -426,7 +533,7 @@ mcpServer.tool(
 );
 
 // Start the server and keep it running
-agentFramework.listen().catch((error) => {
+mcpServerFramework.listen().catch((error) => {
   logger.error('Failed to start server:', error);
   process.exit(1);
 });

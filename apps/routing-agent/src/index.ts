@@ -1,14 +1,18 @@
 import {
+  AgentCard,
+  AgentSkill,
+  AgentClient,
   Logger,
   OllamaProvider,
-} from '@master-thesis-agentic-rag/agent-framework';
-import { RouterResponse } from '@master-thesis-agentic-rag/types';
+  generateFriendlyResponse,
+  ReActRouter,
+  AgentTool,
+} from '@master-thesis-agentic-ai/agent-framework';
+import { RouterResponse } from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
 import cors from 'cors';
 import express from 'express';
 import { uuidv4, z } from 'zod/v4';
-import { ReActRouter } from './react/router';
-import { Router } from './router';
 
 const logger = new Logger({ agentName: 'routing-agent' });
 
@@ -22,19 +26,6 @@ const getAIProvider = (model: string) => {
     baseUrl: OllamaBaseUrl,
     model,
   });
-};
-
-// const getStructuredAIProvider = (model: string) => {
-//   return new OllamaProvider({
-//     baseUrl: 'http://localhost:11434',
-//     model: 'Osmosis/Osmosis-Structure-0.6B:latest',
-//   });
-// };
-
-const getRouter = (model: string, router?: 'legacy' | 'react'): Router => {
-  const aiProvider = getAIProvider(model);
-  const structuredAiProvider = aiProvider; //getStructuredAIProvider(model);
-  return new ReActRouter(aiProvider, structuredAiProvider, logger);
 };
 
 const RequestBodySchema = z.object({
@@ -131,12 +122,165 @@ expressApp.post('/ask', async (req, res) => {
   });
 
   try {
-    logger.log(chalk.magenta('Routing question:'));
-    const generator = getRouter(body.model, body.router).routeQuestion(
+    const aiProvider = getAIProvider(body.model);
+
+    logger.log(chalk.magenta('Finding out which agent to call first:'));
+    const moodleAgent = new AgentClient(logger, 1234);
+
+    const mockCalendarAgent = {
+      getAgentCard: async () => ({
+        name: 'calendar-agent',
+        skills: [
+          {
+            id: '1',
+            name: 'calendar',
+            description: 'Calendar agent',
+            tags: ['calendar'],
+          },
+        ],
+      }),
+      call: async (prompt: string) => {
+        return {
+          response: 'The Calendar agent is not implemented yet.',
+        };
+      },
+    } as unknown as AgentClient;
+
+    const availableAgents = [moodleAgent, mockCalendarAgent];
+    const availableAgentsCards = await Promise.all(
+      availableAgents.map((agent) => agent.getAgentCard()),
+    );
+
+    const DecideAgentSchema = z.object({
+      agent: z.string(),
+      reasoning: z.string(),
+      prompt: z.string(),
+    });
+
+    const minimalAgentsCards = availableAgentsCards.map((agent: AgentCard) => ({
+      name: agent.name,
+      description: agent.capabilities,
+      skills: agent.skills.map((skill: AgentSkill) => ({
+        name: skill.name,
+        description: skill.description,
+        tags: skill.tags,
+      })),
+    }));
+    logger.log(chalk.magenta('Available agents:'));
+    logger.table(minimalAgentsCards);
+
+    logger.log(
+      JSON.stringify(
+        availableAgentsCards.map((agent: AgentCard) => agent.skills),
+        null,
+        2,
+      ),
+    );
+
+    const agentTools = availableAgentsCards.map((agent: AgentCard) => ({
+      name: agent.name,
+      description: `Description of the agent: ${agent.description}
+      Skills of the agent: ${agent.skills
+        .map(
+          (skill: AgentSkill) => `
+        Name: ${skill.name}
+        Description: ${skill.description}
+        Tags: ${skill.tags.join(', ')}
+      `,
+        )
+        .join('\n')}
+      `,
+      args: {
+        include_in_response: {
+          type: 'object',
+          properties: {},
+          required: true,
+        },
+        prompt: {
+          type: 'string',
+          description: 'The prompt to call the agent with',
+          required: true,
+        },
+        reason: {
+          type: 'string',
+          description: 'The reason for calling the agent',
+          required: true,
+        },
+      },
+    })) satisfies AgentTool[];
+
+    logger.log(chalk.magenta('Agent tools:'));
+    logger.table(agentTools);
+
+    const agentRouter = new ReActRouter(
+      aiProvider,
+      aiProvider,
+      logger,
+      agentTools,
+      'You are **RouterGPT**, the dispatcher in a multi-agent system.',
+      async (logger, functionCalls) => {
+        logger.log(
+          'Calling tools in parallel:',
+          functionCalls.map((call) => call.function),
+        );
+
+        const parsedDecision = functionCalls[0];
+
+        if (
+          !parsedDecision.args['prompt'] ||
+          typeof parsedDecision.args['prompt'] !== 'string'
+        ) {
+          logger.log('No prompt was provided');
+          return [
+            {
+              content: [
+                {
+                  type: 'text',
+                  text: 'No prompt was provided',
+                },
+              ],
+            },
+          ];
+        }
+
+        let agentClient = undefined;
+        switch (parsedDecision.function) {
+          case 'moodle-agent':
+            agentClient = moodleAgent;
+            break;
+          case 'calendar-agent':
+            agentClient = mockCalendarAgent;
+        }
+
+        let agentResponse = '';
+
+        if (agentClient) {
+          agentResponse = await agentClient.call(parsedDecision.args['prompt']);
+        } else {
+          logger.log('No agent were called');
+        }
+
+        logger.log('Result from agent:', agentResponse);
+        return [
+          {
+            content: [
+              {
+                type: 'text',
+                text: agentResponse,
+              },
+            ],
+          },
+        ];
+      },
+      async () => {
+        logger.log('Disconnecting from Client');
+      },
+    );
+
+    const generator = agentRouter.routeQuestion(
       body.prompt,
       body.max_iterations,
     );
-
     let results: RouterResponse;
     while (true) {
       const { done, value } = await generator.next();
@@ -145,70 +289,22 @@ expressApp.post('/ask', async (req, res) => {
         break;
       }
 
-      // Send SSE update for each iteration
-      const lastIteration =
-        value.iterationHistory?.[value.iterationHistory.length - 1];
-      if (lastIteration) {
-        sendSSEUpdate(id, {
-          type: 'iteration_update',
-          data: {
-            iteration: lastIteration.iteration,
-            naturalLanguageThought: lastIteration.naturalLanguageThought,
-            structuredThought: lastIteration.structuredThought,
-            observation: lastIteration.observation,
-          },
-        });
-      }
+      logger.log('Step:', value);
     }
 
-    results.process?.iterationHistory?.sort(
-      (a, b) => a.iteration - b.iteration,
-    );
-
-    const aiProvider = getAIProvider(body.model);
-    const friendlyResponse = await aiProvider.generateText(body.prompt, {
-      messages: [
-        {
-          role: 'system',
-          content: `You are a helpful assistant.
-    You are given a user question and a list of steps the agent system has taken to answer that question.
-    Each step includes a thought, an action (e.g. agent function call), and the corresponding result.
-    
-    Your task is to now respond to the original user question in a friendly, natural tone—while accurately summarizing what was done and what the current outcome is.
-    
-    You must:
-    - Detect the language of the user's original question and answer in the same language.
-    - Do not include id's, or other internal information, which are not relevant to the user.
-    - Directly answer the user's question based on the available results.
-    - Summarize the steps taken by the agents in a concise and understandable way.
-    - Include any relevant numbers, course names, assignment titles, deadlines, etc., where appropriate. Do not make up any information.
-    - If something failed (e.g. an agent call or calendar entry), explain what happened and suggest what the user could do next.
-    - If the goal was achieved, clearly state that and include key results.
-    - Keep the answer short, helpful, and user-facing. Do not expose internal logs or tool names.
-
-    Format:
-    - Use markdown formatting for your response.
-    - Use bullet points for lists.
-    - Use bold for important information.
-    - Use italic for emphasis.
-    - Use code blocks for code.
-    - Use links for external resources.
-    - Use tables for structured data.
-    
-    The agent execution results:
-    ${JSON.stringify(results, null, 2)}
-    `,
-        },
-      ],
+    const finalResponse = await generateFriendlyResponse({
+      userPrompt: body.prompt,
+      agentResponse: JSON.stringify(results, null, 2),
+      aiProvider: aiProvider,
     });
 
-    logger.log(chalk.green('Friendly response:'), friendlyResponse);
+    logger.log(chalk.green('Final friendly response:'), finalResponse);
 
     // Send final SSE update
     sendSSEUpdate(id, {
       type: 'final_response',
       data: {
-        friendlyResponse,
+        finalResponse,
       },
     });
 
@@ -236,6 +332,13 @@ expressApp.get('/models', async (req, res) => {
     logger.error('Error getting models:', error);
     res.status(500).json({ error: 'An error occurred while getting models.' });
   }
+});
+
+expressApp.get('/test', async (req, res) => {
+  const moodleAgent = new AgentClient(logger, 1234);
+  const result = await moodleAgent.call('What is my moodle email address?');
+  logger.log('Result from moodle agent:', result);
+  res.send(result);
 });
 
 // Start the server and keep it running

@@ -1,5 +1,5 @@
 {
-  "name": "@master-thesis-agentic-rag/routing-agent",
+  "name": "@master-thesis-agentic-ai/routing-agent",
   "version": "0.0.1",
   "private": true,
   "type": "commonjs",
@@ -13,8 +13,8 @@
     "test": "nx test routing-agent"
   },
   "dependencies": {
-    "@master-thesis-agentic-rag/agent-framework": "workspace:*",
-    "@master-thesis-agentic-rag/types": "workspace:*",
+    "@master-thesis-agentic-ai/agent-framework": "workspace:*",
+    "@master-thesis-agentic-ai/types": "workspace:*",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "tslib": "^2.3.0",
