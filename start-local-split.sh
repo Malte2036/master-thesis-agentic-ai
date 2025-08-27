@@ -5,6 +5,10 @@ set -euo pipefail
 echo "🔪 Killing old dev processes..."
 pkill -f "scripts/dev-session.js" || true
 pkill -f "nx serve" || true
+pkill -f "pnpm run build:agent-framework" || true
+pkill -f "pnpm run dev:" || true
+pkill -f "nx serve" || true
+pkill -f "pnpm run build:agent-framework" || true
 pkill -f "pnpm run dev:" || true
 sleep 0.4
 

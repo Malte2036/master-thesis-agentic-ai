@@ -93,21 +93,49 @@ getRouter(MODEL).then((router) => {
     {
       name: 'moodle-agent',
       description:
-        'The Moodle Agent is a tool that can be used to manage Moodle courses. Moodle is a learning management system (LMS) that is used to create and manage online courses for universities.',
-      version: '1.0.0',
+        'The Moodle Agent helps you explore Moodle: list courses, find a course by name, inspect course contents, and see assignments across all or specific courses.',
+      version: '1.1.0',
       skills: [
         {
           id: 'get-all-courses',
           name: 'Get All Courses',
           description:
-            'Get all courses from the user. This includes the course name, course id, and course description.',
+            'List all courses the current user is enrolled in (optionally include summary, image, displayname, start/end dates, etc.).',
           tags: ['moodle', 'courses'],
+        },
+        {
+          id: 'search-courses-by-name',
+          name: 'Search Courses by Name',
+          description:
+            'Find courses by name or partial name for the current user.',
+          tags: ['moodle', 'courses', 'search'],
+        },
+        {
+          id: 'get-course-contents',
+          name: 'Get Course Contents',
+          description:
+            'Retrieve the sections/modules of a specific course by course_id (optionally include module descriptions, names, and contents).',
+          tags: ['moodle', 'courses', 'contents'],
+        },
+        {
+          id: 'get-assignments-for-all-courses',
+          name: 'Get Assignments for All Courses',
+          description:
+            'List assignments across all enrolled courses (optionally filter by due_after/due_before and include extra fields like duedate, grade, etc.).',
+          tags: ['moodle', 'assignments'],
+        },
+        {
+          id: 'get-assignments-for-course',
+          name: 'Get Assignments for a Course',
+          description:
+            'List assignments for a specific course by course_id (optionally include extra fields).',
+          tags: ['moodle', 'assignments', 'courses'],
         },
         {
           id: 'get-user-info',
           name: 'Get User Info',
           description:
-            'Get information about the user in the context of moodle.',
+            'Retrieve profile info for the current user (e.g., firstname, lastname, username, picture URL).',
           tags: ['moodle', 'user'],
         },
       ],
