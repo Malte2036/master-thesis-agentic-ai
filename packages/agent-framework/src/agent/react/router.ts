@@ -6,7 +6,6 @@ import {
 } from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
 
-import { MCPClient } from '../../adapters';
 import {
   callMcpClientInParallel,
   getMcpClient,
@@ -15,36 +14,75 @@ import { MCPName } from '../../config';
 import { Logger } from '../../logger';
 import { AIProvider } from '../../services';
 import { Router } from '../router';
+import { listAgentsToolsToAgentTools } from '../utils';
 import { getNaturalLanguageThought } from './get-natural-language-thought';
 import { getStructuredThought } from './get-structured-thought';
-import { listAgentsToolsToAgentTools } from '../utils';
+import { AgentTool } from './types';
+import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 export class ReActRouter implements Router {
   constructor(
     private readonly aiProvider: AIProvider,
     private readonly structuredAiProvider: AIProvider,
     private readonly logger: Logger,
-    private readonly mcpName: MCPName,
+    private readonly agentTools: AgentTool[],
     private readonly extendedNaturalLanguageThoughtSystemPrompt: string,
+    private readonly callClientInParallel: (
+      logger: Logger,
+      functionCalls: FunctionCall[],
+      remainingCalls: number,
+    ) => Promise<CallToolResult[]>,
+    private readonly disconnectClient?: () => Promise<void>,
   ) {}
+
+  static async createWithMCP(
+    aiProvider: AIProvider,
+    structuredAiProvider: AIProvider,
+    logger: Logger,
+    mcpName: MCPName,
+    extendedNaturalLanguageThoughtSystemPrompt: string,
+  ) {
+    const mcpClient = await getMcpClient(logger, mcpName);
+    const listAgentsTools = await mcpClient.listTools();
+    const agentTools = listAgentsToolsToAgentTools(listAgentsTools);
+
+    const disconnectClient = () =>
+      mcpClient.terminateSession().then(() => mcpClient.disconnect());
+
+    const callClientInParallel = (
+      logger: Logger,
+      functionCalls: FunctionCall[],
+      remainingCalls: number,
+    ) =>
+      callMcpClientInParallel(logger, mcpClient, functionCalls, remainingCalls);
+
+    return new ReActRouter(
+      aiProvider,
+      structuredAiProvider,
+      logger,
+      agentTools,
+      extendedNaturalLanguageThoughtSystemPrompt,
+      callClientInParallel,
+      disconnectClient,
+    );
+  }
 
   async *routeQuestion(
     question: string,
     maxIterations: number,
   ): AsyncGenerator<RouterProcess, RouterResponse, unknown> {
-    const mcpClient = await getMcpClient(this.logger, this.mcpName);
-    this.logger.log('MCP Client:', mcpClient.name);
-
     const routerProcess: RouterProcess = {
       question,
       maxIterations,
       iterationHistory: [],
     };
-    const generator = this.iterate(mcpClient, routerProcess);
+    const generator = this.iterate(routerProcess);
     while (true) {
       const { done, value } = await generator.next();
       if (done) {
-        await mcpClient.terminateSession().then(() => mcpClient.disconnect());
+        if (this.disconnectClient) {
+          await this.disconnectClient();
+        }
         return value satisfies RouterResponse;
       }
       yield value satisfies RouterProcess;
@@ -52,11 +90,10 @@ export class ReActRouter implements Router {
   }
 
   async *iterate(
-    mcpClient: MCPClient,
     routerProcess: RouterProcess,
   ): AsyncGenerator<RouterProcess, RouterResponse, unknown> {
-    const listAgentsTools = await mcpClient.listTools();
-    const agentTools = listAgentsToolsToAgentTools(listAgentsTools);
+    // const listAgentsTools = await mcpClient.listTools();
+    // const agentTools = listAgentsToolsToAgentTools(listAgentsTools);
 
     const maxIterations = routerProcess.maxIterations;
     let currentIteration = routerProcess.iterationHistory?.length ?? 0;
@@ -72,7 +109,7 @@ export class ReActRouter implements Router {
       this.logger.log(chalk.magenta('--------------------------------'));
 
       const naturalLanguageThought = await getNaturalLanguageThought(
-        agentTools,
+        this.agentTools,
         routerProcess,
         this.aiProvider,
         this.logger,
@@ -81,7 +118,7 @@ export class ReActRouter implements Router {
 
       const structuredThought = await getStructuredThought(
         naturalLanguageThought,
-        agentTools,
+        this.agentTools,
         this.structuredAiProvider,
         this.logger,
       );
@@ -130,11 +167,10 @@ export class ReActRouter implements Router {
 
       this.logFunctionCalls(structuredThought.functionCalls);
 
-      const agentResponses = await callMcpClientInParallel(
+      const agentResponses = await this.callClientInParallel(
         this.logger,
-        mcpClient,
         structuredThought.functionCalls,
-        maxIterations - currentIteration,
+        maxIterations - currentIteration - 1,
       );
 
       this.logger.debug(

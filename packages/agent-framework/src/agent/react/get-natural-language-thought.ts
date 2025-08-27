@@ -21,7 +21,7 @@ export async function getNaturalLanguageThought(
 
   logger.log(chalk.magenta('Generating natural language thought...'));
 
-  let responseString = await aiProvider.generateText?.(
+  const responseString = await aiProvider.generateText?.(
     routerProcess.question,
     systemPrompt,
   );
@@ -29,17 +29,6 @@ export async function getNaturalLanguageThought(
   if (!responseString) {
     throw new Error('No response from AI provider');
   }
-
-  if (responseString.startsWith('<think>')) {
-    responseString = responseString.slice(
-      responseString.indexOf('</think>') + 8,
-    );
-    logger.log(
-      chalk.magenta('Stripped <think> tags from natural language thought'),
-    );
-  }
-
-  responseString = responseString.trim();
 
   logger.log(chalk.magenta('Natural language thought:'), responseString);
 

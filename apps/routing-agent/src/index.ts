@@ -5,7 +5,10 @@ import {
   Logger,
   OllamaProvider,
   generateFriendlyResponse,
+  ReActRouter,
+  AgentTool,
 } from '@master-thesis-agentic-ai/agent-framework';
+import { RouterResponse } from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
 import cors from 'cors';
 import express from 'express';
@@ -166,132 +169,142 @@ expressApp.post('/ask', async (req, res) => {
     logger.log(chalk.magenta('Available agents:'));
     logger.table(minimalAgentsCards);
 
-    const decision = await aiProvider.generateJson(
-      body.prompt,
-      {
-        messages: [
-          {
-            role: 'system',
-            content: `
-            
-You are **RouterGPT**, the dispatcher in a multi-agent system.
-
-──────────── INPUTS ────────────
-• The next message you see from role "user" is the raw user_question.
-• agents_json (see bottom): each object has
-    – name             (string)
-    – description      (string)
-    – skills           (array of objects with name, description, and tags)
-
-────────────  OUTPUT  ────────────
-Return ONLY this JSON (no markdown, no extra keys):
-
-{
-  "agent":   "<best agent name | null>",
-  "reasoning":  "Your thinking process"
-  "prompt":  "The prompt to call the agent with to get one step closer to the answer",
-}
-
-────────────  RULES  ────────────
-1. You do not need to keep the user's language intact. Write in your own language. Be precise. Be neutral.
-2. Drop irrelevant clauses (e.g. weather if no agent handles weather).
-3. If nothing matches, set "agent" : "null".
-4. Do **not** add any text outside the JSON object.
-
-
-───────── FEW-SHOT EXAMPLES ────────
-### A
-User: “Ich will mich für einen Job als Softwareentwickler bewerben und es regnet.
-       Was sind meine Abgaben diese Woche?”
-Agents (excerpt):
-[
-  {"name":"moodle-agent","capability_tags":["assignments", "user-info"]},
-  {"name":"weather-agent","capability_tags":["weather"]}
-]
-Expected JSON:
-{
-  "agent": "moodle-agent",
-  "prompt": "Was sind meine Assignments diese Woche?",
-  "reason": "Frage bezieht sich auf Assignments; Wetter ist irrelevant."
-}
-
-### B
-User: “Brauche ich heute einen Regenschirm?”
-Same agents list.
-Expected JSON:
-{
-  "agent": "weather-agent",
-  "prompt": "Brauche ich heute einen Regenschirm?",
-  "reason": "Frage bezieht sich aufs Wetter."
-}
-
-### C
-
-User: “Can you remind me what email I use here and tell me what deadlines are due this week?”
-Same agents list.
-Expected JSON:
-{
-  "agent": "moodle-agent",
-  "prompt": "What’s my email address and what are my assignments this week?",
-  "reason": "Question is about the email, which might be included in user info and assignments."
-}
-
-            `,
-          },
-          {
-            role: 'system',
-            content: `
-            The available agents are:
-            ${JSON.stringify(minimalAgentsCards, null, 2)}
-            `,
-          },
-        ],
-      },
-      DecideAgentSchema,
-    );
-
-    const parsedDecision = DecideAgentSchema.parse(decision);
-
-    logger.log(chalk.magenta('Reasoning:'), parsedDecision.reasoning);
-
-    logger.log(chalk.magenta('Agent to call:'), parsedDecision.agent);
     logger.log(
-      chalk.magenta('Prompt to call the agent with:'),
-      parsedDecision.prompt,
+      JSON.stringify(
+        availableAgentsCards.map((agent: AgentCard) => agent.skills),
+        null,
+        2,
+      ),
     );
 
-    let agentClient = undefined;
-    switch (parsedDecision.agent) {
-      case 'moodle-agent':
-        agentClient = moodleAgent;
-        break;
-      case 'calendar-agent':
-        agentClient = mockCalendarAgent;
-    }
+    const agentTools = availableAgentsCards.map((agent: AgentCard) => ({
+      name: agent.name,
+      description: `Description of the agent: ${agent.description}
+      Skills of the agent: ${agent.skills
+        .map(
+          (skill: AgentSkill) => `
+        Name: ${skill.name}
+        Description: ${skill.description}
+        Tags: ${skill.tags.join(', ')}
+      `,
+        )
+        .join('\n')}
+      `,
+      args: {
+        include_in_response: {
+          type: 'object',
+          properties: {},
+          required: true,
+        },
+        prompt: {
+          type: 'string',
+          description: 'The prompt to call the agent with',
+          required: true,
+        },
+        reason: {
+          type: 'string',
+          description: 'The reason for calling the agent',
+          required: true,
+        },
+      },
+    })) satisfies AgentTool[];
 
-    let agentResponse = '';
+    logger.log(chalk.magenta('Agent tools:'));
+    logger.table(agentTools);
 
-    if (agentClient) {
-      agentResponse = await agentClient.call(parsedDecision.prompt);
-    } else {
-      logger.log('No agent were called');
-    }
-
-    logger.log('Result from agent:', agentResponse);
-
-    const friendlyResponse = await generateFriendlyResponse({
-      userPrompt: body.prompt,
-      agentResponse: agentResponse,
+    const agentRouter = new ReActRouter(
       aiProvider,
+      aiProvider,
+      logger,
+      agentTools,
+      'You are **RouterGPT**, the dispatcher in a multi-agent system.',
+      async (logger, functionCalls) => {
+        logger.log(
+          'Calling tools in parallel:',
+          functionCalls.map((call) => call.function),
+        );
+
+        const parsedDecision = functionCalls[0];
+
+        if (
+          !parsedDecision.args['prompt'] ||
+          typeof parsedDecision.args['prompt'] !== 'string'
+        ) {
+          logger.log('No prompt was provided');
+          return [
+            {
+              content: [
+                {
+                  type: 'text',
+                  text: 'No prompt was provided',
+                },
+              ],
+            },
+          ];
+        }
+
+        let agentClient = undefined;
+        switch (parsedDecision.function) {
+          case 'moodle-agent':
+            agentClient = moodleAgent;
+            break;
+          case 'calendar-agent':
+            agentClient = mockCalendarAgent;
+        }
+
+        let agentResponse = '';
+
+        if (agentClient) {
+          agentResponse = await agentClient.call(parsedDecision.args['prompt']);
+        } else {
+          logger.log('No agent were called');
+        }
+
+        logger.log('Result from agent:', agentResponse);
+        return [
+          {
+            content: [
+              {
+                type: 'text',
+                text: agentResponse,
+              },
+            ],
+          },
+        ];
+      },
+      async () => {
+        logger.log('Disconnecting from Client');
+      },
+    );
+
+    const generator = agentRouter.routeQuestion(
+      body.prompt,
+      body.max_iterations,
+    );
+    let results: RouterResponse;
+    while (true) {
+      const { done, value } = await generator.next();
+      if (done) {
+        results = value;
+        break;
+      }
+
+      logger.log('Step:', value);
+    }
+
+    const finalResponse = await generateFriendlyResponse({
+      userPrompt: body.prompt,
+      agentResponse: JSON.stringify(results, null, 2),
+      aiProvider: aiProvider,
     });
 
-    logger.log(chalk.green('Friendly response:'), friendlyResponse);
+    logger.log(chalk.green('Final friendly response:'), finalResponse);
 
     // Send final SSE update
     sendSSEUpdate(id, {
       type: 'final_response',
       data: {
-        friendlyResponse,
+        finalResponse,
       },
     });
 

@@ -1,3 +1,2 @@
-export * from './react';
-
 export * from './router';
+export * from './types';
