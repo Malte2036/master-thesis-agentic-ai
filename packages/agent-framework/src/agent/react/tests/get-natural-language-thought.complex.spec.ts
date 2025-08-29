@@ -156,6 +156,73 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
           });
         }
       });
+
+      it('should not repeat the same function call twice with the same parameters', async () => {
+        const routerProcess: RouterProcess = {
+          question: 'get user info',
+          maxIterations: 3,
+          iterationHistory: [
+            {
+              iteration: 0,
+              naturalLanguageThought: `I will now use the **get_user_info** function to retrieve personal information about the current user. The response will include the following fields: username, firstname, lastname,    ║
+   siteurl, userpictureurl, and userlang.                                                                                                                                                                            ║
+                                                                                                                                                                                                                     ║
+  **Parameters:**                                                                                                                                                                                                    ║
+  - 'include_in_response': {                                                                                                                                                                                         ║
+    "username": true,                                                                                                                                                                                                ║
+    "firstname": true,                                                                                                                                                                                               ║
+    "lastname": true,                                                                                                                                                                                                ║
+    "siteurl": true,                                                                                                                                                                                                 ║
+    "userpictureurl": true,                                                                                                                                                                                          ║
+    "userlang": true                                                                                                                                                                                                 ║
+  }`,
+              observation: JSON.stringify(
+                [
+                  {
+                    content: [
+                      {
+                        type: 'text',
+                        text: '{"username":"student","firstname":"Sabrina","lastname":"Studentin","siteurl":"http://localhost:8080","userpictureurl":"http://localhost:8080/theme/image.php/boost/core/1746531048/u/f1"}',
+                      },
+                    ],
+                  },
+                ],
+                null,
+                2,
+              ),
+              structuredThought: {
+                functionCalls: [
+                  {
+                    function: 'get_user_info',
+                    args: {
+                      include_in_response: {
+                        username: true,
+                        firstname: true,
+                        lastname: true,
+                        siteurl: true,
+                        userpictureurl: true,
+                        userlang: true,
+                      },
+                    },
+                  },
+                ],
+                isFinished: false,
+              },
+            },
+          ],
+        };
+
+        const thought = await getNaturalLanguageThought(
+          mockAgentToolsComplex,
+          routerProcess,
+          aiProvider,
+          logger,
+          '',
+        );
+
+        expect(thought).toBeDefined();
+        expect(thought).not.toMatch(/get[-_\s]user[-_\s]info/);
+      });
     });
   }
 });

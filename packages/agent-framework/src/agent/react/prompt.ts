@@ -2,14 +2,6 @@ import { RouterProcess } from '@master-thesis-agentic-ai/types';
 import { AIGenerateTextOptions } from '../../services';
 import { AgentTool } from './types';
 
-interface SchemaProperty {
-  type: string;
-  description?: string;
-  enum?: string[];
-  properties?: { [key: string]: SchemaProperty };
-  required?: string[];
-}
-
 export class ReActPrompt {
   public static readonly BASE_PROMPTS: string[] = [
     `Some important information for you:
@@ -67,7 +59,7 @@ Principles:
 - **Distinguish Intent** clearly:
   - Execute: “I will now use {agent}/{function} with: param1=…, param2=…, …”
   - Describe: “I have the capability to …” (no call now)
-- Choose a function only when **all required parameters are fully specified**.
+- Choose a function only when **all required parameters are fully specified**. Except the 'include_in_response' parameter, which you need to interpret from the user request by yourself.
 - Mention the **agent/function name** you intend to use and **list each required arg with its exact value**.
 - Stay in your domain; if ambiguous, assume the request is in your domain.
 - One step at a time; reevaluate after each response.
@@ -141,7 +133,6 @@ ${
       ],
     };
   };
-
   /**
    * Prompt for the structured-thought (JSON) step.
    */
@@ -170,7 +161,6 @@ Follow these rules with absolute precision:
 2) Generating Tool Calls (ONLY for Action Intents)
    • You MUST populate the "functionCalls" array.
    • You MUST include the "include_in_response" parameter (object) in the args of **every** function call.
-   • The "finalAnswer" field MUST be null.
    • The "isFinished" field MUST be false.
    • NEVER invent parameters. If a required parameter is not in the thought, do not make that call in this iteration.
    • Omit any **dependent** call that lacks its required arguments (e.g., do not call "kb_fetch_document" without a literal "docId" in the thought).
@@ -179,7 +169,6 @@ Follow these rules with absolute precision:
 3) Generating a Final Answer (ONLY for Descriptive Intents)
    • The "functionCalls" array MUST be empty ([]).
    • The "isFinished" field MUST be true.
-   • The "finalAnswer" field MUST contain the full text of the thought, as this is the message intended for the user.
    • CRITICAL: If a function name is mentioned as part of a list or description (e.g., "I can use the \`search_courses\` function"), you MUST NOT treat it as a tool call.
 
 ---
@@ -196,8 +185,7 @@ Correct JSON:
       }
     }
   ],
-  "isFinished": false,
-  "finalAnswer": null
+  "isFinished": false
 }
 
 ---
@@ -206,8 +194,7 @@ Thought: "What I Can Do: I can help with Moodle-related functions like \`search_
 Correct JSON:
 {
   "functionCalls": [],
-  "isFinished": true,
-  "finalAnswer": "What I Can Do: I can help with Moodle-related functions like \`search_courses_by_name\` to find courses and \`get_assignments\` to retrieve assignments."
+  "isFinished": true
 }
 
 ---
@@ -233,8 +220,7 @@ Correct JSON (deduplicated translate_text):
       }
     }
   ],
-  "isFinished": false,
-  "finalAnswer": null
+  "isFinished": false
 }
 
 ---
@@ -251,9 +237,18 @@ Correct JSON (omit kb_fetch_document this iteration):
       }
     }
   ],
-  "isFinished": false,
-  "finalAnswer": null
+  "isFinished": false
 }
+
+---
+Example 5: Missing Required Params (Ask, Do Not Execute)
+Thought: "I cannot execute function get_weather_info yet. Missing required parameters:\n- city (e.g., \\"Cologne\\")\n\nPlease provide a city or your coordinates to proceed. If you share your coordinates, I will call find_city_by_coordinates."
+Correct JSON:
+{
+  "functionCalls": [],
+  "isFinished": true
+}
+
 ---
 Now, parse the following thought with zero deviation from these rules.`,
       },

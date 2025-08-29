@@ -50,8 +50,6 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           logger,
         );
 
-        expect(res.isFinished).toBe(false);
-
         const names = res.functionCalls.map((c) => c.function);
         expect(names).toEqual(
           expect.arrayContaining([
@@ -65,6 +63,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         for (const c of res.functionCalls) {
           expect(c.args['include_in_response']).toBeInstanceOf(Object);
         }
+        expect(res.isFinished).toBe(false);
       });
 
       it('Dependent call without args → MUST be omitted (no chaining in same iteration)', async () => {
@@ -242,6 +241,32 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         // Should recognize that we have complete information and finish
         expect(res.functionCalls).toEqual([]);
         expect(res.isFinished).toBe(true);
+      });
+
+      it('should set isFinished to true when agent cannot execute function due to missing parameters', async () => {
+        const result = await getStructuredThought(
+          'I cannot execute **get_course_contents** yet. **Missing required parameters**: - course_id (e.g., 12345) Please provide the exact course ID or the course name to proceed. I will call **search_courses_by_name** if you share the course name.',
+          mockAgentToolsComplex,
+          aiProvider,
+          logger,
+        );
+
+        expect(result).toBeDefined();
+        expect(result.functionCalls.length).toBe(0);
+        expect(result.isFinished).toBe(true);
+      });
+
+      it('should not call any function when presenting already retrieved user information', async () => {
+        const result = await getStructuredThought(
+          "Here is your user information:\n\n- **Username**: `student`\n- **First Name**: `Sabrina`\n- **Last Name**: `Studentin`\n- **Site URL**: `http://localhost:8080`\n- **User Picture URL**: `http://localhost:8080/theme/image.php/boost/core/1746531048/u/f1`\n- **User Language**: (Not explicitly specified in the response; likely defaults to the site's language setting)\n\nLet me know if you need further details! 😊",
+          mockAgentToolsComplex,
+          aiProvider,
+          logger,
+        );
+
+        expect(result).toBeDefined();
+        expect(result.functionCalls.length).toBe(0);
+        expect(result.isFinished).toBe(true);
       });
     });
   }

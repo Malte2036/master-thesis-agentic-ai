@@ -141,8 +141,9 @@ class Logger {
   public debug(...args: unknown[]): void {
     this.writeToLogFile('debug', args);
     // Only show in console if hideDebugInConsole is false
+    this.writeToLogFile('debug', args);
     if (!this.config.hideDebugInConsole) {
-      this.originalConsole.debug(...args);
+      this.originalConsole.log(...args);
     }
   }
 

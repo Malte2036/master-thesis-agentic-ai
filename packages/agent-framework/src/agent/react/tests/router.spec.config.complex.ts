@@ -39,6 +39,64 @@ export const mockAgentToolsComplex: AgentTool[] = [
     },
   },
   {
+    name: 'get_course_contents',
+    description: 'Get the contents of a course',
+    args: {
+      course_id: {
+        type: 'string',
+        description: 'The ID of the course to get the contents of',
+        required: true,
+      },
+      course_name: {
+        type: 'string',
+        description: 'The name of the course to get the contents of',
+        required: false,
+      },
+      include_in_response: {
+        type: 'object',
+        properties: {
+          sections: {
+            type: 'boolean',
+            required: true,
+          },
+          modules: {
+            type: 'boolean',
+            required: true,
+          },
+          contents: {
+            type: 'boolean',
+            required: true,
+          },
+          descriptions: {
+            type: 'boolean',
+            required: true,
+          },
+          names: {
+            type: 'boolean',
+            required: true,
+          },
+          start_dates: {
+            type: 'boolean',
+            required: true,
+          },
+          end_dates: {
+            type: 'boolean',
+            required: true,
+          },
+          images: {
+            type: 'boolean',
+            required: true,
+          },
+          displaynames: {
+            type: 'boolean',
+            required: true,
+          },
+        },
+        required: true,
+      },
+    },
+  },
+  {
     name: 'search_flights',
     description: 'Search one-way or round-trip flights',
     args: {

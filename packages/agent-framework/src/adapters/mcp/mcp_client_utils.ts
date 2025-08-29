@@ -27,10 +27,20 @@ export async function callMcpClientInParallel(
           )}`,
         );
 
-        return await mcpClient.callTool(
+        const result = await mcpClient.callTool(
           functionCall.function,
           functionCall.args,
         );
+
+        logger.debug(
+          `Result from ${functionCall.function}: ${JSON.stringify(
+            result,
+            null,
+            2,
+          )}`,
+        );
+
+        return result;
       } catch (error) {
         logger.error(`Error calling tool ${functionCall.function}:`, error);
         return {
