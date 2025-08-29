@@ -1,10 +1,10 @@
 // packages/agent-framework/src/agent/react/tests/get-structured-thought.parallel.spec.ts
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Logger } from '../../../logger';
-import { AIProvider, OllamaProvider } from '../../../services';
-import { getStructuredThought } from '../get-structured-thought';
-import { TEST_AI_PROVIDERS, TEST_OLLAMA_BASE_URL } from './spec.config';
-import mockAgentToolsComplex from './router.spec.config.complex';
+import { Logger } from '../../../../logger';
+import { AIProvider, OllamaProvider } from '../../../../services';
+import { getStructuredThought } from '../../get-structured-thought';
+import mockAgentToolsComplex from '../router.spec.config.complex';
+import { TEST_AI_PROVIDERS, TEST_OLLAMA_BASE_URL } from '../spec.config';
 
 vi.setConfig({ testTimeout: 15000 });
 

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Logger } from '../../../logger';
-import { AIProvider, OllamaProvider } from '../../../services';
-import { getStructuredThought } from '../get-structured-thought';
-import { mockAgentTools } from './router.spec.config';
-import { TEST_AI_PROVIDERS, TEST_OLLAMA_BASE_URL } from './spec.config';
+import { Logger } from '../../../../logger';
+import { AIProvider, OllamaProvider } from '../../../../services';
+import { getStructuredThought } from '../../get-structured-thought';
+import { mockAgentTools } from '../router.spec.config';
+import { TEST_AI_PROVIDERS, TEST_OLLAMA_BASE_URL } from '../spec.config';
 
 vi.setConfig({ testTimeout: 10000 });
 

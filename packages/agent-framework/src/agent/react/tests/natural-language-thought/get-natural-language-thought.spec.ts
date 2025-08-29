@@ -1,11 +1,10 @@
 import { RouterProcess } from '@master-thesis-agentic-ai/types';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Logger } from '../../../logger';
-import { AIProvider, OllamaProvider } from '../../../services';
-import { getNaturalLanguageThought } from '../get-natural-language-thought';
-import mockAgentToolsComplex from './router.spec.config.complex';
-import { TEST_OLLAMA_BASE_URL, TEST_AI_PROVIDERS } from './spec.config';
-import { mockAgentTools } from './router.spec.config';
+import { Logger } from '../../../../logger';
+import { AIProvider, OllamaProvider } from '../../../../services';
+import { getNaturalLanguageThought } from '../../get-natural-language-thought';
+import { mockAgentTools } from '../router.spec.config';
+import { TEST_OLLAMA_BASE_URL, TEST_AI_PROVIDERS } from '../spec.config';
 
 vi.setConfig({ testTimeout: 10000 });
 
