@@ -16,14 +16,15 @@ import { uuidv4, z } from 'zod/v4';
 
 const logger = new Logger({ agentName: 'routing-agent' });
 
-const OllamaBaseUrl = 'http://10.50.60.153:11434';
+const OLLAMA_BASE_URL = process.env['OLLAMA_BASE_URL'];
+logger.log(`OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}`);
 
 // Store active SSE connections
 const activeConnections = new Map<string, express.Response>();
 
 const getAIProvider = (model: string) => {
   return new OllamaProvider(logger, {
-    baseUrl: OllamaBaseUrl,
+    baseUrl: OLLAMA_BASE_URL,
     model,
   });
 };

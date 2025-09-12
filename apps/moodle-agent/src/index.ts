@@ -10,12 +10,10 @@ dotenv.config();
 
 const logger = new Logger({ agentName: 'moodle-agent' });
 
-const OLLAMA_BASE_URL = 'http://10.50.60.153:11434';
 const MODEL = 'qwen3:4b';
 
 const getAIProvider = (model: string) => {
   return new OllamaProvider(logger, {
-    baseUrl: OLLAMA_BASE_URL,
     model,
   });
 };

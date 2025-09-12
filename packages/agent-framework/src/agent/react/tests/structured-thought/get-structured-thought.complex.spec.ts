@@ -1,12 +1,12 @@
 // packages/agent-framework/src/agent/react/tests/get-structured-thought.parallel.spec.ts
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Logger } from '../../../../logger';
-import { AIProvider, OllamaProvider } from '../../../../services';
+import { AIProvider } from '../../../../services';
 import { getStructuredThought } from '../../get-structured-thought';
 import mockAgentToolsComplex from '../router.spec.config.complex';
-import { TEST_AI_PROVIDERS, TEST_OLLAMA_BASE_URL } from '../spec.config';
+import { setupTest, TEST_AI_PROVIDERS, TEST_TIMEOUT } from '../spec.config';
 
-vi.setConfig({ testTimeout: 15000 });
+vi.setConfig({ testTimeout: TEST_TIMEOUT });
 
 describe('getStructuredThought (parallel execution semantics)', () => {
   for (const { provider, model, structuredModel } of TEST_AI_PROVIDERS) {
@@ -15,25 +15,10 @@ describe('getStructuredThought (parallel execution semantics)', () => {
       let logger: Logger;
 
       beforeEach(() => {
-        const testName = expect.getState().currentTestName || 'unknown-test';
-        const sanitized = testName
-          .toLowerCase()
-          .replace(/[^a-z0-9]/g, '-')
-          .replace(/-+/g, '-')
-          .replace(/^-|-$/g, '');
-        logger = new Logger({
-          agentName: sanitized,
-          logsSubDir: `${model}-${structuredModel ?? model}`,
-        });
+        const setup = setupTest(provider, model, structuredModel);
 
-        if (provider === 'ollama') {
-          aiProvider = new OllamaProvider(logger, {
-            baseUrl: TEST_OLLAMA_BASE_URL,
-            model: structuredModel ?? model,
-          });
-        } else {
-          throw new Error(`Unsupported provider: ${provider}`);
-        }
+        aiProvider = setup.aiProvider;
+        logger = setup.logger;
       });
 
       it('Multiple independent calls → all included in one iteration (parallel)', async () => {

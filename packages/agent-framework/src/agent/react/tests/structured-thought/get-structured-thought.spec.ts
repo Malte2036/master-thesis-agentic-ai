@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Logger } from '../../../../logger';
-import { AIProvider, OllamaProvider } from '../../../../services';
+import { AIProvider } from '../../../../services';
 import { getStructuredThought } from '../../get-structured-thought';
 import { mockAgentTools } from '../router.spec.config';
-import { TEST_AI_PROVIDERS, TEST_OLLAMA_BASE_URL } from '../spec.config';
+import { setupTest, TEST_AI_PROVIDERS, TEST_TIMEOUT } from '../spec.config';
 
-vi.setConfig({ testTimeout: 10000 });
+vi.setConfig({ testTimeout: TEST_TIMEOUT });
 
 describe('getStructuredThought', () => {
   for (const { provider, model, structuredModel } of TEST_AI_PROVIDERS) {
@@ -16,26 +16,10 @@ describe('getStructuredThought', () => {
       let logger: Logger;
 
       beforeEach(() => {
-        const testName = expect.getState().currentTestName || 'unknown-test';
-        const sanitizedTestName = testName
-          .toLowerCase()
-          .replace(/[^a-z0-9]/g, '-')
-          .replace(/-+/g, '-')
-          .replace(/^-|-$/g, '');
+        const setup = setupTest(provider, model, structuredModel);
 
-        logger = new Logger({
-          agentName: sanitizedTestName,
-          logsSubDir: `${model}-${structuredModel ?? model}`,
-        });
-
-        if (provider === 'ollama') {
-          aiProvider = new OllamaProvider(logger, {
-            baseUrl: TEST_OLLAMA_BASE_URL,
-            model,
-          });
-        } else {
-          throw new Error(`Unsupported provider: ${provider}`);
-        }
+        aiProvider = setup.aiProvider;
+        logger = setup.logger;
       });
 
       it('should generate structured thought containing relevant keywords', async () => {

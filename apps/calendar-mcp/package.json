@@ -16,7 +16,6 @@
   "dependencies": {
     "@master-thesis-agentic-ai/agent-framework": "workspace:*",
     "@master-thesis-agentic-ai/types": "workspace:*",
-    "dotenv": "^16.5.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {

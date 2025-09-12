@@ -13,7 +13,7 @@ export class OllamaProvider implements AIProvider {
     options?: { baseUrl?: string; model?: string },
   ) {
     this.client = new Ollama({
-      host: options?.baseUrl || 'http://localhost:11434',
+      host: options?.baseUrl || process.env['OLLAMA_BASE_URL'],
     });
     this.model = options?.model || 'mistral:instruct';
 

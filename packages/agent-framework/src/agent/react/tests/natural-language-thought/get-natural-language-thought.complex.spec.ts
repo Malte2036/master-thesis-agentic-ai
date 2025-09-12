@@ -2,12 +2,12 @@
 import { RouterProcess } from '@master-thesis-agentic-ai/types';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Logger } from '../../../../logger';
-import { AIProvider, OllamaProvider } from '../../../../services';
+import { AIProvider } from '../../../../services';
 import { getNaturalLanguageThought } from '../../get-natural-language-thought';
-import { TEST_OLLAMA_BASE_URL, TEST_AI_PROVIDERS } from '../spec.config';
 import mockAgentToolsComplex from '../router.spec.config.complex';
+import { TEST_AI_PROVIDERS, TEST_TIMEOUT, setupTest } from '../spec.config';
 
-vi.setConfig({ testTimeout: 15000 });
+vi.setConfig({ testTimeout: TEST_TIMEOUT });
 
 describe('getNaturalLanguageThought (complex scenarios)', () => {
   for (const { provider, model, structuredModel } of TEST_AI_PROVIDERS) {
@@ -18,26 +18,10 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
       let logger: Logger;
 
       beforeEach(() => {
-        const testName = expect.getState().currentTestName || 'unknown-test';
-        const sanitizedTestName = testName
-          .toLowerCase()
-          .replace(/[^a-z0-9]/g, '-')
-          .replace(/-+/g, '-')
-          .replace(/^-|-$/g, '');
+        const setup = setupTest(provider, model, structuredModel);
 
-        logger = new Logger({
-          agentName: sanitizedTestName,
-          logsSubDir: `${model}-${structuredModel ?? model}`,
-        });
-
-        if (provider === 'ollama') {
-          aiProvider = new OllamaProvider(logger, {
-            baseUrl: TEST_OLLAMA_BASE_URL,
-            model,
-          });
-        } else {
-          throw new Error(`Unsupported provider: ${provider}`);
-        }
+        aiProvider = setup.aiProvider;
+        logger = setup.logger;
       });
 
       type Case = {
