@@ -178,7 +178,7 @@ export class ReActRouter implements Router {
         JSON.stringify(agentResponses, null, 2),
       );
 
-      // const observation = await this.observeAndSummarizeAgentResponses(
+      // const response = await this.observeAndSummarizeAgentResponses(
       //   routerProcess.question,
       //   structuredThought.agentCalls,
       //   agentResponses,
@@ -187,7 +187,7 @@ export class ReActRouter implements Router {
 
       // this.logger.log(
       //   chalk.magenta('Observation of the current iteration:'),
-      //   chalk.yellow(observation),
+      //   chalk.yellow(response),
       // );
 
       // routerProcess = addIterationToRouterProcess(
@@ -195,7 +195,7 @@ export class ReActRouter implements Router {
       //   currentIteration,
       //   naturalLanguageThought,
       //   structuredThought,
-      //   observation,
+      //   response,
       // );
 
       routerProcess = addIterationToRouterProcess(

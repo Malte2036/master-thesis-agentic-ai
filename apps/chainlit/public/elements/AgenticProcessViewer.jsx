@@ -123,7 +123,7 @@ export default function AgenticProcessViewer() {
                                     </div>
                                     <div className="bg-green-50 p-3 rounded-md border-l-2 border-green-200">
                                         <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                                            {iteration.observation || "No observation available"}
+                                            {iteration.response || "No response available"}
                                         </p>
                                     </div>
                                 </div>

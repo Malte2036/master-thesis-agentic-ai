@@ -10,7 +10,7 @@ import { ReActPrompt } from './prompt';
 import { AgentTool } from './types';
 
 export async function getStructuredThought(
-  responseString: string,
+  naturalLanguageThought: string,
   agentTools: AgentTool[],
   structuredAiProvider: AIProvider,
   logger: Logger,
@@ -21,7 +21,7 @@ export async function getStructuredThought(
 
   const structuredResponse =
     await structuredAiProvider.generateJson<StructuredThoughtResponse>(
-      responseString,
+      naturalLanguageThought,
       structuredSystemPrompt,
       StructuredThoughtResponseSchema,
       0.1,

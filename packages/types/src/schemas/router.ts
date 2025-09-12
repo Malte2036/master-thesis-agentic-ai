@@ -24,8 +24,8 @@ export const RouterProcessSchema = z.object({
       z.object({
         iteration: z.number(),
         naturalLanguageThought: z.string(),
-        observation: z.string(),
         structuredThought: StructuredThoughtResponseSchema,
+        response: z.string(),
       }),
     )
     .optional(),
@@ -45,7 +45,7 @@ export const addIterationToRouterProcess = (
   iteration: number,
   naturalLanguageThought: string,
   structuredThought: StructuredThoughtResponse,
-  observation: string,
+  response: string,
 ): RouterProcess => {
   return {
     ...routerProcess,
@@ -55,7 +55,7 @@ export const addIterationToRouterProcess = (
         iteration,
         naturalLanguageThought,
         structuredThought,
-        observation,
+        response,
       },
     ],
   };

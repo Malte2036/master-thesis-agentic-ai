@@ -65,7 +65,7 @@ The project is a polyglot monorepo (TypeScript/Node.js and Python) containing th
 - **Framework-Free Core Logic:** The ReAct orchestration loop is implemented from the ground up, demonstrating a deep understanding of agentic principles without relying on third-party libraries like LangChain.
 - **Runnable System:** The project is a fully functional, multi-component system that can be run via `pnpm` and `docker-compose`.
 - **Focus on Transparency:** The real-time visualization of the agent's thought process is the most prominent feature of the user experience.
-- **Identified Area for Improvement:** The "Observation" step in the `routing-agent` is at a foundational stage. Currently, the agent observes the raw JSON output from the tool calls. The code block intended to create a natural language summary of this observation is commented out.
+- **Identified Area for Improvement:** The "Observation" step in the `routing-agent` is at a foundational stage. Currently, the agent observes the raw JSON output from the tool calls. The code block intended to create a natural language summary of this response is commented out.
 
 > ⚠️ **Note**: This project is designed for experimentation, not production deployment.
 

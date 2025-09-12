@@ -123,7 +123,7 @@ ${
         `Iteration ${it.iteration}
 - Thought which justifies the next step: ${it.naturalLanguageThought}
 - The function calls that were made: ${JSON.stringify(it.structuredThought.functionCalls, null, 2)}
-- The observation that was made after seeing the response of the function calls: ${it.observation}
+- The response that was made after seeing the response of the function calls: ${it.response}
 `,
     )
     .join('\n') ?? '— none —'

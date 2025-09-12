@@ -6,6 +6,7 @@ import { AIProvider } from '../../../../services';
 import { getNaturalLanguageThought } from '../../get-natural-language-thought';
 import mockAgentToolsComplex from '../router.spec.config.complex';
 import { TEST_AI_PROVIDERS, TEST_TIMEOUT, setupTest } from '../spec.config';
+import { moodleAgentToolsMock } from '../moodle.spec.config';
 
 vi.setConfig({ testTimeout: TEST_TIMEOUT });
 
@@ -141,7 +142,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
         }
       });
 
-      it('should not repeat the same function call twice with the same parameters', async () => {
+      it('should not repeat the same function call twice with the same parameters with real moodle example', async () => {
         const routerProcess: RouterProcess = {
           question: 'get user info',
           maxIterations: 3,
@@ -160,7 +161,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
     "userpictureurl": true,                                                                                                                                                                                          ║
     "userlang": true                                                                                                                                                                                                 ║
   }`,
-              observation: JSON.stringify(
+              response: JSON.stringify(
                 [
                   {
                     content: [
@@ -197,7 +198,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
         };
 
         const thought = await getNaturalLanguageThought(
-          mockAgentToolsComplex,
+          moodleAgentToolsMock,
           routerProcess,
           aiProvider,
           logger,

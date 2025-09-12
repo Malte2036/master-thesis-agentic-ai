@@ -54,15 +54,15 @@ async def show_processing_step(question: str):
     current_step.input = question
     current_step.output = "The system is processing your question..."
 
-async def show_iteration_update( iteration_id: int, natural_language_thought: str, structured_thought: str, observation: str):
+async def show_iteration_update( iteration_id: int, natural_language_thought: str, structured_thought: str, response: str):
     """Show the iteration update."""
 
-    friendly_observation = observation.replace("```json", "").replace("```", "")
+    friendly_response = response.replace("```json", "").replace("```", "")
 
     async with cl.Step(
         name=f"Iteration {iteration_id}",
         type="",
-        elements=[cl.Text(content=natural_language_thought), cl.Text(content=json.dumps(structured_thought, indent=2)), cl.Text(content=observation)]
+        elements=[cl.Text(content=natural_language_thought), cl.Text(content=json.dumps(structured_thought, indent=2)), cl.Text(content=response)]
     ) as step:
         await step.update()
 
@@ -93,7 +93,7 @@ async def stream_updates(session_id: str, agentic_viewer_element: cl.CustomEleme
                                     'iteration': update_data.get('iteration'),
                                     'naturalLanguageThought': update_data.get('naturalLanguageThought'),
                                     'structuredThought': update_data.get('structuredThought'),
-                                    'observation': update_data.get('observation')
+                                    'response': update_data.get('response')
                                 }
                                 iterations.append(iteration)
                                 
@@ -241,7 +241,7 @@ async def run_demo(agentic_viewer: cl.CustomElement):
             },
             'reasoning': 'Need to find current registration deadlines for courses'
         },
-        'observation': 'Found academic calendar information. Registration deadlines vary by course type: undergraduate courses have deadline March 15th, graduate courses have deadline March 22nd.'
+        'response': 'Found academic calendar information. Registration deadlines vary by course type: undergraduate courses have deadline March 15th, graduate courses have deadline March 22nd.'
     }
     
     agentic_viewer.props['iterations'] = [demo_iteration_1]
@@ -261,7 +261,7 @@ async def run_demo(agentic_viewer: cl.CustomElement):
             },
             'reasoning': 'Students might need information about late registration options'
         },
-        'observation': 'Found late registration policy: Students can register up to 1 week after deadline with academic advisor approval and late fee of $50.'
+        'response': 'Found late registration policy: Students can register up to 1 week after deadline with academic advisor approval and late fee of $50.'
     }
     
     agentic_viewer.props['iterations'] = [demo_iteration_1, demo_iteration_2]
@@ -278,7 +278,7 @@ async def run_demo(agentic_viewer: cl.CustomElement):
             'parameters': {},
             'reasoning': 'Need to know current date to provide relevant timeline information'
         },
-        'observation': 'Current date is March 10th, 2024. This means registration deadlines are still upcoming for both undergraduate (5 days) and graduate courses (12 days).'
+        'response': 'Current date is March 10th, 2024. This means registration deadlines are still upcoming for both undergraduate (5 days) and graduate courses (12 days).'
     }
     
     agentic_viewer.props['iterations'] = [demo_iteration_1, demo_iteration_2, demo_iteration_3]
