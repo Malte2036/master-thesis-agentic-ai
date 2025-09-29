@@ -278,6 +278,29 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         expect(result.functionCalls.length).toBe(0);
         expect(result.isFinished).toBe(true);
       });
+
+      it('is finished is not set, if we have remaining tasks', async () => {
+        const thought = `
+        <think>
+        Okay, the user is asking for their own user information. Let me check the available tools. There's a function called get_user_info that retrieves personal details about the user who asked the question. The pa    ║
+  rameters required are in the include_in_response object, which specifies which fields to include. The required fields are username, firstname, lastname, siteurl, userpictureurl, and userlang. Since the user h    ║
+  asn't specified any particular fields, but the function requires all of them, I need to make sure that all these are included. The function doesn't need any other parameters. So I should call get_user_info wi    █
+  th include_in_response set to include all those fields. Let me structure the function call accordingly.
+  </think>
+
+  I will now use the **get_user_info** agent to retrieve personal information about the user. **Parameters** I will pass:
+  - include_in_response: { "username": true, "firstname": true, "lastname": true, "siteurl": true, "userpictureurl": true, "userlang": true }
+        `;
+        const res = await getStructuredThought(
+          thought,
+          mockAgentToolsComplex,
+          aiProvider,
+          logger,
+        );
+
+        expect(res.isFinished).toBe(false);
+        expect(res.functionCalls.length).toBe(1);
+      });
     });
   }
 });
