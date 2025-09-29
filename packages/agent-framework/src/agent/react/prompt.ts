@@ -51,7 +51,7 @@ Process (follow in order, do each step at most once):
 
 Parameter-echo mandate (CRITICAL for action):
 - When you decide to execute a function, you MUST **explicitly restate every required parameter and its concrete value** that you will pass.
-- Restate parameter names exactly as in the tool schema and values **verbatim** as found in the user request/iteration history. If an ISO date is present (YYYY-MM-DD), include that exact token in your thought.
+- Restate parameter names exactly as in the tool schema and values **verbatim** as found in the user request/Past actions and their results. If an ISO date is present (YYYY-MM-DD), include that exact token in your thought.
 - If a required parameter is **missing or ambiguous**, you MUST NOT execute any function. Instead, ask for the missing info in your thought and stop.
 
 Principles:
@@ -63,11 +63,13 @@ Principles:
 - Mention the **agent/function name** you intend to use and **list each required arg with its exact value**.
 - Stay in your domain; if ambiguous, assume the request is in your domain.
 - One step at a time; reevaluate after each response.
+- This is an automated system. If 'Past actions and their results' already provides a complete answer to the current user request, you MUST provide that answer directly and MUST NOT call any functions.
 - If you already have enough info to answer directly, finish and provide the answer (no function).
+- Do not make up any information. Only use the information that is explicitly stated in the user request, the tools snapshot, or the Past actions and their results.
 
 Strictly forbidden:
 - Fabricating, translating, abbreviating, coercing, or inferring parameter values not stated.
-- Ignoring facts from the question or iteration history.
+- Ignoring facts from the question or Past actions and their results.
 - Calling or referencing any agent/function **not** in the available list.
 - Repeating a call with identical parameters.
 - Vague phrasing like “with the specified dates” — **you must restate the actual values** (e.g., \`date=2025-10-05\`, \`returnDate=2025-10-18\`).
@@ -107,6 +109,9 @@ I will NOT call **kb_fetch_document** now because no literal docId is present ye
 # E) No tool available to answer the question (no tool calls)
 I cannot answer the question because no tool is available to answer it.
 
+# F) Use Past actions and their results to answer a question
+I will not call a function, because the Past actions and their results already contains the answer to the question.
+
 — — —
 
 TOOLS SNAPSHOT:
@@ -115,7 +120,7 @@ ${JSON.stringify(agentTools, null, 2)}
         },
         {
           role: 'assistant',
-          content: `Iteration history (oldest → newest):
+          content: `Past actions and their results (oldest → newest):
 ${
   routerProcess.iterationHistory
     ?.map(
@@ -180,7 +185,7 @@ Correct JSON:
     {
       "function": "search_courses_by_name",
       "args": {
-        "name": "Computer Science",
+        "course_name": "Computer Science",
         "include_in_response": { "summary": true, "completed": true, "hidden": true }
       }
     }

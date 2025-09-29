@@ -1,13 +1,17 @@
-import { RouterProcess, RouterResponse } from '@master-thesis-agentic-ai/types';
+import {
+  FunctionCall,
+  RouterProcess,
+  RouterResponse,
+} from '@master-thesis-agentic-ai/types';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Logger } from '../../../../logger';
 import { AIProvider } from '../../../../services';
 import { ReActRouter } from '../../router';
 import { mockAgentTools } from '../router.spec.config';
-import { TEST_AI_PROVIDERS, TEST_TIMEOUT, setupTest } from '../spec.config';
+import { TEST_AI_PROVIDERS, TEST_CONFIG, setupTest } from '../spec.config';
 
-vi.setConfig({ testTimeout: TEST_TIMEOUT });
+vi.setConfig(TEST_CONFIG);
 
 describe('ReActRouter', () => {
   for (const { provider, model, structuredModel } of TEST_AI_PROVIDERS) {
@@ -22,13 +26,30 @@ describe('ReActRouter', () => {
     });
 
     it('should call functions in parallel', async () => {
-      const callClientInParallel = vi.fn().mockResolvedValue([
-        {
-          content: [
-            { type: 'text', text: '{location: Tokyo, weather: sunny}' },
-          ],
+      const callClientInParallel = vi.fn(
+        (
+          logger: Logger,
+          functionCalls: FunctionCall[],
+          remainingCalls: number,
+        ) => {
+          logger.log(
+            'Calling functions in parallel:',
+            functionCalls.map((call) => call.function),
+          );
+          switch (functionCalls[0].function) {
+            case 'get_weather':
+              return Promise.resolve([
+                {
+                  content: [
+                    { type: 'text', text: '{location: Tokyo, weather: sunny}' },
+                  ],
+                },
+              ] satisfies CallToolResult[]);
+            default:
+              throw new Error(`Unknown function: ${functionCalls[0].function}`);
+          }
         },
-      ] satisfies CallToolResult[]);
+      );
 
       const router = new ReActRouter(
         aiProvider,
@@ -58,7 +79,7 @@ describe('ReActRouter', () => {
       }
 
       expect(routerResponse).toBeDefined();
-      expect(routerResponse?.process?.iterationHistory?.length).toBe(1);
+      expect(routerResponse?.process?.iterationHistory?.length).toBe(2);
       expect(routerResponse.error).toBeUndefined();
     });
   }

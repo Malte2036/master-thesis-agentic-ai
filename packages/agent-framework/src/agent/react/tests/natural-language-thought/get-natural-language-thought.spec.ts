@@ -4,9 +4,9 @@ import { Logger } from '../../../../logger';
 import { AIProvider } from '../../../../services';
 import { getNaturalLanguageThought } from '../../get-natural-language-thought';
 import { mockAgentTools } from '../router.spec.config';
-import { TEST_AI_PROVIDERS, TEST_TIMEOUT, setupTest } from '../spec.config';
+import { TEST_AI_PROVIDERS, TEST_CONFIG, setupTest } from '../spec.config';
 
-vi.setConfig({ testTimeout: TEST_TIMEOUT });
+vi.setConfig(TEST_CONFIG);
 
 describe('getNaturalLanguageThought', () => {
   for (const { provider, model, structuredModel } of TEST_AI_PROVIDERS) {

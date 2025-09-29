@@ -3,9 +3,9 @@ import { Logger } from '../../../../logger';
 import { AIProvider } from '../../../../services';
 import { getStructuredThought } from '../../get-structured-thought';
 import { mockAgentTools } from '../router.spec.config';
-import { setupTest, TEST_AI_PROVIDERS, TEST_TIMEOUT } from '../spec.config';
+import { setupTest, TEST_AI_PROVIDERS, TEST_CONFIG } from '../spec.config';
 
-vi.setConfig({ testTimeout: TEST_TIMEOUT });
+vi.setConfig(TEST_CONFIG);
 
 describe('getStructuredThought', () => {
   for (const { provider, model, structuredModel } of TEST_AI_PROVIDERS) {

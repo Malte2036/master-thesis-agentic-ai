@@ -152,12 +152,6 @@ expressApp.post('/ask', async (req, res) => {
       availableAgents.map((agent) => agent.getAgentCard()),
     );
 
-    const DecideAgentSchema = z.object({
-      agent: z.string(),
-      reasoning: z.string(),
-      prompt: z.string(),
-    });
-
     const minimalAgentsCards = availableAgentsCards.map((agent: AgentCard) => ({
       name: agent.name,
       description: agent.capabilities,
@@ -184,9 +178,9 @@ expressApp.post('/ask', async (req, res) => {
       Skills of the agent: ${agent.skills
         .map(
           (skill: AgentSkill) => `
-        Name: ${skill.name}
-        Description: ${skill.description}
-        Tags: ${skill.tags.join(', ')}
+        Skill Name: ${skill.name}
+        Skill Description: ${skill.description}
+        Skill Tags: ${skill.tags.join(', ')}
       `,
         )
         .join('\n')}
@@ -211,14 +205,16 @@ expressApp.post('/ask', async (req, res) => {
     })) satisfies AgentTool[];
 
     logger.log(chalk.magenta('Agent tools:'));
-    logger.table(agentTools);
+    logger.log(JSON.stringify(agentTools, null, 2));
 
     const agentRouter = new ReActRouter(
       aiProvider,
       aiProvider,
       logger,
       agentTools,
-      'You are **RouterGPT**, the dispatcher in a multi-agent system.',
+      `You are **RouterGPT**, the dispatcher in a multi-agent system.
+      Always return the agent name, not the specific skill name.
+      `,
       async (logger, functionCalls) => {
         logger.log(
           'Calling tools in parallel:',

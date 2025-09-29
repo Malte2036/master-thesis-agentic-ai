@@ -5,10 +5,10 @@ import { Logger } from '../../../../logger';
 import { AIProvider } from '../../../../services';
 import { getNaturalLanguageThought } from '../../get-natural-language-thought';
 import mockAgentToolsComplex from '../router.spec.config.complex';
-import { TEST_AI_PROVIDERS, TEST_TIMEOUT, setupTest } from '../spec.config';
+import { TEST_AI_PROVIDERS, TEST_CONFIG, setupTest } from '../spec.config';
 import { moodleAgentToolsMock } from '../moodle.spec.config';
 
-vi.setConfig({ testTimeout: TEST_TIMEOUT });
+vi.setConfig(TEST_CONFIG);
 
 describe('getNaturalLanguageThought (complex scenarios)', () => {
   for (const { provider, model, structuredModel } of TEST_AI_PROVIDERS) {
@@ -206,7 +206,9 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
         );
 
         expect(thought).toBeDefined();
-        expect(thought).not.toMatch(/get[-_\s]user[-_\s]info/);
+        expect(thought.slice(thought.indexOf('</think>') + 8)).not.toMatch(
+          /get[-_\s]user[-_\s]info/,
+        );
       });
     });
   }

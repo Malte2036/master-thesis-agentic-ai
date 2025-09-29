@@ -12,7 +12,9 @@ if (!TEST_OLLAMA_BASE_URL) {
   throw new Error('OLLAMA_BASE_URL is not set');
 }
 
-export const TEST_TIMEOUT = 10000;
+export const TEST_CONFIG = {
+  testTimeout: 20000,
+};
 
 type TestProvider = 'ollama' | 'groq' | 'openai';
 

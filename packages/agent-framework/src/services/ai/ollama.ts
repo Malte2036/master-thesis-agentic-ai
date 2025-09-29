@@ -89,19 +89,20 @@ export class OllamaProvider implements AIProvider {
       },
     ];
 
-    let response = await this.makeApiCall(
+    const response = await this.makeApiCall(
       messages,
       false,
       undefined,
       temperature || 0.7,
     );
 
-    if (response.startsWith('<think>')) {
-      response = response.slice(response.indexOf('</think>') + 8);
-      this.logger.log(
-        chalk.magenta('Stripped <think> tags from natural language thought'),
-      );
-    }
+    // We get better results when we do not strip the <think> tags
+    // if (response.startsWith('<think>')) {
+    //   response = response.slice(response.indexOf('</think>') + 8);
+    //   this.logger.log(
+    //     chalk.magenta('Stripped <think> tags from natural language thought'),
+    //   );
+    // }
 
     return response.trim();
   }

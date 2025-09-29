@@ -54,18 +54,20 @@ Stelle sicher, dass der Benutzer diese Rolle systemweit zugewiesen bekommt.
 
 ### 🔧 3. Funktionen zum Dienst hinzufügen
 
-1. In der Diensteliste → „Funktionen hinzufügen“
+1. In der Diensteliste → [„Funktionen hinzufügen“](http://localhost:8080/admin/settings.php?section=externalservices)
 2. Beispiel-Funktionen:
    - `mod_assign_get_assignments`
    - `core_course_get_courses`
+   - `core_enrol_get_users_courses`
    - `core_user_get_users`
    - `core_webservice_get_site_info`
+   - `core_course_search_courses`
 
 ---
 
 ### 🗝️ 4. Token erzeugen
 
-1. `Website-Administration → Server → Webservices → Token verwalten`
+1. [`Website-Administration → Server → Webservices → Token verwalten`](http://localhost:8080/admin/webservice/tokens.php)
 2. „Neuen Token hinzufügen“:
    - **Benutzer:** Der Nutzer mit Rolle (siehe oben)
    - **Dienst:** `Custom REST API`
