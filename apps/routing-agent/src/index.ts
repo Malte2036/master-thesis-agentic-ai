@@ -252,7 +252,9 @@ expressApp.post('/ask', async (req, res) => {
         let agentResponse = '';
 
         if (agentClient) {
-          agentResponse = await agentClient.call(parsedDecision.args['prompt']);
+          agentResponse = await agentClient.call(
+            `${parsedDecision.args['prompt']}; We want to call the agent because: ${parsedDecision.args['reason']}`,
+          );
         } else {
           logger.log('No agent were called');
         }
