@@ -7,6 +7,7 @@ import { getNaturalLanguageThought } from '../../get-natural-language-thought';
 import mockAgentToolsComplex from '../router.spec.config.complex';
 import { TEST_AI_PROVIDERS, TEST_CONFIG, setupTest } from '../spec.config';
 import { moodleAgentToolsMock } from '../moodle.spec.config';
+import { calendarAgentToolsMock } from '../calendar.spec.config';
 
 vi.setConfig(TEST_CONFIG);
 
@@ -128,7 +129,10 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
             expect(typeof thought).toBe('string');
             expect(thought.length).toBeGreaterThan(0);
 
-            const lower = thought.toLowerCase();
+            const lower = thought
+              .toLowerCase()
+              .slice(thought.indexOf('</think>') + 8)
+              .trim();
 
             for (const rx of c.mustContain) {
               expect(lower).toMatch(rx);
@@ -208,6 +212,84 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
         expect(thought).toBeDefined();
         expect(thought.slice(thought.indexOf('</think>') + 8)).not.toMatch(
           /get[-_\s]user[-_\s]info/,
+        );
+      });
+
+      it('should not repeat calendar creation call if already created in previous iteration', async () => {
+        const routerProcess: RouterProcess = {
+          question: 'Create a calendar entry for today',
+          maxIterations: 5,
+          iterationHistory: [
+            {
+              iteration: 0,
+              naturalLanguageThought:
+                '<think>\n' +
+                `Okay, the user wants to create a calendar entry for today. Let me check the available tools. There's the calendar-agent with a skill named "calendar". The required parameters are include_in_response,    ║
+   prompt, and reason. The user's request is straightforward: create an entry today. But I need to make sure I have all the necessary parameters. The prompt should be the action, which is "Create a calendar ent    ║
+  ry". The reason is why it's being done, so maybe "User requested to create a calendar entry for today". Include_in_response is an object, but the user didn't specify any details to include. Since the user jus    ║
+  t said "create a calendar entry for today", I need to use the calendar-agent's skill. The parameters are all there: prompt is the action, reason is the justification, and include_in_response is an empty objec    ║
+  t as per the tool's requirement. I should call the calendar-agent with these parameters.\n` +
+                '</think>\n' +
+                '\n' +
+                'I will now use the **calendar-agent** to create a calendar entry. **Parameters** I will pass:\n' +
+                '- prompt="Create a calendar entry"\n' +
+                '- reason="User requested to create a calendar entry for today"\n' +
+                '- include_in_response={}',
+              structuredThought: {
+                functionCalls: [
+                  {
+                    function: 'calendar-agent',
+                    args: {
+                      prompt: 'Create a calendar entry',
+                      reason:
+                        'User requested to create a calendar entry for today',
+                      include_in_response: {},
+                    },
+                  },
+                ],
+                isFinished: false,
+              },
+              response:
+                '[\n' +
+                '  {\n' +
+                '    "content": [\n' +
+                '      {\n' +
+                '        "type": "text",\n' +
+                '        "text": {\n' +
+                '          "response": "We successfully created the calendar event."\n' +
+                '        }\n' +
+                '      }\n' +
+                '    ]\n' +
+                '  }\n' +
+                ']',
+            },
+          ],
+        };
+
+        const thought = await getNaturalLanguageThought(
+          calendarAgentToolsMock,
+          routerProcess,
+          aiProvider,
+          logger,
+          '',
+        );
+
+        expect(thought).toBeDefined();
+        expect(typeof thought).toBe('string');
+        expect(thought.length).toBeGreaterThan(0);
+
+        // The thought should NOT contain another calendar creation call since it was already created
+        const thoughtAfterThink = thought.slice(
+          thought.indexOf('</think>') + 8,
+        );
+        expect(thoughtAfterThink).not.toMatch(/calendar[-_\s]agent/i);
+        expect(thoughtAfterThink).not.toMatch(
+          /create[-_\s]calendar[-_\s]entry/i,
+        );
+
+        // It should acknowledge that the calendar entry was already created
+        expect(thoughtAfterThink.toLowerCase()).toMatch(
+          /already|previously|created|done|completed/i,
         );
       });
     });

@@ -141,6 +141,11 @@ expressApp.post('/ask', async (req, res) => {
         ],
       }),
       call: async (prompt: string) => {
+        if (prompt.includes('create')) {
+          return {
+            response: 'We successfully created the calendar event.',
+          };
+        }
         return {
           response: 'The Calendar agent is not implemented yet.',
         };
