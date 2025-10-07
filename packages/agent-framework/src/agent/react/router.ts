@@ -33,6 +33,7 @@ export class ReActRouter implements Router {
       remainingCalls: number,
     ) => Promise<CallToolResult[]>,
     private readonly disconnectClient?: () => Promise<void>,
+    private readonly agentName?: string,
   ) {}
 
   static async createWithMCP(
@@ -114,6 +115,7 @@ export class ReActRouter implements Router {
         this.aiProvider,
         this.logger,
         this.extendedNaturalLanguageThoughtSystemPrompt,
+        this.agentName,
       );
 
       const structuredThought = await getStructuredThought(
@@ -121,6 +123,7 @@ export class ReActRouter implements Router {
         this.agentTools,
         this.structuredAiProvider,
         this.logger,
+        this.agentName,
       );
 
       if (structuredThought.isFinished) {

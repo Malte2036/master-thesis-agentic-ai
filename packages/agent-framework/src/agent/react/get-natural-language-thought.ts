@@ -11,11 +11,13 @@ export async function getNaturalLanguageThought(
   aiProvider: AIProvider,
   logger: Logger,
   extendedNaturalLanguageThoughtSystemPrompt: string,
+  agentName?: string,
 ): Promise<string> {
   const systemPrompt = ReActPrompt.getNaturalLanguageThoughtPrompt(
     extendedNaturalLanguageThoughtSystemPrompt,
     agentTools,
     routerProcess,
+    agentName,
   );
 
   logger.log(chalk.magenta('Generating natural language thought...'));

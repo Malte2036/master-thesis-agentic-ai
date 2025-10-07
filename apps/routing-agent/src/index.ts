@@ -217,9 +217,7 @@ expressApp.post('/ask', async (req, res) => {
       aiProvider,
       logger,
       agentTools,
-      `You are **RouterGPT**, the dispatcher in a multi-agent system.
-      Always return the agent name, not the specific skill name.
-      `,
+      '',
       async (logger, functionCalls) => {
         logger.log(
           'Calling tools in parallel:',
@@ -279,6 +277,7 @@ expressApp.post('/ask', async (req, res) => {
       async () => {
         logger.log('Disconnecting from Client');
       },
+      'routing-agent',
     );
 
     const generator = agentRouter.routeQuestion(
