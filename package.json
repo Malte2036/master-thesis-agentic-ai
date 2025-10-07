@@ -18,6 +18,7 @@
     "build:types": "nx build types",
     "lint": "nx run-many -t lint",
     "test": "nx run-many -t test",
+    "test:e2e": "pnpm vitest run tests/e2e/routing.e2e.test.ts",
     "test:moodle-agent": "pnpm vitest run --dir apps/moodle-agent",
     "test:agent-framework": "pnpm vitest run --dir packages/agent-framework",
     "clean": "nx run-many -t clean && rm -rf node_modules",
@@ -60,6 +61,7 @@
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4",
     "zod": "^3.23.8",
-    "dotenv": "^16.5.0"
+    "dotenv": "^16.5.0",
+    "eventsource": "^2.0.2"
   }
 }

@@ -338,11 +338,8 @@ expressApp.get('/models', async (req, res) => {
   }
 });
 
-expressApp.get('/test', async (req, res) => {
-  const moodleAgent = new AgentClient(logger, 1234);
-  const result = await moodleAgent.call('What is my moodle email address?');
-  logger.log('Result from moodle agent:', result);
-  res.send(result);
+expressApp.get('/health', async (req, res) => {
+  res.send('OK');
 });
 
 // Start the server and keep it running
