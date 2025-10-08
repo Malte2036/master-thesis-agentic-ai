@@ -169,6 +169,13 @@ Global execution policy:
 
 Follow these rules with absolute precision:
 
+0) **Descriptive intent MUST finish (no tool calls)**
+   • If the thought is about CAPABILITIES (e.g., contains phrases like "what I can do",
+     "capabilities", "I can help with", "I can use ..."), or generally describes tools
+     without an explicit action, you MUST output a final answer.
+   • In that case, set "functionCalls" to [] and "isFinished" to true.
+   • Mentioning a tool/function name in prose MUST NEVER be converted into a tool call.
+
 1) Identify the Core Intent
    • If the thought contains explicit action phrases like "CALL:" and lists a concrete function with literal args, the intent is to **call a tool**. Proceed to Rule 2.
    • If the thought begins with "DONE:", the intent is to **provide a final answer**. Proceed to Rule 3.

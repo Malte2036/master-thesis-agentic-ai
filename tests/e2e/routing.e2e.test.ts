@@ -20,6 +20,21 @@ describe('E2E Routing Agent Test', () => {
     // All services are ready
   }, 60_000);
 
+  it('should tell his capabilities', async () => {
+    const testPrompt = 'What are your capabilities?';
+
+    const finalResponse = await routingAgent.askAndWaitForResponse({
+      prompt: testPrompt,
+    });
+
+    expect(finalResponse).toBeDefined();
+    expect(finalResponse.length).toBeGreaterThan(0);
+
+    expect(finalResponse.toLowerCase()).toContain('moodle');
+    expect(finalResponse.toLowerCase()).toContain('course');
+    expect(finalResponse.toLowerCase()).toContain('calendar');
+  }, 30_000);
+
   it('should get a response to a question by using the moodle-agent', async () => {
     const testPrompt = 'Can you help me get my user information?';
 
