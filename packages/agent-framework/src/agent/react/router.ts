@@ -27,6 +27,7 @@ export class ReActRouter implements Router {
     private readonly logger: Logger,
     private readonly agentTools: AgentTool[],
     private readonly extendedNaturalLanguageThoughtSystemPrompt: string,
+    private readonly extendedStructuredThoughtSystemPrompt: string | undefined,
     private readonly callClientInParallel: (
       logger: Logger,
       functionCalls: FunctionCall[],
@@ -41,6 +42,7 @@ export class ReActRouter implements Router {
     logger: Logger,
     mcpName: MCPName,
     extendedNaturalLanguageThoughtSystemPrompt: string,
+    extendedStructuredThoughtSystemPrompt?: string,
   ) {
     const mcpClient = await getMcpClient(logger, mcpName);
     const listAgentsTools = await mcpClient.listTools();
@@ -62,6 +64,7 @@ export class ReActRouter implements Router {
       logger,
       agentTools,
       extendedNaturalLanguageThoughtSystemPrompt,
+      extendedStructuredThoughtSystemPrompt,
       callClientInParallel,
       disconnectClient,
     );
@@ -121,6 +124,7 @@ export class ReActRouter implements Router {
         this.agentTools,
         this.structuredAiProvider,
         this.logger,
+        this.extendedStructuredThoughtSystemPrompt,
       );
 
       if (structuredThought.isFinished) {

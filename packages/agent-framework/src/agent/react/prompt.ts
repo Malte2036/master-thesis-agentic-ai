@@ -3,7 +3,8 @@ import { AIGenerateTextOptions } from '../../services';
 import { AgentTool } from './types';
 
 /**
- * ReActPrompt with compact STATE injection and strict DONE/CALL enforcement.
+ * ReActPrompt with compact STATE injection, strict DONE/CALL enforcement,
+ * and VERBATIM evidence protocol to prevent hallucinated/rewritten values.
  */
 export class ReActPrompt {
   public static readonly BASE_PROMPTS: string[] = [
@@ -26,7 +27,8 @@ Important rules:
 
   /**
    * Prompt for the natural-language "thought" step.
-   * Adds ORIGINAL_GOAL and a compact STATE block, and enforces a leading DONE:/CALL: decision.
+   * Adds ORIGINAL_GOAL and a compact STATE block, enforces a leading DONE:/CALL: decision,
+   * and requires an evidence-json block on DONE to avoid data drift.
    */
   public static getNaturalLanguageThoughtPrompt = (
     extendedSystemPrompt: string,
@@ -55,10 +57,11 @@ Important rules:
         .slice(-5)
         .map(
           (it) =>
-            `Iteration ${it.iteration}\n` +
-            `- Thought which justifies the next step: ${it.naturalLanguageThought}\n` +
-            `- The function calls that were made: ${JSON.stringify(it.structuredThought.functionCalls, null, 2)}\n` +
-            `- The response that was made after seeing the response of the function calls: ${it.response}\n`,
+            `Iteration ${it.iteration}
+- Thought which justifies the next step: ${it.naturalLanguageThought}
+- The function calls that were made: ${JSON.stringify(it.structuredThought.functionCalls, null, 2)}
+- The response that was made after seeing the response of the function calls: ${it.response}
+`,
         )
         .join('\n') || '— none —';
 
@@ -71,6 +74,7 @@ Important rules:
         // Provide the original user goal and a compact, machine-readable STATE first
         {
           role: 'system' as const,
+          // you used routerProcess.question in your existing file, keep that here
           content: `ORIGINAL_GOAL: ${routerProcess.question ?? '(missing)'}`,
         },
         {
@@ -79,18 +83,64 @@ Important rules:
         },
 
         // Keep any extended domain/system guidance
-        { role: 'system' as const, content: `\n${extendedSystemPrompt}\n` },
-
-        // Strict rubric requiring DONE: or CALL:
         {
           role: 'system' as const,
-          content: `\nYou are a reasoning engine inside an autonomous AI agent. Each call is one iteration in the same task.\nYour reply MUST begin with exactly one of these tokens:\n\n- "DONE:" followed by the final answer to the ORIGINAL_GOAL, if the STATE indicates the goal is already satisfied or if the next action would repeat a past call without producing new information.\n- "CALL:" followed by the single agent/function to execute now and the exact arguments to pass.\n\nGoal satisfaction rubric (APPLY BEFORE proposing any tool call):\n1) If the most recent observation already contains the data or indicates success completing the requested action, output "DONE:" with a concise summary. Do NOT call any tools.\n2) Never repeat a tool call with the same function name and identical arguments already listed in STATE.allCalls. If a repeat would occur, output "DONE:" summarizing the already obtained results.\n3) Only call a tool if at least one *new* fact will be produced toward the goal.\n4) If any required parameter is missing or ambiguous, do NOT call a tool; ask for the exact value(s) and end with "DONE:" (no action needed now).\n\nParameter echo (CRITICAL when you choose CALL):\n- After "CALL:", write "{agent}/{function}" and list **every** required parameter with concrete values (verbatim tokens), e.g., date="2025-10-05".\n- You may include optional parameters, but only with explicit, literal values.\n- If you cannot provide all required parameters with literal values, you cannot call.\n\nIntent patterns:\n- Execute: “CALL: moodle-agent/get_user_info with include_in_response={"username":true,"firstname":true,"lastname":true,"siteurl":true,"userpictureurl":true,"userlang":true}”\n- Describe (capabilities or final answer): “DONE: We already fetched the user profile (username, firstname, lastname, siteurl, userpictureurl, userlang). Here it is: …”\n\nStay precise. Do not invent values. One step at a time.\n\nTOOLS SNAPSHOT (read once as reference; do not regurgitate):\n${JSON.stringify(agentTools, null, 2)}\n`,
+          content: `
+${extendedSystemPrompt}
+`,
+        },
+
+        // Strict rubric requiring DONE: or CALL:, with VERBATIM evidence for DONE
+        {
+          role: 'system' as const,
+          content: `
+You are a reasoning engine inside an autonomous AI agent. Each call is one iteration in the same task.
+Your reply MUST begin with exactly one of these tokens:
+
+- "DONE:" followed by the final answer to the ORIGINAL_GOAL, if the STATE indicates the goal is already satisfied or if the next action would repeat a past call without producing new information.
+- "CALL:" followed by the single function to execute now and the exact arguments to pass.
+
+Goal satisfaction rubric (APPLY BEFORE proposing any tool call):
+1) If the most recent observation already contains the requested data or indicates success, output "DONE:" with a concise summary. Do NOT call any tools.
+2) Never repeat a tool call with the same function name and identical arguments already listed in STATE.allCalls. If a repeat would occur, output "DONE:" summarizing the already obtained results.
+3) Only call a tool if at least one *new* fact will be produced toward the goal.
+4) If any required parameter is missing or ambiguous, do NOT call a tool; ask for the exact value(s) and end with "DONE:" (no action needed now).
+
+VERBATIM DATA RULES (CRITICAL WHEN YOU USE DONE):
+- All factual values (names, titles, IDs, dates, amounts) you present **must appear byte-for-byte** somewhere in STATE.lastObservation. No paraphrasing, no rewording, no synonym substitutions for proper nouns.
+- You MUST include an **evidence block** that copies the exact JSON slice(s) you used from STATE.lastObservation, surrounded by a fenced code block with the language tag "evidence-json".
+- Any value shown in your final answer that is not present in the evidence block is forbidden.
+
+Format when using DONE:
+DONE:
+\`\`\`evidence-json
+<PASTE ONLY the minimal JSON slice(s) copied exactly from STATE.lastObservation>
+\`\`\`
+Final:
+<Write the final answer, and whenever you reproduce a value from the evidence (e.g., assignment name, date), copy it exactly (consider wrapping such literals in backticks). Do not invent fields that aren't in the evidence.>
+
+Parameter echo (when you choose CALL):
+- After "CALL:", write the function name and list **every** required parameter with concrete values (verbatim tokens), e.g., date="2025-10-05".
+- You MUST include \`include_in_response\` for **every** tool call. If you have no explicit preferences, set it to an **empty object** \`{}\` to satisfy the required contract. Only add fields you can state literally.
+- You may include optional parameters, but only with explicit, literal values.
+- If you cannot provide all required parameters with literal values, you cannot call.
+
+Intent patterns:
+- Execute: “CALL: get_user_info with include_in_response={"username":true,"firstname":true,"lastname":true,"siteurl":true,"userpictureurl":true,"userlang":true}”
+- Final (DONE): Provide the evidence-json block first, then the Final answer reproducing only values from that evidence.
+
+Stay precise. Do not invent values. One step at a time.
+
+TOOLS SNAPSHOT (read once as reference; do not regurgitate):
+${JSON.stringify(agentTools, null, 2)}
+`,
         },
 
         // Short, human-readable history to aid reasoning
         {
           role: 'assistant' as const,
-          content: `Past actions and their results (oldest → newest; last 5 shown):\n${pastText}`,
+          content: `Past actions and their results (oldest → newest; last 5 shown):
+${pastText}`,
         },
       ],
     };
@@ -98,15 +148,46 @@ Important rules:
 
   /**
    * Prompt for the structured-thought (JSON) step.
-   * No change needed here, but it already deduplicates and keeps isFinished consistent.
+   * Strengthened to always include include_in_response ({} if unspecified).
    */
   public static getStructuredThoughtPrompt = (
     agentTools: AgentTool[],
+    extendedStructuredThoughtSystemPrompt: string | undefined,
   ): AIGenerateTextOptions => ({
     messages: [
       {
         role: 'system' as const,
-        content: `You are a highly precise system that translates an assistant's thought into a structured JSON object.\nYour single most important job is to distinguish between a plan to **execute a tool** and a plan to **provide a final text answer**.\n\nGlobal execution policy:\n• All "functionCalls" you output are executed **in parallel** within the same iteration (no chaining/order guarantees).\n• If a potential call **depends on the output** of another call and its **required arguments are not explicitly present** in the thought, **omit** that dependent call from this iteration.\n• **Deduplicate**: if the thought repeats the **same tool with identical arguments**, include it **only once** in "functionCalls". (Same function name + same args values ⇒ identical.)\n• **Do not** add, infer, or invent arguments not explicitly stated.\n• If information is missing, do not make a call. Set the "isFinished" field to true.\n\nFollow these rules with absolute precision:\n\n1) Identify the Core Intent\n   • If the thought contains explicit action phrases like "CALL:" and lists a concrete function with literal args, the intent is to **call a tool**. Proceed to Rule 2.\n   • If the thought begins with "DONE:", the intent is to **provide a final answer**. Proceed to Rule 3.\n\n2) Generating Tool Calls (ONLY for Action Intents)\n   • Populate the "functionCalls" array.\n   • Include the "include_in_response" parameter (object) in the args of **every** function call when it is required by the tool schema.\n   • Set "isFinished" to false.\n   • NEVER invent parameters. If a required parameter is not in the thought, omit that call this iteration.\n   • Deduplicate identical calls (same function + identical args).\n\n3) Generating a Final Answer (ONLY for "DONE:" Intents)\n   • "functionCalls" MUST be [].\n   • "isFinished" MUST be true.\n\n---\nExample 1: Action Intent (Single Call)\nThought: "CALL: moodle-agent/search_courses_by_name with course_name=\"Computer Science\" and include_in_response={\"summary\":true,\"completed\":true,\"hidden\":true}"\nCorrect JSON:\n{\n  "functionCalls": [\n    {\n      "function": "search_courses_by_name",\n      "args": {\n        "course_name": "Computer Science",\n        "include_in_response": { "summary": true, "completed": true, "hidden": true }\n      }\n    }\n  ],\n  "isFinished": false\n}\n\n---\nExample 2: Final Answer (DONE)\nThought: "DONE: I can use Moodle functions like search_courses_by_name and get_assignments, but since you asked about capabilities only, here is the description…"\nCorrect JSON:\n{\n  "functionCalls": [],\n  "isFinished": true\n}\n\n---\nExample 3: Parallel + Deduplication\nThought: "CALL: translate_text with text=\"Hello\", targetLang=\"de\". Also CALL: kb_vector_search with query=\"atlas\", topK=3 and include_in_response={\"snippet\":true,\"scores\":true,\"metadata\":true}."\nCorrect JSON:\n{\n  "functionCalls": [\n    {\n      "function": "translate_text",\n      "args": {\n        "text": "Hello",\n        "targetLang": "de",\n        "include_in_response": { "targetLang": true, "sourceLang": false }\n      }\n    },\n    {\n      "function": "kb_vector_search",\n      "args": {\n        "query": "atlas",\n        "topK": 3,\n        "include_in_response": { "snippet": true, "scores": true, "metadata": true }\n      }\n    }\n  ],\n  "isFinished": false\n}\n\n---\nExample 4: Dependent Call Omitted (No docId present)\nThought: "CALL: kb_vector_search with query=\"atlas runbook\". (Will fetch the doc later when I have a literal docId.)"\nCorrect JSON:\n{\n  "functionCalls": [\n    {\n      "function": "kb_vector_search",\n      "args": {\n        "query": "atlas runbook",\n        "include_in_response": { "snippet": true, "scores": true, "metadata": false }\n      }\n    }\n  ],\n  "isFinished": false\n}\n\n---\nExample 5: Missing Required Params (Ask, Do Not Execute)\nThought: "DONE: I cannot execute get_weather_info yet. Missing required parameter city (e.g., \"Cologne\"). Please provide it."\nCorrect JSON:\n{\n  "functionCalls": [],\n  "isFinished": true\n}\n\nNow, parse the following thought with zero deviation from these rules.`,
+        content: `You are a highly precise system that translates an assistant's thought into a structured JSON object.
+Your single most important job is to distinguish between a plan to **execute a tool** and a plan to **provide a final text answer**.
+
+Global execution policy:
+• All "functionCalls" you output are executed **in parallel** within the same iteration (no chaining/order guarantees).
+• If a potential call **depends on the output** of another call and its **required arguments are not explicitly present** in the thought, **omit** that dependent call from this iteration.
+• **Deduplicate**: if the thought repeats the **same tool with identical arguments**, include it **only once** in "functionCalls". (Same function name + same args values ⇒ identical.)
+• **Do not** add, infer, or invent arguments not explicitly stated.
+• If information is missing, do not make a call. Set the "isFinished" field to true.
+
+Follow these rules with absolute precision:
+
+1) Identify the Core Intent
+   • If the thought contains explicit action phrases like "CALL:" and lists a concrete function with literal args, the intent is to **call a tool**. Proceed to Rule 2.
+   • If the thought begins with "DONE:", the intent is to **provide a final answer**. Proceed to Rule 3.
+
+2) Generating Tool Calls (ONLY for Action Intents)
+   • Populate the "functionCalls" array.
+   • For **every** function call, you MUST include the \`include_in_response\` parameter (object). If no explicit fields are provided by the thought or schema examples, set it to \`{}\` (empty object) — never omit it.
+   • Set "isFinished" to false.
+   • NEVER invent parameters. If a required parameter is not in the thought, omit that call this iteration.
+   • Deduplicate identical calls (same function + identical args).
+   • Do **not** output \`isFinished: false\` with an **empty** \`functionCalls\` array.
+
+3) Generating a Final Answer (ONLY for "DONE:" Intents)
+   • "functionCalls" MUST be [].
+   • "isFinished" MUST be true.
+
+${extendedStructuredThoughtSystemPrompt}
+
+Now, parse the following thought with zero deviation from these rules.`,
       },
       {
         role: 'system' as const,

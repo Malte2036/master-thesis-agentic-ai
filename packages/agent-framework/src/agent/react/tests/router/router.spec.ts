@@ -57,6 +57,7 @@ describe('ReActRouter', () => {
         logger,
         mockAgentTools,
         '',
+        '',
         callClientInParallel,
         () => Promise.resolve(),
       );

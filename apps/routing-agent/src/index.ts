@@ -169,14 +169,6 @@ expressApp.post('/ask', async (req, res) => {
     logger.log(chalk.magenta('Available agents:'));
     logger.table(minimalAgentsCards);
 
-    logger.log(
-      JSON.stringify(
-        availableAgentsCards.map((agent: AgentCard) => agent.skills),
-        null,
-        2,
-      ),
-    );
-
     const agentTools = availableAgentsCards.map((agent: AgentCard) => ({
       name: agent.name,
       description: `Description of the agent: ${agent.description}
@@ -209,18 +201,19 @@ expressApp.post('/ask', async (req, res) => {
       },
     })) satisfies AgentTool[];
 
-    logger.log(chalk.magenta('Agent tools:'));
-    logger.log(JSON.stringify(agentTools, null, 2));
-
     const agentRouter = new ReActRouter(
       aiProvider,
       aiProvider,
       logger,
       agentTools,
-      `You are **RouterGPT**, the dispatcher in a multi-agent system.
-      Always return the agent name, not the specific skill name.
-      `,
+      `You are **RouterGPT**, the dispatcher in a multi-agent system.`,
+      ``,
       async (logger, functionCalls) => {
+        functionCalls = functionCalls.map((call) => ({
+          ...call,
+          function: call.function.split('/')[0],
+        }));
+
         logger.log(
           'Calling tools in parallel:',
           functionCalls.map((call) => call.function),
