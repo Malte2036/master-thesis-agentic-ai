@@ -2,6 +2,9 @@ import { RouterProcess } from '@master-thesis-agentic-ai/types';
 import { AIGenerateTextOptions } from '../../services';
 import { AgentTool } from './types';
 
+/**
+ * ReActPrompt with compact STATE injection and strict DONE/CALL enforcement.
+ */
 export class ReActPrompt {
   public static readonly BASE_PROMPTS: string[] = [
     `Some important information for you:
@@ -23,247 +26,90 @@ Important rules:
 
   /**
    * Prompt for the natural-language "thought" step.
+   * Adds ORIGINAL_GOAL and a compact STATE block, and enforces a leading DONE:/CALL: decision.
    */
   public static getNaturalLanguageThoughtPrompt = (
     extendedSystemPrompt: string,
     agentTools: AgentTool[],
     routerProcess: RouterProcess,
   ): AIGenerateTextOptions => {
+    const iterationHistory = routerProcess.iterationHistory ?? [];
+    const lastIt =
+      iterationHistory.length > 0
+        ? iterationHistory[iterationHistory.length - 1]
+        : undefined;
+
+    const allCalls = iterationHistory.flatMap(
+      (it) => it.structuredThought?.functionCalls ?? [],
+    );
+
+    const state = {
+      lastAction: lastIt?.structuredThought?.functionCalls ?? [],
+      lastObservation: lastIt?.response ?? null,
+      allCalls,
+    };
+
+    // Build a compact Past Actions text (limit to last 5 iterations to keep prompt lean)
+    const pastText =
+      iterationHistory
+        .slice(-5)
+        .map(
+          (it) =>
+            `Iteration ${it.iteration}\n` +
+            `- Thought which justifies the next step: ${it.naturalLanguageThought}\n` +
+            `- The function calls that were made: ${JSON.stringify(it.structuredThought.functionCalls, null, 2)}\n` +
+            `- The response that was made after seeing the response of the function calls: ${it.response}\n`,
+        )
+        .join('\n') || '— none —';
+
     return {
       messages: [
         ...this.BASE_PROMPTS.map((content) => ({
           role: 'system' as const,
           content,
         })),
+        // Provide the original user goal and a compact, machine-readable STATE first
         {
-          role: 'system',
-          content: `
-${extendedSystemPrompt}
-
-You are a reasoning engine inside an autonomous AI agent. Your purpose is to look at the ORIGINAL USER GOAL and the HISTORY of steps already taken, and then decide the single next step. This is not a conversation. Each time you are called, it is for a new iteration within the same autonomous operation. Do not mistake an iteration for a new user request.
-
-Decide **exactly one immediate step** — a single function call (or a final answer) — using only the facts you already know.
-
-Process (follow in order, do each step at most once):
-0) First, analyze the 'Past actions and their results' to understand what the system has already accomplished. If these actions fully satisfy the original user question, your task is complete. State this clearly and do not call any more tools.
-1) Read the TOOLS SNAPSHOT (below) exactly once and extract relevant informations.
-2) Distinguish intent:
-   - If the user asks about capabilities, respond *descriptively* (no tool calls) and **do not plan execution**.
-   - If acting, choose **one** tool **only if all required parameters are present**.
-3) Move the user one step closer to their goal.
-
-Parameter-echo mandate (CRITICAL for action):
-- When you decide to execute a function, you MUST **explicitly restate every required parameter and its concrete value** that you will pass.
-- Restate parameter names exactly as in the tool schema and values **verbatim** as found in the user request/Past actions and their results. If an ISO date is present (YYYY-MM-DD), include that exact token in your thought.
-- If a required parameter is **missing or ambiguous**, you MUST NOT execute any function. Instead, ask for the missing info in your thought and stop.
-
-Principles:
-- Answer with your thought process (natural language).
-- **Distinguish Intent** clearly:
-  - Execute: “I will now use {agent}/{function} with: param1=…, param2=…, …”
-  - Describe: “I have the capability to …” (no call now)
-- Choose a function only when **all required parameters are fully specified**. Except the 'include_in_response' parameter, which you need to interpret from the user request by yourself.
-- Mention the **agent/function name** you intend to use and **list each required arg with its exact value**.
-- Stay in your domain; if ambiguous, assume the request is in your domain.
-- One step at a time; reevaluate after each response.
-- This is an automated system. If 'Past actions and their results' already provides a complete answer to the current user request, you MUST provide that answer directly and MUST NOT call any functions.
-- If you already have enough info to answer directly, finish and provide the answer (no function).
-- Do not make up any information. Only use the information that is explicitly stated in the user request, the tools snapshot, or the Past actions and their results.
-
-Strictly forbidden:
-- Fabricating, translating, abbreviating, coercing, or inferring parameter values not stated.
-- Ignoring facts from the question or Past actions and their results.
-- Calling or referencing any agent/function **not** in the available list.
-- Repeating a call with identical parameters.
-- Do not call any function if 'Past actions and their results' shows the
-  user's request has already been successfully completed.
-- Vague phrasing like “with the specified dates” — **you must restate the actual values** (e.g., \`date=2025-10-05\`, \`returnDate=2025-10-18\`).
-
-Failure modes to avoid (these will fail tests):
-- Missing any required parameter in the thought.
-- Omitting concrete tokens like dates (“2025-10-05”), locations (“BER”, “HND”), counts (“passengers=2”).
-
-— — —
-### Examples
-(Available Tools for this examples:  search_flights, get_flight_status, query_finance_price, get_exchange_rate, kb_vector_search, kb_fetch_document, create_calendar_event, run_sql_query, web_retrieve_and_summarize, translate_text)
-
-# A) Action (Travel planning; all params present)
-I will now use the **search_flights** agent to find a round-trip. **Parameters** I will pass:
-- origin="BER"
-- destination="HND"
-- date="2025-10-05"
-- returnDate="2025-10-18"
-- passengers=2
-- cabin="premium"
-
-# B) Descriptive (Capabilities; no execution)
-I have the capability to use **search_flights** for trip discovery and **get_flight_status** for live status checks. Since the user asked about capabilities, I will not execute any function now.
-
-# C) Missing required params (ask, do not execute)
-I cannot execute **search_flights** yet. **Missing required parameters**:
-- origin (e.g., "BER")
-- date (YYYY-MM-DD)
-Please provide origin and an exact departure date. I will proceed once I have them.
-
-# D) RAG ask but one-step only (dependent data missing)
-I will call **kb_vector_search** with:
-- query="atlas incident runbook"
-(topK is optional; if I choose it, I must state the exact value, e.g., topK=3)
-I will NOT call **kb_fetch_document** now because no literal docId is present yet.
-
-# E) No tool available to answer the question (no tool calls)
-I cannot answer the question because no tool is available to answer it.
-
-# F) Use Past actions and their results to answer or when action is already completed
-I will not call a function. The 'Past actions and their results' already contain the answer to the question or indicate that the requested action has been successfully completed. There are no more steps to take to achieve the user's goal.
-
-— — —
-
-TOOLS SNAPSHOT:
-${JSON.stringify(agentTools, null, 2)}
-`,
+          role: 'system' as const,
+          content: `ORIGINAL_GOAL: ${routerProcess.question ?? '(missing)'}`,
         },
         {
-          role: 'assistant',
-          content: `Past actions and their results (oldest → newest):
-${
-  routerProcess.iterationHistory
-    ?.map(
-      (it) =>
-        `Iteration ${it.iteration}
-- Thought which justifies the next step: ${it.naturalLanguageThought}
-- The function calls that were made: ${JSON.stringify(it.structuredThought.functionCalls, null, 2)}
-- The response that was made after seeing the response of the function calls: ${it.response}
-`,
-    )
-    .join('\n') ?? '— none —'
-}
-`,
+          role: 'system' as const,
+          content: `STATE: ${JSON.stringify(state, null, 2)}`,
+        },
+
+        // Keep any extended domain/system guidance
+        { role: 'system' as const, content: `\n${extendedSystemPrompt}\n` },
+
+        // Strict rubric requiring DONE: or CALL:
+        {
+          role: 'system' as const,
+          content: `\nYou are a reasoning engine inside an autonomous AI agent. Each call is one iteration in the same task.\nYour reply MUST begin with exactly one of these tokens:\n\n- "DONE:" followed by the final answer to the ORIGINAL_GOAL, if the STATE indicates the goal is already satisfied or if the next action would repeat a past call without producing new information.\n- "CALL:" followed by the single agent/function to execute now and the exact arguments to pass.\n\nGoal satisfaction rubric (APPLY BEFORE proposing any tool call):\n1) If the most recent observation already contains the data or indicates success completing the requested action, output "DONE:" with a concise summary. Do NOT call any tools.\n2) Never repeat a tool call with the same function name and identical arguments already listed in STATE.allCalls. If a repeat would occur, output "DONE:" summarizing the already obtained results.\n3) Only call a tool if at least one *new* fact will be produced toward the goal.\n4) If any required parameter is missing or ambiguous, do NOT call a tool; ask for the exact value(s) and end with "DONE:" (no action needed now).\n\nParameter echo (CRITICAL when you choose CALL):\n- After "CALL:", write "{agent}/{function}" and list **every** required parameter with concrete values (verbatim tokens), e.g., date="2025-10-05".\n- You may include optional parameters, but only with explicit, literal values.\n- If you cannot provide all required parameters with literal values, you cannot call.\n\nIntent patterns:\n- Execute: “CALL: moodle-agent/get_user_info with include_in_response={"username":true,"firstname":true,"lastname":true,"siteurl":true,"userpictureurl":true,"userlang":true}”\n- Describe (capabilities or final answer): “DONE: We already fetched the user profile (username, firstname, lastname, siteurl, userpictureurl, userlang). Here it is: …”\n\nStay precise. Do not invent values. One step at a time.\n\nTOOLS SNAPSHOT (read once as reference; do not regurgitate):\n${JSON.stringify(agentTools, null, 2)}\n`,
+        },
+
+        // Short, human-readable history to aid reasoning
+        {
+          role: 'assistant' as const,
+          content: `Past actions and their results (oldest → newest; last 5 shown):\n${pastText}`,
         },
       ],
     };
   };
+
   /**
    * Prompt for the structured-thought (JSON) step.
+   * No change needed here, but it already deduplicates and keeps isFinished consistent.
    */
   public static getStructuredThoughtPrompt = (
     agentTools: AgentTool[],
   ): AIGenerateTextOptions => ({
     messages: [
       {
-        role: 'system',
-        content: `You are a highly precise system that translates an assistant's thought process into a structured JSON object.
-Your single most important job is to distinguish between a plan to **execute a tool** and a plan to **provide a final text answer**.
-
-Global execution policy:
-• All "functionCalls" you output are executed **in parallel** within the same iteration (no chaining/order guarantees).
-• If a potential call **depends on the output** of another call and its **required arguments are not explicitly present** in the thought, **omit** that dependent call from this iteration.
-• **Deduplicate**: if the thought repeats the **same tool with identical arguments**, include it **only once** in "functionCalls". (Same function name + the same args fields with the same values ⇒ identical.)
-• Do **not** add, infer, or invent arguments that are not explicitly stated.
-• If information is missing, do not make a call. Set the "isFinished" field to true.
-
-Follow these rules with absolute precision:
-
-1) Identify the Core Intent
-   • If the thought contains explicit action phrases like "I will call...", "I will use...", "I need to execute...", the intent is to **call a tool**. Proceed to Rule 2.
-   • If the thought is a descriptive statement, a list of capabilities, or a direct message to the user (e.g., "I can do the following...", "Here are your assignments..."), the intent is to **provide a final answer**. Proceed to Rule 3.
-
-2) Generating Tool Calls (ONLY for Action Intents)
-   • You MUST populate the "functionCalls" array.
-   • You MUST include the "include_in_response" parameter (object) in the args of **every** function call.
-   • The "isFinished" field MUST be false.
-   • NEVER invent parameters. If a required parameter is not in the thought, do not make that call in this iteration.
-   • Omit any **dependent** call that lacks its required arguments (e.g., do not call "kb_fetch_document" without a literal "docId" in the thought).
-   • **Deduplicate** identical calls (same function + identical args).
-
-3) Generating a Final Answer (ONLY for Descriptive Intents)
-   • The "functionCalls" array MUST be empty ([]).
-   • The "isFinished" field MUST be true.
-   • CRITICAL: If a function name is mentioned as part of a list or description (e.g., "I can use the \`search_courses\` function"), you MUST NOT treat it as a tool call.
-
----
-Example 1: Action Intent (Single Call)
-Thought: "I need to find the course ID for 'Computer Science'. I will use the moodle-mcp's \`search_courses_by_name\` function to do this."
-Correct JSON:
-{
-  "functionCalls": [
-    {
-      "function": "search_courses_by_name",
-      "args": {
-        "course_name": "Computer Science",
-        "include_in_response": { "summary": true, "completed": true, "hidden": true }
-      }
-    }
-  ],
-  "isFinished": false
-}
-
----
-Example 2: Descriptive Intent (THIS IS THE MOST IMPORTANT EXAMPLE)
-Thought: "What I Can Do: I can help with Moodle-related functions like \`search_courses_by_name\` to find courses and \`get_assignments\` to retrieve assignments."
-Correct JSON:
-{
-  "functionCalls": [],
-  "isFinished": true
-}
-
----
-Example 3: Parallel + Deduplication
-Thought: "Run translate_text on 'Hello' to 'de'. Also translate_text on 'Hello' to 'de'. And run kb_vector_search with query 'atlas' (topK 3) and include the snippet, scores and metadata."
-Correct JSON (deduplicated translate_text):
-{
-  "functionCalls": [
-    {
-      "function": "translate_text",
-      "args": {
-        "text": "Hello",
-        "targetLang": "de",
-        "include_in_response": { "targetLang": true, "sourceLang": false }
-      }
-    },
-    {
-      "function": "kb_vector_search",
-      "args": {
-        "query": "atlas",
-        "topK": 3,
-        "include_in_response": { "snippet": true, "scores": true, "metadata": true }
-      }
-    }
-  ],
-  "isFinished": false
-}
-
----
-Example 4: Dependent Call Omitted (No docId present)
-Thought: "First search for the atlas runbook, then fetch the document. I don't know the docId yet."
-Correct JSON (omit kb_fetch_document this iteration):
-{
-  "functionCalls": [
-    {
-      "function": "kb_vector_search",
-      "args": {
-        "query": "atlas runbook",
-        "include_in_response": { "snippet": true, "scores": true, "metadata": false }
-      }
-    }
-  ],
-  "isFinished": false
-}
-
----
-Example 5: Missing Required Params (Ask, Do Not Execute)
-Thought: "I cannot execute function get_weather_info yet. Missing required parameters:\n- city (e.g., \\"Cologne\\")\n\nPlease provide a city or your coordinates to proceed. If you share your coordinates, I will call find_city_by_coordinates."
-Correct JSON:
-{
-  "functionCalls": [],
-  "isFinished": true
-}
-
----
-Now, parse the following thought with zero deviation from these rules.`,
+        role: 'system' as const,
+        content: `You are a highly precise system that translates an assistant's thought into a structured JSON object.\nYour single most important job is to distinguish between a plan to **execute a tool** and a plan to **provide a final text answer**.\n\nGlobal execution policy:\n• All "functionCalls" you output are executed **in parallel** within the same iteration (no chaining/order guarantees).\n• If a potential call **depends on the output** of another call and its **required arguments are not explicitly present** in the thought, **omit** that dependent call from this iteration.\n• **Deduplicate**: if the thought repeats the **same tool with identical arguments**, include it **only once** in "functionCalls". (Same function name + same args values ⇒ identical.)\n• **Do not** add, infer, or invent arguments not explicitly stated.\n• If information is missing, do not make a call. Set the "isFinished" field to true.\n\nFollow these rules with absolute precision:\n\n1) Identify the Core Intent\n   • If the thought contains explicit action phrases like "CALL:" and lists a concrete function with literal args, the intent is to **call a tool**. Proceed to Rule 2.\n   • If the thought begins with "DONE:", the intent is to **provide a final answer**. Proceed to Rule 3.\n\n2) Generating Tool Calls (ONLY for Action Intents)\n   • Populate the "functionCalls" array.\n   • Include the "include_in_response" parameter (object) in the args of **every** function call when it is required by the tool schema.\n   • Set "isFinished" to false.\n   • NEVER invent parameters. If a required parameter is not in the thought, omit that call this iteration.\n   • Deduplicate identical calls (same function + identical args).\n\n3) Generating a Final Answer (ONLY for "DONE:" Intents)\n   • "functionCalls" MUST be [].\n   • "isFinished" MUST be true.\n\n---\nExample 1: Action Intent (Single Call)\nThought: "CALL: moodle-agent/search_courses_by_name with course_name=\"Computer Science\" and include_in_response={\"summary\":true,\"completed\":true,\"hidden\":true}"\nCorrect JSON:\n{\n  "functionCalls": [\n    {\n      "function": "search_courses_by_name",\n      "args": {\n        "course_name": "Computer Science",\n        "include_in_response": { "summary": true, "completed": true, "hidden": true }\n      }\n    }\n  ],\n  "isFinished": false\n}\n\n---\nExample 2: Final Answer (DONE)\nThought: "DONE: I can use Moodle functions like search_courses_by_name and get_assignments, but since you asked about capabilities only, here is the description…"\nCorrect JSON:\n{\n  "functionCalls": [],\n  "isFinished": true\n}\n\n---\nExample 3: Parallel + Deduplication\nThought: "CALL: translate_text with text=\"Hello\", targetLang=\"de\". Also CALL: kb_vector_search with query=\"atlas\", topK=3 and include_in_response={\"snippet\":true,\"scores\":true,\"metadata\":true}."\nCorrect JSON:\n{\n  "functionCalls": [\n    {\n      "function": "translate_text",\n      "args": {\n        "text": "Hello",\n        "targetLang": "de",\n        "include_in_response": { "targetLang": true, "sourceLang": false }\n      }\n    },\n    {\n      "function": "kb_vector_search",\n      "args": {\n        "query": "atlas",\n        "topK": 3,\n        "include_in_response": { "snippet": true, "scores": true, "metadata": true }\n      }\n    }\n  ],\n  "isFinished": false\n}\n\n---\nExample 4: Dependent Call Omitted (No docId present)\nThought: "CALL: kb_vector_search with query=\"atlas runbook\". (Will fetch the doc later when I have a literal docId.)"\nCorrect JSON:\n{\n  "functionCalls": [\n    {\n      "function": "kb_vector_search",\n      "args": {\n        "query": "atlas runbook",\n        "include_in_response": { "snippet": true, "scores": true, "metadata": false }\n      }\n    }\n  ],\n  "isFinished": false\n}\n\n---\nExample 5: Missing Required Params (Ask, Do Not Execute)\nThought: "DONE: I cannot execute get_weather_info yet. Missing required parameter city (e.g., \"Cologne\"). Please provide it."\nCorrect JSON:\n{\n  "functionCalls": [],\n  "isFinished": true\n}\n\nNow, parse the following thought with zero deviation from these rules.`,
       },
       {
-        role: 'system',
+        role: 'system' as const,
         content: `Possible function calls: ${JSON.stringify(agentTools, null, 2)}`,
       },
     ],
