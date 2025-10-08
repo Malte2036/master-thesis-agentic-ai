@@ -158,15 +158,20 @@ export class ReActRouter implements Router {
       ) {
         this.logger.log(
           chalk.red(
-            'Detected loop with repeated agent calls. Breaking iteration. Wanted to call:',
+            'Detected loop with repeated agent calls. But continuing the iteration.',
           ),
-          JSON.stringify(structuredThought.functionCalls, null, 2),
         );
-        return {
-          process: routerProcess,
-          error:
-            'I noticed we were repeating the same queries without progress.',
-        };
+        //   this.logger.log(
+        //     chalk.red(
+        //       'Detected loop with repeated agent calls. Breaking iteration. Wanted to call:',
+        //     ),
+        //     JSON.stringify(structuredThought.functionCalls, null, 2),
+        //   );
+        //   return {
+        //     process: routerProcess,
+        //     error:
+        //       'I noticed we were repeating the same queries without progress.',
+        //   };
       }
 
       this.logFunctionCalls(structuredThought.functionCalls);

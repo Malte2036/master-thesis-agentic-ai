@@ -160,11 +160,14 @@ expressApp.post('/ask', async (req, res) => {
     const minimalAgentsCards = availableAgentsCards.map((agent: AgentCard) => ({
       name: agent.name,
       description: agent.capabilities,
-      skills: agent.skills.map((skill: AgentSkill) => ({
-        name: skill.name,
-        description: skill.description,
-        tags: skill.tags,
-      })),
+      // skills: agent.skills.map((skill: AgentSkill) => ({
+      //   name: skill.name,
+      //   description: skill.description,
+      //   tags: skill.tags,
+      // })),
+      skills: agent.skills
+        .map((skill: AgentSkill) => skill.description)
+        .join('\n'),
     }));
     logger.log(chalk.magenta('Available agents:'));
     logger.table(minimalAgentsCards);
