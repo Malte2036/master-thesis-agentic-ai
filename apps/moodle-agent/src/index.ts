@@ -18,7 +18,7 @@ const getAIProvider = (model: string) => {
   });
 };
 
-async function getRouter(model: string): Promise<Router> {
+export async function getRouter(model: string): Promise<Router> {
   const aiProvider = getAIProvider(model);
   const structuredAiProvider = aiProvider;
   return await ReActRouter.createWithMCP(

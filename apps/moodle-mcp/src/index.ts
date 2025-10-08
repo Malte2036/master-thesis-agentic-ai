@@ -526,9 +526,26 @@ mcpServer.tool(
       userInfo,
       include_in_response,
     );
+
     return {
-      content: [{ type: 'text', text: JSON.stringify(filteredUserInfo) }],
+      content: [
+        {
+          type: 'text',
+          text: `
+          We successfully retrieved the user info.
+          His name is ${filteredUserInfo.firstname} ${filteredUserInfo.lastname}.
+          ${filteredUserInfo.username ? `His username is ${filteredUserInfo.username}.` : ''}
+          ${filteredUserInfo.siteurl ? `His site url is ${filteredUserInfo.siteurl}.` : ''}
+          ${filteredUserInfo.userpictureurl ? `His user picture url is ${filteredUserInfo.userpictureurl}.` : ''} 
+          ${filteredUserInfo.userlang ? `His user language is ${filteredUserInfo.userlang}.` : ''}
+          `,
+        },
+      ],
     };
+
+    // return {
+    //   content: [{ type: 'text', text: JSON.stringify(filteredUserInfo) }],
+    // };
   },
 );
 
