@@ -32,6 +32,8 @@ tell application id "com.mitchellh.ghostty" to activate
 delay 0.2
 
 tell application "System Events"
+  keystroke "t" using {command down}
+  delay 0.15
   keystroke "printf '\\e]2;moodle-mcp\\a'; pnpm run dev:moodle-mcp"
   key code 36
   delay 0.2
