@@ -58,6 +58,7 @@ Stelle sicher, dass der Benutzer diese Rolle systemweit zugewiesen bekommt.
 2. Beispiel-Funktionen:
    - `mod_assign_get_assignments`
    - `core_course_get_courses`
+   - `core_course_get_contents`
    - `core_enrol_get_users_courses`
    - `core_user_get_users`
    - `core_webservice_get_site_info`
