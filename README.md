@@ -52,7 +52,7 @@ The project is a polyglot monorepo (TypeScript/Node.js and Python) containing th
   - **Technology:** TypeScript/Node.js standalone services.
   - **Function:** These are the passive "workers" or **tools** that the orchestrator wields. They do not have their own reasoning loops or goals. They simply wait for commands from the orchestrator and execute their specific function (e.g., connect to an external API).
   - **`moodle-mcp`:** Provides tools for interacting with the Moodle Learning Management System.
-    - `get_all_courses`, `search_courses_by_name`, `get_course_contents`, `get_all_assignments_for_all_courses`, `get_assignments_for_course`, `get_user_info`.
+    - `get_all_courses`, `search_courses_by_name`, `get_course_contents`, `get_assignments_for_all_courses`, `get_assignments_for_course`, `get_user_info`.
   - **`calendar-mcp`:** Provides a single, focused tool for calendar operations.
     - `create_calendar_event`.
 

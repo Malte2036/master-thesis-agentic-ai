@@ -140,4 +140,58 @@ describe('Moodle Agent Tests', () => {
       routerResponse?.process?.iterationHistory?.[2]?.naturalLanguageThought,
     ).toContain(MOODLE_TEST_DATA.courses.DIGITAL_HEALTH.assignments[0].name);
   }, 60_000);
+
+  it('should be able to get the latest assignments for a course by course name', async () => {
+    const agent = await getRouter(MODEL);
+
+    const routerResponse = await getRouterResponse(
+      agent,
+      'What are the latest assignments for the course "Digital Health"?',
+      5,
+    );
+
+    expect(routerResponse?.error).toBeUndefined();
+    expect(routerResponse?.process?.iterationHistory).toBeDefined();
+    expect(routerResponse?.process?.iterationHistory?.length).toBe(3);
+
+    // GET COURSE ID
+    expect(
+      routerResponse?.process?.iterationHistory?.[0]?.structuredThought
+        .functionCalls,
+    ).toHaveLength(1);
+    expect(
+      routerResponse?.process?.iterationHistory?.[0]?.structuredThought
+        .functionCalls[0],
+    ).toEqual(
+      expect.objectContaining({
+        function: 'search_courses_by_name',
+        args: expect.objectContaining({ course_name: 'Digital Health' }),
+      }),
+    );
+
+    // GET ASSIGNMENTS
+    expect(
+      routerResponse?.process?.iterationHistory?.[1]?.structuredThought
+        .functionCalls,
+    ).toHaveLength(1);
+    expect(
+      routerResponse?.process?.iterationHistory?.[1]?.structuredThought
+        .functionCalls[0],
+    ).toEqual(
+      expect.objectContaining({
+        function: 'get_assignments_for_course',
+        args: expect.objectContaining({
+          course_id: MOODLE_TEST_DATA.courses.DIGITAL_HEALTH.id,
+        }),
+      }),
+    );
+
+    expect(
+      routerResponse?.process?.iterationHistory?.[2]?.structuredThought
+        .isFinished,
+    ).toBe(true);
+    expect(
+      routerResponse?.process?.iterationHistory?.[2]?.naturalLanguageThought,
+    ).toContain(MOODLE_TEST_DATA.courses.DIGITAL_HEALTH.assignments[0].name);
+  }, 60_000);
 });

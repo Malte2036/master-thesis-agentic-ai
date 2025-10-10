@@ -64,7 +64,7 @@ const MCP_CONFIGS: Record<'moodle-mcp' | 'calendar-mcp', AgentConfig> = {
       //     },
       //   },
       //   {
-      //     name: 'get_all_assignments_for_all_courses',
+      //     name: 'get_assignments_for_all_courses',
       //     description:
       //       'Get all assignments the user has access to. Important: Prefer "assignments_for_course" if you need to get assignments for a specific course.',
       //     parameters: {},

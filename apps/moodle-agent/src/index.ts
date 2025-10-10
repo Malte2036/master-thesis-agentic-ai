@@ -45,7 +45,7 @@ I have the capability to:
 - Get all enrolled courses using \`get_all_courses\` from the moodle-mcp agent.
 - Search for specific courses using \`search_courses_by_name\`.
 - Retrieve course contents with \`get_course_contents\`.
-- Get all assignments using \`get_all_assignments_for_all_courses\`.
+- Get all assignments using \`get_assignments_for_all_courses\`.
 - Get assignments for a specific course using \`get_assignments_for_course\`.
 - View personal user information via \`get_user_info\`.
 
@@ -53,7 +53,7 @@ I have the capability to:
 
 **User**: Do I have any assignments due soon?  
 **Thought**: The user is asking about their current assignments. I need to call a function to retrieve all their assignments.  
-I will now use the \`get_all_assignments_for_all_courses\` function from the moodle-mcp agent and include assignment names and due dates to help answer the user’s question.
+I will now use the \`get_assignments_for_all_courses\` function from the moodle-mcp agent and include assignment names and due dates to help answer the user’s question.
 
 ---
 

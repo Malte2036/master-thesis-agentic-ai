@@ -13,6 +13,7 @@ import chalk from 'chalk';
 import cors from 'cors';
 import express from 'express';
 import { uuidv4, z } from 'zod/v4';
+import { handleToolCalls } from './handle-tool-calls';
 
 const logger = new Logger({ agentName: 'routing-agent' });
 
@@ -152,7 +153,12 @@ expressApp.post('/ask', async (req, res) => {
       },
     } as unknown as AgentClient;
 
-    const availableAgents = [moodleAgent, mockCalendarAgent];
+    const agents: { [key: string]: AgentClient } = {
+      'moodle-agent': moodleAgent,
+      'calendar-agent': mockCalendarAgent,
+    };
+
+    const availableAgents = Object.values(agents);
     const availableAgentsCards = await Promise.all(
       availableAgents.map((agent) => agent.getAgentCard()),
     );
@@ -211,67 +217,7 @@ expressApp.post('/ask', async (req, res) => {
       agentTools,
       `You are **RouterGPT**, the dispatcher in a multi-agent system.`,
       ``,
-      async (logger, functionCalls) => {
-        functionCalls = functionCalls.map((call) => ({
-          ...call,
-          function: call.function.split('/')[0],
-        }));
-
-        logger.log(
-          'Calling tools in parallel:',
-          functionCalls.map((call) => call.function),
-        );
-
-        const parsedDecision = functionCalls[0];
-
-        if (
-          !parsedDecision.args['prompt'] ||
-          typeof parsedDecision.args['prompt'] !== 'string'
-        ) {
-          logger.log('No prompt was provided');
-          return [
-            {
-              content: [
-                {
-                  type: 'text',
-                  text: 'No prompt was provided',
-                },
-              ],
-            },
-          ];
-        }
-
-        let agentClient = undefined;
-        switch (parsedDecision.function) {
-          case 'moodle-agent':
-            agentClient = moodleAgent;
-            break;
-          case 'calendar-agent':
-            agentClient = mockCalendarAgent;
-        }
-
-        let agentResponse = '';
-
-        if (agentClient) {
-          agentResponse = await agentClient.call(
-            `${parsedDecision.args['prompt']}; We want to call the agent because: ${parsedDecision.args['reason']}`,
-          );
-        } else {
-          logger.log('No agent were called');
-        }
-
-        logger.log('Result from agent:', agentResponse);
-        return [
-          {
-            content: [
-              {
-                type: 'text',
-                text: agentResponse,
-              },
-            ],
-          },
-        ];
-      },
+      (logger, functionCalls) => handleToolCalls(logger, functionCalls, agents),
       async () => {
         logger.log('Disconnecting from Client');
       },

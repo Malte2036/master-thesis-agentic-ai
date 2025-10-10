@@ -67,4 +67,19 @@ describe('E2E Routing Agent Test', () => {
     expect(finalResponse).toContain('grade');
     expect(finalResponse).toContain('timemodified');
   }, 60_000);
+
+  it('should combine multiple agents', async () => {
+    const testPrompt =
+      'Get my latest assignment and create a calendar event for it.';
+
+    const finalResponse = await routingAgent.askAndWaitForResponse({
+      prompt: testPrompt,
+    });
+
+    expect(finalResponse).toBeDefined();
+    expect(finalResponse.length).toBeGreaterThan(0);
+    expect(finalResponse.toLowerCase()).toContain('assignment');
+    expect(finalResponse.toLowerCase()).toContain('calendar event');
+    expect(finalResponse.toLowerCase()).toContain('created');
+  }, 120_000);
 });
