@@ -19,6 +19,7 @@
     "zod": "*"
   },
   "devDependencies": {
+    "@master-thesis-agentic-ai/test-utils": "workspace:*",
     "@nx/js": "^20.5.0",
     "@types/node": "^20.11.24",
     "ts-node-dev": "^2.0.0",

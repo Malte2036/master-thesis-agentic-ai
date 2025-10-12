@@ -16,7 +16,10 @@
       "@master-thesis-agentic-ai/agent-framework": [
         "packages/agent-framework/src/index.ts"
       ],
-      "@master-thesis-agentic-ai/types": ["packages/types/src/index.ts"]
+      "@master-thesis-agentic-ai/types": ["packages/types/src/index.ts"],
+      "@master-thesis-agentic-ai/test-utils": [
+        "packages/test-utils/src/index.ts"
+      ]
     }
   },
   "exclude": ["node_modules", "tmp"]

@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  wiremock:
+    image: wiremock/wiremock:3.9.1
+    ports:
+      - '8081:8080' # Expose WireMock on port 8081 to avoid conflicts
+    command: ['--global-response-templating']
+
+  # moodle-mcp:
+  #   image: debug-moodle-agent
+  #   build:
+  #     context: ../../
+  #     dockerfile: apps/moodle-mcp/Dockerfile
+  #   ports:
+  #     - '43100:43100'
+  #   environment:
+  #     - PORT=43100
+  #     - MOODLE_BASE_URL=http://wiremock:8080 # MCP talks to WireMock inside the Docker network
+  #     - MOODLE_TOKEN=test-token
+  #     - NODE_ENV=test
+  #   # depends_on:
+  #   #   - wiremock

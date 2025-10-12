@@ -132,8 +132,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-.devcontainer/ 
+.devcontainer/
 
 docker_data
 
 logs/
+vite.config.*.timestamp*
+vitest.config.*.timestamp*
