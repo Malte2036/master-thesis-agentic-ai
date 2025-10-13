@@ -21,9 +21,13 @@ export async function getStructuredThought(
     extendedStructuredThoughtSystemPrompt,
   );
 
+  const stripInternalThoughts = naturalLanguageThought.slice(
+    naturalLanguageThought.indexOf('</think>') + 8,
+  );
+
   const structuredResponse =
     await structuredAiProvider.generateJson<StructuredThoughtResponse>(
-      naturalLanguageThought,
+      stripInternalThoughts,
       structuredSystemPrompt,
       StructuredThoughtResponseSchema,
       0.1,
