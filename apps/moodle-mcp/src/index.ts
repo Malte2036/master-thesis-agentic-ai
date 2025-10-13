@@ -223,6 +223,14 @@ mcpServer.tool(
       );
     }
 
+    logger.log(
+      `get_assignments_for_all_courses: All assignments: ${JSON.stringify(
+        allAssignments,
+        null,
+        2,
+      )}`,
+    );
+
     const filteredAssignments = allAssignments.map((assignment) =>
       filterAssignment(assignment, include_in_response),
     );

@@ -20,11 +20,27 @@ export const objectToHumanReadableString = <T extends object>(
       } else if (typeof value === 'object' && value !== null) {
         displayValue = JSON.stringify(value);
       } else if (typeof value === 'number') {
-        displayValue = value.toString();
+        displayValue = parsePossibleDate(value);
       } else {
         displayValue = `"${value}"`;
       }
       return `${key}: ${displayValue}`;
     })
     .join(', ');
+};
+
+const parsePossibleDate = (value: string | number): string | number => {
+  if (typeof value !== 'number') {
+    return value;
+  }
+
+  if (!/^\d{10}$/.test(String(value))) {
+    return value;
+  }
+
+  return fromUnixTime(Number(value)).toString();
+};
+
+const fromUnixTime = (value: number): Date => {
+  return new Date(value * 1000);
 };
