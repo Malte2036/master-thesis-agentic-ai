@@ -105,7 +105,7 @@ describe('Moodle Agent Tests', () => {
     ).toBe(true);
   }, 60_000);
 
-  it('get assignments for a course', async () => {
+  it.only('get assignments for a course', async () => {
     const searchValue =
       mockCourseSearchCoursesResponseDigitalHealth.courses[0].fullname;
     await addMoodleMapping('core_webservice_get_site_info', mockUserInfo);
@@ -181,57 +181,75 @@ describe('Moodle Agent Tests', () => {
     );
   }, 60_000);
 
-  // it('should be able to get the latest assignments for a course by course name', async () => {
-  //   const agent = await getRouter(MODEL);
+  it('should be able to get the latest assignments for a course by course name', async () => {
+    const searchValue =
+      mockCourseSearchCoursesResponseDigitalHealth.courses[0].fullname;
+    await addMoodleMapping('core_webservice_get_site_info', mockUserInfo);
+    await addMoodleMapping('core_enrol_get_users_courses', mockEnrolledCourses);
+    await addMoodleMapping(
+      'core_course_search_courses',
+      mockCourseSearchCoursesResponseDigitalHealth,
+      {
+        criterianame: 'search',
+        criteriavalue: searchValue,
+      },
+    );
+    await addMoodleMapping('mod_assign_get_assignments', mockAssignments);
 
-  //   const routerResponse = await getRouterResponse(
-  //     agent,
-  //     'What are the latest assignments for the course "Digital Health"?',
-  //     5,
-  //   );
+    const agent = await getRouter(MODEL);
 
-  //   expect(routerResponse?.error).toBeUndefined();
-  //   expect(routerResponse?.process?.iterationHistory).toBeDefined();
-  //   expect(routerResponse?.process?.iterationHistory?.length).toBe(3);
+    const routerResponse = await getRouterResponse(
+      agent,
+      `What are the latest assignments for the course "${searchValue}"?`,
+      5,
+    );
 
-  //   // GET COURSE ID
-  //   expect(
-  //     routerResponse?.process?.iterationHistory?.[0]?.structuredThought
-  //       .functionCalls,
-  //   ).toHaveLength(1);
-  //   expect(
-  //     routerResponse?.process?.iterationHistory?.[0]?.structuredThought
-  //       .functionCalls[0],
-  //   ).toEqual(
-  //     expect.objectContaining({
-  //       function: 'search_courses_by_name',
-  //       args: expect.objectContaining({ course_name: 'Digital Health' }),
-  //     }),
-  //   );
+    expect(routerResponse?.error).toBeUndefined();
+    expect(routerResponse?.process?.iterationHistory).toBeDefined();
+    expect(routerResponse?.process?.iterationHistory?.length).toBe(3);
 
-  //   // GET ASSIGNMENTS
-  //   expect(
-  //     routerResponse?.process?.iterationHistory?.[1]?.structuredThought
-  //       .functionCalls,
-  //   ).toHaveLength(1);
-  //   expect(
-  //     routerResponse?.process?.iterationHistory?.[1]?.structuredThought
-  //       .functionCalls[0],
-  //   ).toEqual(
-  //     expect.objectContaining({
-  //       function: 'get_assignments_for_course',
-  //       args: expect.objectContaining({
-  //         course_id: MOODLE_TEST_DATA.courses.DIGITAL_HEALTH.id,
-  //       }),
-  //     }),
-  //   );
+    // GET COURSE ID
+    expect(
+      routerResponse?.process?.iterationHistory?.[0]?.structuredThought
+        .functionCalls,
+    ).toHaveLength(1);
+    expect(
+      routerResponse?.process?.iterationHistory?.[0]?.structuredThought
+        .functionCalls[0],
+    ).toEqual(
+      expect.objectContaining({
+        function: 'search_courses_by_name',
+        args: expect.objectContaining({ course_name: searchValue }),
+      }),
+    );
 
-  //   expect(
-  //     routerResponse?.process?.iterationHistory?.[2]?.structuredThought
-  //       .isFinished,
-  //   ).toBe(true);
-  //   expect(
-  //     routerResponse?.process?.iterationHistory?.[2]?.naturalLanguageThought,
-  //   ).toContain(MOODLE_TEST_DATA.courses.DIGITAL_HEALTH.assignments[0].name);
-  // }, 60_000);
+    // GET ASSIGNMENTS
+    expect(
+      routerResponse?.process?.iterationHistory?.[1]?.structuredThought
+        .functionCalls,
+    ).toHaveLength(1);
+    expect(
+      routerResponse?.process?.iterationHistory?.[1]?.structuredThought
+        .functionCalls[0],
+    ).toEqual(
+      expect.objectContaining({
+        function: 'get_assignments_for_course',
+        args: expect.objectContaining({
+          course_id: mockCourseSearchCoursesResponseDigitalHealth.courses[0].id,
+        }),
+      }),
+    );
+
+    expect(
+      routerResponse?.process?.iterationHistory?.[2]?.structuredThought
+        .isFinished,
+    ).toBe(true);
+    expect(
+      routerResponse?.process?.iterationHistory?.[2]?.naturalLanguageThought,
+    ).toContain(
+      mockCourseSearchCoursesResponseDigitalHealth.courses[0].assignments.sort(
+        (a, b) => b.duedate - a.duedate,
+      )[0].name,
+    );
+  }, 60_000);
 });

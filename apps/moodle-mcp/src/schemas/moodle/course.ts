@@ -57,6 +57,7 @@ export const CoursesResponseSchema = z.array(CourseSchema);
 export type MinimalCourse = z.infer<typeof MinimalCourseSchema>;
 export type Course = z.infer<typeof CourseSchema>;
 export type CoursesResponse = z.infer<typeof CoursesResponseSchema>;
+export type SearchCourse = z.infer<typeof SearchCourseSchema>;
 
 export const SearchCoursesResponseSchema = z.object({
   total: z.number(),

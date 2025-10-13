@@ -7,10 +7,23 @@ import { createResponseError } from '@master-thesis-agentic-ai/types';
 import dotenv from 'dotenv';
 import { z } from 'zod';
 import { MoodleProvider } from './providers/moodleProvider';
-import { Assignment } from './schemas/moodle/assignment';
-import { Course } from './schemas/moodle/course';
-import { CourseContent } from './schemas/moodle/course_content';
-import { UserInfo } from './schemas/moodle/user';
+import {
+  filterAssignment,
+  includeAssignmentInResponseSchema,
+} from './schemas/moodle/assignment.utils';
+import {
+  filterCourse,
+  includeCourseInResponseSchema,
+} from './schemas/moodle/course.utils';
+import {
+  filterCourseContent,
+  includeCourseContentInResponseSchema,
+} from './schemas/moodle/course_content.utils';
+import {
+  filterUserInfo,
+  includeUserInfoInResponseSchema,
+} from './schemas/moodle/user.utils';
+import { objectToHumanReadableString } from './utils/general.utils';
 
 dotenv.config();
 
@@ -30,274 +43,6 @@ const mcpServer = mcpServerFramework.getServer();
 const moodleToken = process.env.MOODLE_TOKEN;
 if (!moodleToken) {
   throw new Error('MOODLE_TOKEN is not set');
-}
-const includeCourseInResponseSchema = z
-  .object({
-    summary: z
-      .boolean()
-      .nullish()
-      .describe('Whether to include the course summary in the response'),
-    courseimage: z
-      .boolean()
-      .nullish()
-      .describe('Whether to include the course image in the response'),
-    displayname: z
-      .boolean()
-      .nullish()
-      .describe('Whether to include the course display name in the response'),
-    completed: z
-      .boolean()
-      .nullish()
-      .describe(
-        'Whether to include the course completed status in the response',
-      ),
-    startdate: z
-      .boolean()
-      .nullish()
-      .describe('Whether to include the course start date in the response'),
-    enddate: z
-      .boolean()
-      .nullish()
-      .describe('Whether to include the course end date in the response'),
-    isfavourite: z
-      .boolean()
-      .nullish()
-      .describe(
-        'Whether to include the course favourite status in the response',
-      ),
-    hidden: z
-      .boolean()
-      .nullish()
-      .describe('Whether to include the course hidden status in the response'),
-  })
-  .nullish();
-
-const includeCourseContentInResponseSchema = z
-  .object({
-    summary: z.boolean().nullish(),
-    modules: z
-      .object({
-        description: z
-          .boolean()
-          .nullish()
-          .describe(
-            'Whether to include the module description in the response',
-          ),
-        modname: z
-          .boolean()
-          .nullish()
-          .describe('Whether to include the module name in the response'),
-        contents: z
-          .boolean()
-          .nullish()
-          .describe('Whether to include the module contents in the response'),
-      })
-      .nullish()
-      .describe('Whether to include the module in the response'),
-  })
-  .nullish();
-
-const includeAssignmentInResponseSchema = z.object({
-  course: z
-    .boolean()
-    .nullish()
-    .describe(
-      'Whether to include the course id the assignment belongs to in the response.',
-    ),
-  nosubmissions: z
-    .boolean()
-    .nullish()
-    .describe(
-      'Whether to include the assignment no submissions in the response.',
-    ),
-  submissiondrafts: z
-    .boolean()
-    .nullish()
-    .describe(
-      'Whether to include the assignment submission drafts in the response.',
-    ),
-  duedate: z
-    .boolean()
-    .nullish()
-    .describe('Whether to include the assignment due date in the response.'),
-  allowsubmissionsfromdate: z
-    .boolean()
-    .nullish()
-    .describe(
-      'Whether to include the assignment allow submissions from date in the response.',
-    ),
-  grade: z
-    .boolean()
-    .nullish()
-    .describe('Whether to include the assignment grade in the response.'),
-  timemodified: z
-    .boolean()
-    .nullish()
-    .describe(
-      'Whether to include the assignment timemodified in the response.',
-    ),
-  completionsubmit: z
-    .boolean()
-    .nullish()
-    .describe(
-      'Whether to include the assignment completionsubmit in the response.',
-    ),
-  cutoffdate: z
-    .boolean()
-    .nullish()
-    .describe('Whether to include the assignment cutoffdate in the response.'),
-  gradingduedate: z
-    .boolean()
-    .nullish()
-    .describe(
-      'Whether to include the assignment gradingduedate in the response.',
-    ),
-  teamsubmission: z
-    .boolean()
-    .nullish()
-    .describe(
-      'Whether to include the assignment teamsubmission in the response.',
-    ),
-  requireallteammemberssubmit: z
-    .boolean()
-    .nullish()
-    .describe(
-      'Whether to include the assignment requireallteammemberssubmit in the response.',
-    ),
-  teamsubmissiongroupingid: z
-    .boolean()
-    .nullish()
-    .describe(
-      'Whether to include the assignment teamsubmissiongroupingid in the response.',
-    ),
-  maxattempts: z
-    .boolean()
-    .nullish()
-    .describe('Whether to include the assignment maxattempts in the response.'),
-  intro: z
-    .boolean()
-    .nullish()
-    .describe('Whether to include the assignment intro in the response.'),
-  timelimit: z
-    .boolean()
-    .nullish()
-    .describe('Whether to include the assignment timelimit in the response.'),
-});
-
-const includeUserInfoInResponseSchema = z.object({
-  username: z
-    .boolean()
-    .nullish()
-    .describe(
-      'Whether to include the username in the response. Often this is an email address.',
-    ),
-  firstname: z
-    .boolean()
-    .nullish()
-    .describe('Whether to include the first name in the response'),
-  lastname: z
-    .boolean()
-    .nullish()
-    .describe('Whether to include the last name in the response'),
-  siteurl: z
-    .boolean()
-    .nullish()
-    .describe('Whether to include the site url in the response'),
-  userpictureurl: z
-    .boolean()
-    .nullish()
-    .describe('Whether to include the user picture url in the response'),
-  userlang: z
-    .boolean()
-    .nullish()
-    .describe('Whether to include the user language in the response'),
-});
-
-/**
- * Filters a course object based on the include_in_response configuration
- */
-function filterCourseByInclude(
-  data: { id: number; fullname: string },
-  include_in_response?: z.infer<typeof includeCourseInResponseSchema>,
-): Partial<Course> | undefined {
-  const filteredCourse: Partial<Course> = {
-    id: data.id,
-    fullname: data.fullname,
-  };
-
-  Object.entries(include_in_response ?? {}).forEach(([key, value]) => {
-    if (value) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (filteredCourse as any)[key] = data[key as keyof typeof data];
-    }
-  });
-
-  return filteredCourse;
-}
-
-/**
- * Filters an assignment object based on the include_in_response configuration
- */
-function filterAssignmentByInclude(
-  data: Assignment,
-  include_in_response?: z.infer<typeof includeAssignmentInResponseSchema>,
-): Partial<Assignment> {
-  const filteredAssignment: Partial<Assignment> = {
-    id: data.id,
-    name: data.name,
-  };
-
-  Object.entries(include_in_response ?? {}).forEach(([key, value]) => {
-    if (value) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (filteredAssignment as any)[key] = data[key as keyof typeof data];
-    }
-  });
-
-  return filteredAssignment;
-}
-
-function filterCourseContentByInclude(
-  data: CourseContent,
-  include_in_response?: z.infer<typeof includeCourseContentInResponseSchema>,
-): Partial<CourseContent> | undefined {
-  const filteredCourseContent: Partial<CourseContent> = {
-    id: data.id,
-    name: data.name,
-  };
-
-  Object.entries(include_in_response ?? {}).forEach(([key, value]) => {
-    if (value) {
-      const valueToInclude = data[key as keyof typeof data];
-
-      if (key === 'modules' && Array.isArray(valueToInclude)) {
-        const modules = valueToInclude as CourseContent['modules'];
-        // TODO: Filter modules by include_in_response
-        filteredCourseContent.modules = modules;
-      } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (filteredCourseContent as any)[key] = valueToInclude;
-      }
-    }
-  });
-
-  return filteredCourseContent;
-}
-
-function filterUserInfoByInclude(
-  data: UserInfo,
-  include_in_response?: z.infer<typeof includeUserInfoInResponseSchema>,
-): Partial<UserInfo> {
-  const filteredUserInfo: Partial<UserInfo> = {};
-
-  Object.entries(include_in_response ?? {}).forEach(([key, value]) => {
-    if (value) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (filteredUserInfo as any)[key] = data[key as keyof typeof data];
-    }
-  });
-
-  return filteredUserInfo;
 }
 
 mcpServer.tool(
@@ -322,14 +67,17 @@ mcpServer.tool(
     );
 
     const filteredCourses = courses.map((course) =>
-      filterCourseByInclude(course, include_in_response),
+      filterCourse(course, include_in_response),
     );
 
-    logger.debug(
-      `get_all_courses: ${JSON.stringify(filteredCourses, null, 2)}`,
-    );
+    const humanReadableResponse = `We found ${
+      filteredCourses.length
+    } courses.\n${filteredCourses
+      .map((course) => `- ${objectToHumanReadableString(course)}`)
+      .join('\n')}`;
+
     return {
-      content: [{ type: 'text', text: JSON.stringify(filteredCourses) }],
+      content: [{ type: 'text', text: humanReadableResponse }],
     };
   },
 );
@@ -378,17 +126,23 @@ mcpServer.tool(
       ...searchResponse.courses.find((c) => c.id === course.id),
     }));
 
-    const filteredMerged = merged.map((course) =>
-      filterCourseByInclude(course, include_in_response),
-    );
+    const filteredMerged = merged
+      .map((course) => filterCourse(course, include_in_response))
+      .filter((course) => course !== undefined);
 
     logger.log(`merged: ${JSON.stringify(filteredMerged, null, 2)}`);
+
+    const humanReadableResponse = `We found ${
+      filteredMerged.length
+    } courses matching the search query "${course_name}":\n${filteredMerged
+      .map((course) => `- ${objectToHumanReadableString(course)}`)
+      .join('\n')}`;
 
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(filteredMerged),
+          text: humanReadableResponse,
         },
       ],
     };
@@ -412,12 +166,20 @@ mcpServer.tool(
       course_id,
     );
 
-    const filteredCourseContents = courseContents.map((courseContent) =>
-      filterCourseContentByInclude(courseContent, include_in_response),
-    );
+    const filteredCourseContents = courseContents
+      .map((courseContent) =>
+        filterCourseContent(courseContent, include_in_response),
+      )
+      .filter((course) => course !== undefined);
+
+    const humanReadableResponse = `We found ${
+      filteredCourseContents.length
+    } course contents for course ${course_id}.\n${filteredCourseContents
+      .map((courseContent) => `- ${objectToHumanReadableString(courseContent)}`)
+      .join('\n')}`;
 
     return {
-      content: [{ type: 'text', text: JSON.stringify(filteredCourseContents) }],
+      content: [{ type: 'text', text: humanReadableResponse }],
     };
   },
 );
@@ -462,10 +224,16 @@ mcpServer.tool(
     }
 
     const filteredAssignments = allAssignments.map((assignment) =>
-      filterAssignmentByInclude(assignment, include_in_response),
+      filterAssignment(assignment, include_in_response),
     );
+    const humanReadableResponse = `We found ${
+      filteredAssignments.length
+    } assignments for all courses.
+    ${filteredAssignments
+      .map((assignment) => `- ${objectToHumanReadableString(assignment)}`)
+      .join('\n')}`;
     return {
-      content: [{ type: 'text', text: JSON.stringify(filteredAssignments) }],
+      content: [{ type: 'text', text: humanReadableResponse }],
     };
   },
 );
@@ -492,21 +260,30 @@ mcpServer.tool(
     );
 
     if (!course || !course.assignments) {
+      logger.log(
+        `get_assignments_for_course: No assignments found for course ${course_id}`,
+      );
       return {
         content: [
           {
             type: 'text',
-            text: JSON.stringify([]),
+            text: `We found no assignments for course ${course_id}.`,
           },
         ],
       };
     }
 
     const filteredAssignments = course.assignments.map((assignment) =>
-      filterAssignmentByInclude(assignment, include_in_response),
+      filterAssignment(assignment, include_in_response),
     );
+    const humanReadableResponse = `We found ${
+      filteredAssignments.length
+    } assignments for course ${course_id}.
+    ${filteredAssignments
+      .map((assignment) => `- ${objectToHumanReadableString(assignment)}`)
+      .join('\n')}`;
     return {
-      content: [{ type: 'text', text: JSON.stringify(filteredAssignments) }],
+      content: [{ type: 'text', text: humanReadableResponse }],
     };
   },
 );
@@ -522,29 +299,13 @@ mcpServer.tool(
     if (!userInfo) {
       throw createResponseError('User info not found', 400);
     }
-    const filteredUserInfo = filterUserInfoByInclude(
-      userInfo,
-      include_in_response,
-    );
+    const filteredUserInfo = filterUserInfo(userInfo, include_in_response);
 
-    // return {
-    //   content: [
-    //     {
-    //       type: 'text',
-    //       text: `
-    //       We successfully retrieved the user info.
-    //       His name is ${filteredUserInfo.firstname} ${filteredUserInfo.lastname}.
-    //       ${filteredUserInfo.username ? `His username is ${filteredUserInfo.username}.` : ''}
-    //       ${filteredUserInfo.siteurl ? `His site url is ${filteredUserInfo.siteurl}.` : ''}
-    //       ${filteredUserInfo.userpictureurl ? `His user picture url is ${filteredUserInfo.userpictureurl}.` : ''}
-    //       ${filteredUserInfo.userlang ? `His user language is ${filteredUserInfo.userlang}.` : ''}
-    //       `,
-    //     },
-    //   ],
-    // };
-
+    const humanReadableResponse = `We successfully retrieved the user info.\n${objectToHumanReadableString(
+      filteredUserInfo,
+    )}`;
     return {
-      content: [{ type: 'text', text: JSON.stringify(filteredUserInfo) }],
+      content: [{ type: 'text', text: humanReadableResponse }],
     };
   },
 );
