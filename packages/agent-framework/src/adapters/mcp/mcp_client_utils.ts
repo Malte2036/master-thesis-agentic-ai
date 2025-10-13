@@ -1,15 +1,14 @@
 import { FunctionCall } from '@master-thesis-agentic-ai/types';
-import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { MCPClient } from './mcp_client';
 import { MCPName, getMCPConfig } from '../../config';
 import { Logger } from '../../logger';
+import { MCPClient } from './mcp_client';
 
 export async function callMcpClientInParallel(
   logger: Logger,
   mcpClient: MCPClient,
   functionCalls: FunctionCall[],
   remainingCalls: number,
-): Promise<CallToolResult[]> {
+): Promise<string[]> {
   if (remainingCalls < 0) {
     throw new Error(
       'Maximum number of LLM calls reached. Please try rephrasing your question.',
@@ -32,25 +31,23 @@ export async function callMcpClientInParallel(
           functionCall.args,
         );
 
+        if (result.content[0].type !== 'text') {
+          throw new Error('Result is not a text');
+        }
+        const resultString = result.content[0].text;
+
         logger.debug(
           `Result from ${functionCall.function}: ${JSON.stringify(
-            result,
+            resultString,
             null,
             2,
           )}`,
         );
 
-        return result;
+        return resultString;
       } catch (error) {
         logger.error(`Error calling tool ${functionCall.function}:`, error);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `Error while calling tool ${functionCall.function}: ${error instanceof Error ? error.message : 'Unknown error occurred'}`,
-            },
-          ],
-        };
+        return `Error while calling tool ${functionCall.function}: ${error instanceof Error ? error.message : 'Unknown error occurred'}`;
       }
     }),
   );

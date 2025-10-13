@@ -18,7 +18,6 @@ import { listAgentsToolsToAgentTools } from '../utils';
 import { getNaturalLanguageThought } from './get-natural-language-thought';
 import { getStructuredThought } from './get-structured-thought';
 import { AgentTool } from './types';
-import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 export class ReActRouter implements Router {
   constructor(
@@ -32,7 +31,7 @@ export class ReActRouter implements Router {
       logger: Logger,
       functionCalls: FunctionCall[],
       remainingCalls: number,
-    ) => Promise<CallToolResult[]>,
+    ) => Promise<string[]>,
     private readonly disconnectClient?: () => Promise<void>,
   ) {}
 

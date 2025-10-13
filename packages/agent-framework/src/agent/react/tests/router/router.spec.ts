@@ -39,12 +39,8 @@ describe('ReActRouter', () => {
           switch (functionCalls[0].function) {
             case 'get_weather':
               return Promise.resolve([
-                {
-                  content: [
-                    { type: 'text', text: '{location: Tokyo, weather: sunny}' },
-                  ],
-                },
-              ] satisfies CallToolResult[]);
+                'In Tokyo, the weather is sunny',
+              ] satisfies string[]);
             default:
               throw new Error(`Unknown function: ${functionCalls[0].function}`);
           }

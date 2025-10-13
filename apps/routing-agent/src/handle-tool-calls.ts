@@ -4,7 +4,7 @@ export const handleToolCalls = async (
   logger: Logger,
   functionCalls: any[],
   agents: { [key: string]: AgentClient },
-): Promise<any[]> => {
+): Promise<string[]> => {
   functionCalls = functionCalls.map((call) => ({
     ...call,
     function: call.function.split('/')[0],
@@ -22,16 +22,7 @@ export const handleToolCalls = async (
     typeof parsedDecision.args['prompt'] !== 'string'
   ) {
     logger.log('No prompt was provided');
-    return [
-      {
-        content: [
-          {
-            type: 'text',
-            text: 'No prompt was provided',
-          },
-        ],
-      },
-    ];
+    return ['No prompt was provided'];
   }
 
   const agentClient = agents[parsedDecision.function];
@@ -52,14 +43,5 @@ export const handleToolCalls = async (
       ? agentResponse.response
       : agentResponse;
 
-  return [
-    {
-      content: [
-        {
-          type: 'text',
-          text: String(textResponse),
-        },
-      ],
-    },
-  ];
+  return [String(textResponse)];
 };

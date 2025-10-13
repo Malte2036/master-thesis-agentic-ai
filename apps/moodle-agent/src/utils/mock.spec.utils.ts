@@ -47,14 +47,13 @@ export const mockEnrolledCourses = [
   },
   {
     id: 104,
-    fullname: 'Digital World',
-    categoryname: 'Digital World',
-    shortname: 'DIGITAL-WORLD',
-    summary:
-      'Learn about the digital world and how it works. This course will teach you the basics of digital technology and how it is used in the world today.',
-    contacts: [{ id: 4, fullname: 'Angelika Musterfrau' }],
-    startdate: 1718121600,
-    enddate: 1720473600,
+    shortname: 'CHEM101',
+    fullname: 'General Chemistry I',
+    categoryname: 'Science',
+    summary: 'An introductory course to general chemistry.',
+    contacts: [{ id: 9, fullname: 'John Doe' }],
+    startdate: 1675209600, // 2023-02-01
+    enddate: 1675209600 + 15 * 7 * 24 * 3600,
     visible: 1,
     isfavourite: false,
     hidden: false,
@@ -64,13 +63,13 @@ export const mockEnrolledCourses = [
         course: 104,
         nosubmissions: 0,
         submissiondrafts: 0,
-        duedate: 1718121600,
-        allowsubmissionsfromdate: 1718121600,
+        duedate: 1676419200, // 2023-02-15
+        allowsubmissionsfromdate: 1675209600, // 2023-02-01
         grade: 0,
-        timemodified: 1718121600,
+        timemodified: 1675209600,
         completionsubmit: 0,
-        cutoffdate: 1718121600,
-        gradingduedate: 1718121600,
+        cutoffdate: 1676419200, // 2023-02-15
+        gradingduedate: 1677024000, // 2023-02-22
         teamsubmission: 0,
         requireallteammemberssubmit: 0,
         teamsubmissiongroupingid: 0,
