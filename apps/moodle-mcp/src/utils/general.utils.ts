@@ -125,35 +125,8 @@ function quoteIfNeeded(
 }
 
 // Timezone-aware date formatting for Moodle timestamps
-function toIsoBerlin(unixSeconds: number): string {
-  const d = new Date(unixSeconds * 1000);
-  const tz = 'Europe/Berlin';
-  const y = new Intl.DateTimeFormat('en-CA', {
-    timeZone: tz,
-    year: 'numeric',
-  }).format(d);
-  const m = new Intl.DateTimeFormat('en-CA', {
-    timeZone: tz,
-    month: '2-digit',
-  }).format(d);
-  const day = new Intl.DateTimeFormat('en-CA', {
-    timeZone: tz,
-    day: '2-digit',
-  }).format(d);
-  const h = new Intl.DateTimeFormat('en-GB', {
-    timeZone: tz,
-    hour: '2-digit',
-    hour12: false,
-  }).format(d);
-  const min = new Intl.DateTimeFormat('en-GB', {
-    timeZone: tz,
-    minute: '2-digit',
-  }).format(d);
-  const s = new Intl.DateTimeFormat('en-GB', {
-    timeZone: tz,
-    second: '2-digit',
-  }).format(d);
-  return `${y}-${m}-${day}T${h}:${min}:${s}`;
+function toDateString(unixSeconds: number): string {
+  return new Date(unixSeconds * 1000).toString();
 }
 
 // Generate column specifications from Zod schema
@@ -471,7 +444,7 @@ export const objectsToHumanReadableString = <T extends object>(
       header: key,
       transform: (value: unknown) => {
         if (typeof value === 'number' && /^\d{10}$/.test(String(value))) {
-          return toIsoBerlin(value);
+          return toDateString(value);
         }
         return formatCell(value, { nullAs: '' });
       },
