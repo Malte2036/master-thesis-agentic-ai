@@ -23,7 +23,14 @@ import {
   filterUserInfo,
   includeUserInfoInResponseSchema,
 } from './schemas/moodle/user.utils';
-import { objectToHumanReadableString } from './utils/general.utils';
+import {
+  objectsToHumanReadableString,
+  generateColumnsFromZod,
+} from './utils/general.utils';
+import { CourseSchema } from './schemas/moodle/course';
+import { AssignmentSchema } from './schemas/moodle/assignment';
+import { CourseContentSchema } from './schemas/moodle/course_content';
+import { UserInfoSchema } from './schemas/moodle/user';
 
 dotenv.config();
 
@@ -72,9 +79,23 @@ mcpServer.tool(
 
     const humanReadableResponse = `We found ${
       filteredCourses.length
-    } courses.\n${filteredCourses
-      .map((course) => `- ${objectToHumanReadableString(course)}`)
-      .join('\n')}`;
+    } courses.\n\n${objectsToHumanReadableString(filteredCourses, {
+      columns: generateColumnsFromZod(CourseSchema, {
+        exclude: ['assignments', 'courseimage', 'displayname'],
+        maxLengths: {
+          fullname: 60,
+          summary: 100,
+        },
+      }),
+      serializeOptions: {
+        observation: {
+          source: 'moodle_api',
+          endpoint: 'get_all_courses',
+          total_courses: filteredCourses.length,
+          generated_at: new Date().toISOString(),
+        },
+      },
+    })}`;
 
     return {
       content: [{ type: 'text', text: humanReadableResponse }],
@@ -134,9 +155,27 @@ mcpServer.tool(
 
     const humanReadableResponse = `We found ${
       filteredMerged.length
-    } courses matching the search query "${course_name}":\n${filteredMerged
-      .map((course) => `- ${objectToHumanReadableString(course)}`)
-      .join('\n')}`;
+    } courses matching the search query "${course_name}":\n\n${objectsToHumanReadableString(
+      filteredMerged,
+      {
+        columns: generateColumnsFromZod(CourseSchema, {
+          exclude: ['assignments', 'courseimage', 'displayname'],
+          maxLengths: {
+            fullname: 60,
+            summary: 100,
+          },
+        }),
+        serializeOptions: {
+          observation: {
+            source: 'moodle_api',
+            endpoint: 'search_courses_by_name',
+            search_query: course_name,
+            total_courses: filteredMerged.length,
+            generated_at: new Date().toISOString(),
+          },
+        },
+      },
+    )}`;
 
     return {
       content: [
@@ -174,9 +213,27 @@ mcpServer.tool(
 
     const humanReadableResponse = `We found ${
       filteredCourseContents.length
-    } course contents for course ${course_id}.\n${filteredCourseContents
-      .map((courseContent) => `- ${objectToHumanReadableString(courseContent)}`)
-      .join('\n')}`;
+    } course contents for course ${course_id}.\n\n${objectsToHumanReadableString(
+      filteredCourseContents,
+      {
+        columns: generateColumnsFromZod(CourseContentSchema, {
+          exclude: ['modules', 'section'],
+          maxLengths: {
+            name: 80,
+            summary: 150,
+          },
+        }),
+        serializeOptions: {
+          observation: {
+            source: 'moodle_api',
+            endpoint: 'get_course_contents',
+            course_id: course_id,
+            total_contents: filteredCourseContents.length,
+            generated_at: new Date().toISOString(),
+          },
+        },
+      },
+    )}`;
 
     return {
       content: [{ type: 'text', text: humanReadableResponse }],
@@ -236,10 +293,39 @@ mcpServer.tool(
     );
     const humanReadableResponse = `We found ${
       filteredAssignments.length
-    } assignments for all courses.
-    ${filteredAssignments
-      .map((assignment) => `- ${objectToHumanReadableString(assignment)}`)
-      .join('\n')}`;
+    } assignments for all courses.\n\n${objectsToHumanReadableString(
+      filteredAssignments,
+      {
+        columns: generateColumnsFromZod(AssignmentSchema, {
+          exclude: [
+            'nosubmissions',
+            'submissiondrafts',
+            'timemodified',
+            'cutoffdate',
+            'gradingduedate',
+            'teamsubmission',
+            'requireallteammemberssubmit',
+            'teamsubmissiongroupingid',
+            'maxattempts',
+            'intro',
+            'timelimit',
+          ],
+          maxLengths: {
+            name: 80,
+          },
+        }),
+        serializeOptions: {
+          observation: {
+            source: 'moodle_api',
+            endpoint: 'get_assignments_for_all_courses',
+            total_assignments: filteredAssignments.length,
+            ...(due_after && { due_after: String(due_after) }),
+            ...(due_before && { due_before: String(due_before) }),
+            generated_at: new Date().toISOString(),
+          },
+        },
+      },
+    )}`;
     return {
       content: [{ type: 'text', text: humanReadableResponse }],
     };
@@ -286,10 +372,39 @@ mcpServer.tool(
     );
     const humanReadableResponse = `We found ${
       filteredAssignments.length
-    } assignments for course ${course_id}.
-    ${filteredAssignments
-      .map((assignment) => `- ${objectToHumanReadableString(assignment)}`)
-      .join('\n')}`;
+    } assignments for course ${course_id}.\n\n${objectsToHumanReadableString(
+      filteredAssignments,
+      {
+        columns: generateColumnsFromZod(AssignmentSchema, {
+          exclude: [
+            'course',
+            'nosubmissions',
+            'submissiondrafts',
+            'timemodified',
+            'cutoffdate',
+            'gradingduedate',
+            'teamsubmission',
+            'requireallteammemberssubmit',
+            'teamsubmissiongroupingid',
+            'maxattempts',
+            'intro',
+            'timelimit',
+          ],
+          maxLengths: {
+            name: 80,
+          },
+        }),
+        serializeOptions: {
+          observation: {
+            source: 'moodle_api',
+            endpoint: 'get_assignments_for_course',
+            course_id: course_id,
+            total_assignments: filteredAssignments.length,
+            generated_at: new Date().toISOString(),
+          },
+        },
+      },
+    )}`;
     return {
       content: [{ type: 'text', text: humanReadableResponse }],
     };
@@ -309,8 +424,27 @@ mcpServer.tool(
     }
     const filteredUserInfo = filterUserInfo(userInfo, include_in_response);
 
-    const humanReadableResponse = `We successfully retrieved the user info.\n${objectToHumanReadableString(
-      filteredUserInfo,
+    const humanReadableResponse = `We successfully retrieved the user info.\n\n${objectsToHumanReadableString(
+      [filteredUserInfo],
+      {
+        columns: generateColumnsFromZod(UserInfoSchema, {
+          exclude: ['siteurl', 'userpictureurl', 'userlang'],
+          maxLengths: {
+            username: 30,
+            firstname: 30,
+            lastname: 30,
+            fullname: 60,
+            email: 50,
+          },
+        }),
+        serializeOptions: {
+          observation: {
+            source: 'moodle_api',
+            endpoint: 'get_user_info',
+            generated_at: new Date().toISOString(),
+          },
+        },
+      },
     )}`;
     return {
       content: [{ type: 'text', text: humanReadableResponse }],

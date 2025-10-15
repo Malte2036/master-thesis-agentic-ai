@@ -46,7 +46,7 @@ describe('Moodle Agent Tests', () => {
     ).toBe(true);
   }, 60_000);
 
-  it.only('should be able to determine how to get the start date of a course', async () => {
+  it('should be able to determine how to get the start date of a course', async () => {
     const searchValue = 'UX Design';
 
     await addMoodleMapping('core_webservice_get_site_info', mockUserInfo);
@@ -108,7 +108,7 @@ describe('Moodle Agent Tests', () => {
     ).toBe(true);
   }, 60_000);
 
-  it('get assignments for a course', async () => {
+  it.only('get assignments for a course', async () => {
     const searchValue =
       mockCourseSearchCoursesResponseDigitalHealth.courses[0].fullname;
     await addMoodleMapping('core_webservice_get_site_info', mockUserInfo);
@@ -176,6 +176,12 @@ describe('Moodle Agent Tests', () => {
       routerResponse?.process?.iterationHistory?.[2]?.structuredThought
         .isFinished,
     ).toBe(true);
+    expect(
+      routerResponse?.process?.iterationHistory?.[2]?.naturalLanguageThought,
+    ).toContain(
+      mockCourseSearchCoursesResponseDigitalHealth.courses[0].assignments[0]
+        .name,
+    );
     expect(
       routerResponse?.process?.iterationHistory?.[2]?.naturalLanguageThought,
     ).toContain(

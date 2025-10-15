@@ -1,29 +1,32 @@
 import { z } from 'zod';
 
 export const CourseContentSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  summary: z.string(),
-  section: z.number(),
-  modules: z.array(
-    z.object({
-      id: z.number(),
-      name: z.string(),
-      description: z.string().optional(),
-      modname: z.string(),
-      contents: z
-        .array(
-          z.object({
-            type: z.string(),
-            filename: z.string(),
-            fileurl: z.string(),
-            mimetype: z.string().optional(),
-            author: z.string().nullable(),
-          }),
-        )
-        .optional(),
-    }),
-  ),
+  id: z.number().describe('Content ID'),
+  name: z.string().describe('Content Name'),
+  summary: z.string().describe('Summary'),
+  section: z.number().describe('Section'),
+  modules: z
+    .array(
+      z.object({
+        id: z.number().describe('Module ID'),
+        name: z.string().describe('Module Name'),
+        description: z.string().optional().describe('Description'),
+        modname: z.string().describe('Module Type'),
+        contents: z
+          .array(
+            z.object({
+              type: z.string().describe('Content Type'),
+              filename: z.string().describe('Filename'),
+              fileurl: z.string().describe('File URL'),
+              mimetype: z.string().optional().describe('MIME Type'),
+              author: z.string().nullable().describe('Author'),
+            }),
+          )
+          .optional()
+          .describe('Contents'),
+      }),
+    )
+    .describe('Modules'),
 });
 
 export const CourseContentsResponseSchema = z.array(CourseContentSchema);

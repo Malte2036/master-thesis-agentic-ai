@@ -2,11 +2,14 @@ import { z } from 'zod';
 import { AssignmentSchema } from './assignment';
 
 export const MinimalCourseSchema = z.object({
-  id: z.number(),
-  fullname: z.string(),
+  id: z.number().describe('Course ID'),
+  fullname: z.string().describe('Course Name'),
   // shortname: z.string(),
   // timemodified: z.number().optional(),
-  assignments: z.array(z.lazy(() => AssignmentSchema)).optional(),
+  assignments: z
+    .array(z.lazy(() => AssignmentSchema))
+    .optional()
+    .describe('Assignments'),
 });
 
 export const SearchCourseSchema = MinimalCourseSchema.extend({
@@ -33,21 +36,22 @@ export const SearchCourseSchema = MinimalCourseSchema.extend({
 
 // Schema for a course
 export const CourseSchema = MinimalCourseSchema.extend({
-  displayname: z.string().nullish(),
+  displayname: z.string().nullish().describe('Display Name'),
   // enrolledusercount: z.number(),
-  visible: z.number(),
+  visible: z.number().describe('Visible'),
   summary: z
     .string()
     .nullable()
-    .transform((val) => (val ? val.slice(0, 1000) : null)), // temp: limit summary to 1000 characters to prevent context window issues
+    .transform((val) => (val ? val.slice(0, 1000) : null))
+    .describe('Summary'), // temp: limit summary to 1000 characters to prevent context window issues
 
-  courseimage: z.string().nullish(),
-  completed: z.boolean().nullish(),
-  startdate: z.number(),
-  enddate: z.number(),
+  courseimage: z.string().nullish().describe('Course Image'),
+  completed: z.boolean().nullish().describe('Completed'),
+  startdate: z.number().describe('Start Date'),
+  enddate: z.number().describe('End Date'),
   // lastaccess: z.number().nullable(),
-  isfavourite: z.boolean(),
-  hidden: z.boolean(),
+  isfavourite: z.boolean().describe('Is Favourite'),
+  hidden: z.boolean().describe('Hidden'),
 });
 
 // Schema for the complete Moodle API response
