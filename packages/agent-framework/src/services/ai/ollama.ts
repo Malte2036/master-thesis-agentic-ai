@@ -2,7 +2,6 @@ import { z } from 'zod/v4';
 import { AIProvider, AIGenerateTextOptions } from './types';
 import { Ollama } from 'ollama';
 import { Logger } from '../../logger';
-import chalk from 'chalk';
 
 export class OllamaProvider implements AIProvider {
   private readonly client: Ollama;

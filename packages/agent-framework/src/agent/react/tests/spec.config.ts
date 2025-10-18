@@ -28,7 +28,8 @@ export const TEST_AI_PROVIDERS: {
   //   { provider: 'ollama', model: 'mistral:instruct' },
   //   { provider: 'ollama', model: 'qwen3:0.6b' },
   // { provider: 'ollama', model: 'qwen3:1.7b' },
-  { provider: 'ollama', model: 'qwen3:4b' }, // MAIN MODEL
+  // { provider: 'ollama', model: 'qwen3:4b' }, // MAIN MODEL
+  { provider: 'ollama', model: 'qwen3:8b' },
   //   { provider: 'ollama', model: 'qwen3:30b' },
   // { provider: 'ollama', model: 'qwen3:4b-thinking-2507-q4_K_M' },
   //   { provider: 'ollama', model: 'deepseek-r1:1.5b' },

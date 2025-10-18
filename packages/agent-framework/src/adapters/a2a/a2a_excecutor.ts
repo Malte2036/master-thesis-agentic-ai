@@ -16,7 +16,7 @@ export class MyAgentExecutor implements AgentExecutor {
 
   constructor(
     private readonly logger: Logger,
-    private readonly router: Router,
+    private readonly getRouter: () => Promise<Router>,
     private readonly aiProvider: AIProvider,
   ) {}
 
@@ -90,7 +90,8 @@ export class MyAgentExecutor implements AgentExecutor {
     };
     eventBus.publish(workingStatusUpdate);
 
-    const generator = this.router.routeQuestion(userMessageText, 5);
+    const router = await this.getRouter();
+    const generator = router.routeQuestion(userMessageText, 5);
     let results: RouterResponse;
     while (true) {
       const { done, value } = await generator.next();

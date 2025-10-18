@@ -40,7 +40,7 @@ export class RoutingAgentClient {
       body: JSON.stringify({
         router: 'react',
         max_iterations: 5,
-        model: 'qwen3:4b',
+        model: 'qwen3:8b',
         ...request,
       }),
     });

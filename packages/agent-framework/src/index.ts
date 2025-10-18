@@ -18,10 +18,10 @@ export function createA2AFramework(
   logger: Logger,
   port: number,
   card: MinimalAgentCard,
-  router: Router,
+  getRouter: () => Promise<Router>,
   aiProvider: AIProvider,
 ) {
-  return new A2AServer(logger, port, card, router, aiProvider);
+  return new A2AServer(logger, port, card, getRouter, aiProvider);
 }
 
 export * from './adapters';

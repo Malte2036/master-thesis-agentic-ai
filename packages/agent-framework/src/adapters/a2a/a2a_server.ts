@@ -25,7 +25,7 @@ export class A2AServer {
     private readonly logger: Logger,
     private port: number,
     card: MinimalAgentCard,
-    router: Router,
+    getRouter: () => Promise<Router>,
     aiProvider: AIProvider,
   ) {
     this.card = {
@@ -46,7 +46,7 @@ export class A2AServer {
     const taskStore: TaskStore = new InMemoryTaskStore();
     const agentExecutor: AgentExecutor = new MyAgentExecutor(
       this.logger,
-      router,
+      getRouter,
       aiProvider,
     );
 
