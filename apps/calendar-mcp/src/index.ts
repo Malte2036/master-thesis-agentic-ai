@@ -89,6 +89,22 @@ mcpServer.tool(
   },
 );
 
+mcpServer.tool(
+  'get_calendar_events',
+  'Get all calendar events for the current user.',
+  {},
+  async () => {
+    const calendarEvents = await calendarProvider.getCalendarEvents();
+    if (!calendarEvents) {
+      throw createResponseError('No calendar events found', 400);
+    }
+    // TODO: Add human readable response
+    const humanReadableResponse = `We found ${calendarEvents.length} calendar events.\n\n${JSON.stringify(calendarEvents)}`;
+    logger.log(`get_calendar_events: \n${humanReadableResponse}`);
+    return { content: [{ type: 'text', text: humanReadableResponse }] };
+  },
+);
+
 // Start the server and keep it running
 mcpServerFramework.listen().catch((error) => {
   logger.error('Failed to start server:', error);

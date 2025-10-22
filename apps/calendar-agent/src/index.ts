@@ -40,7 +40,7 @@ const agentFramework = createA2AFramework(
   {
     name: 'calendar-agent',
     description:
-      'The Calendar Agent helps you create calendar events. You can create new events with title, description, start time, end time, and location.',
+      'The Calendar Agent helps you manage your calendar. You can create new events, get events, and more.',
     version: '1.0.0',
     skills: [
       // {

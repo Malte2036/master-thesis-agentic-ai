@@ -160,7 +160,7 @@ async def show_agentic_process(main_step: cl.Step):
 async def start():
     """Initialize the chat session."""
 
-    selected_model = cl.user_session.get("chat_settings", {}).get("Model", "qwen3:8b")
+    selected_model = cl.user_session.get("chat_settings", {}).get("Model", "qwen3:4b")
     
     # Fetch available models
     available_models = await get_available_models()
