@@ -233,11 +233,14 @@ expressApp.post('/ask', async (req, res) => {
       logger.log('Step:', value);
     }
 
-    const finalResponse = await generateFriendlyResponse({
+    let finalResponse = await generateFriendlyResponse({
       userPrompt: body.prompt,
       agentResponse: JSON.stringify(results, null, 2),
       aiProvider: aiProvider,
     });
+    finalResponse = finalResponse
+      .slice(finalResponse.indexOf('</think>') + 8)
+      .trim();
 
     logger.log(chalk.green('Final friendly response:'), finalResponse);
 

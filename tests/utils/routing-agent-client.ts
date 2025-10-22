@@ -40,7 +40,7 @@ export class RoutingAgentClient {
       body: JSON.stringify({
         router: 'react',
         max_iterations: 5,
-        model: 'qwen3:8b',
+        model: 'qwen3:4b',
         ...request,
       }),
     });
@@ -137,7 +137,7 @@ export class RoutingAgentClient {
   /**
    * Wait for the routing agent to be ready
    */
-  async waitForReady(timeout = 30000): Promise<void> {
+  async waitForReady(timeout = 10000): Promise<void> {
     const startTime = Date.now();
 
     while (Date.now() - startTime < timeout) {

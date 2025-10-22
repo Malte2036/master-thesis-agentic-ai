@@ -28,6 +28,7 @@
     "inspect:mcp": "npx @modelcontextprotocol/inspector"
   },
   "devDependencies": {
+    "@master-thesis-agentic-ai/test-utils": "workspace:*",
     "@eslint/js": "^9.8.0",
     "@nx/eslint": "20.5.0",
     "@nx/eslint-plugin": "20.5.0",

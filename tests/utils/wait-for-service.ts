@@ -24,5 +24,3 @@ export async function waitForService(
 
   throw new Error(`❌ ${serviceName} failed to start within ${timeout}ms`);
 }
-
-

@@ -33,6 +33,9 @@ importers:
       '@eslint/js':
         specifier: ^9.8.0
         version: 9.26.0
+      '@master-thesis-agentic-ai/test-utils':
+        specifier: workspace:*
+        version: link:packages/test-utils
       '@nx/eslint':
         specifier: 20.5.0
         version: 20.5.0(@babel/traverse@7.27.1)(@swc-node/register@1.9.2(@swc/core@1.5.29(@swc/helpers@0.5.17))(@swc/types@0.1.21)(typescript@5.8.3))(@swc/core@1.5.29(@swc/helpers@0.5.17))(@types/node@18.16.9)(@zkochan/js-yaml@0.0.7)(eslint@9.26.0(jiti@2.4.2))(nx@21.1.1(@swc-node/register@1.9.2(@swc/core@1.5.29(@swc/helpers@0.5.17))(@swc/types@0.1.21)(typescript@5.8.3))(@swc/core@1.5.29(@swc/helpers@0.5.17)))

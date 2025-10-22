@@ -2,12 +2,12 @@ import {
   compareTimes,
   parseTimestampToISOString,
 } from '@master-thesis-agentic-ai/agent-framework';
+import { getRouterTestResponse } from '@master-thesis-agentic-ai/agent-framework';
 import {
   addMoodleMapping,
-  getRouterResponse,
   resetMappings,
 } from '@master-thesis-agentic-ai/test-utils';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { getRouter } from './index';
 import {
   assignmentDefaults,
@@ -29,7 +29,7 @@ describe('Moodle Agent Tests', () => {
 
     const agent = await getRouter(MODEL);
 
-    const routerResponse = await getRouterResponse(
+    const routerResponse = await getRouterTestResponse(
       agent,
       'Test if the moodle-agent is able to get the user info',
       5,
@@ -67,7 +67,7 @@ describe('Moodle Agent Tests', () => {
 
     const agent = await getRouter(MODEL);
 
-    const routerResponse = await getRouterResponse(
+    const routerResponse = await getRouterTestResponse(
       agent,
       `When does the course "${searchValue}" start?`,
       5,
@@ -121,7 +121,7 @@ describe('Moodle Agent Tests', () => {
 
     const agent = await getRouter(MODEL);
 
-    const routerResponse = await getRouterResponse(
+    const routerResponse = await getRouterTestResponse(
       agent,
       `What are the assignments for the course "${searchValue}"?`,
       5,
@@ -203,7 +203,7 @@ describe('Moodle Agent Tests', () => {
 
     const agent = await getRouter(MODEL);
 
-    const routerResponse = await getRouterResponse(
+    const routerResponse = await getRouterTestResponse(
       agent,
       `What are the latest assignments for the course "${searchValue}"?`,
       5,
@@ -324,7 +324,7 @@ describe('Moodle Agent Tests', () => {
     const agent = await getRouter(MODEL);
 
     // Ask for a 7-day window and a compact table with selected fields
-    const routerResponse = await getRouterResponse(
+    const routerResponse = await getRouterTestResponse(
       agent,
       [
         'List all assignments due in the next 7 days across my courses.',

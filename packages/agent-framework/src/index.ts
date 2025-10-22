@@ -30,6 +30,7 @@ export { Logger, LoggerConfig } from './logger';
 export * from './services';
 export * from './agent';
 export * from './utils';
+export * from './lib';
 
 export {
   CallToolResult,

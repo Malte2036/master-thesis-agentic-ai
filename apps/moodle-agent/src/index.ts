@@ -10,7 +10,7 @@ dotenv.config();
 
 const logger = new Logger({ agentName: 'moodle-agent' });
 
-const MODEL = 'qwen3:8b';
+const MODEL = 'qwen3:4b';
 
 const getAIProvider = (model: string) => {
   return new OllamaProvider(logger, {
