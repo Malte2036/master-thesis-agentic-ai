@@ -59,7 +59,7 @@ Important rules:
           (it) =>
             `Iteration ${it.iteration}
 - Thought which justifies the next step: ${it.naturalLanguageThought}
-- The function calls that were made: ${JSON.stringify(it.structuredThought.functionCalls, null, 2)}
+- The function calls that were made: ${JSON.stringify(it.structuredThought.functionCalls)}
 - The response that was made after seeing the response of the function calls: ${it.response}
 `,
         )
@@ -79,7 +79,7 @@ Important rules:
         },
         {
           role: 'system' as const,
-          content: `STATE: ${JSON.stringify(state, null, 2)}`,
+          content: `STATE: ${JSON.stringify(state)}`,
         },
 
         // Keep any extended domain/system guidance
@@ -132,7 +132,7 @@ Intent patterns:
 Stay precise. Do not invent values. One step at a time.
 
 TOOLS SNAPSHOT (read once as reference; do not regurgitate):
-${JSON.stringify(agentTools, null, 2)}
+${JSON.stringify(agentTools)}
 `,
         },
 
@@ -198,7 +198,7 @@ Now, parse the following thought with zero deviation from these rules.`,
       },
       {
         role: 'system' as const,
-        content: `Possible function calls: ${JSON.stringify(agentTools, null, 2)}`,
+        content: `Possible function calls: ${JSON.stringify(agentTools)}`,
       },
     ],
   });
