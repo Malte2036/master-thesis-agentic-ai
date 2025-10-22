@@ -8,22 +8,6 @@ import dotenv from 'dotenv';
 import { z } from 'zod';
 import { MoodleProvider } from './providers/moodleProvider';
 import {
-  filterAssignment,
-  includeAssignmentInResponseSchema,
-} from './schemas/moodle/assignment.utils';
-import {
-  filterCourse,
-  includeCourseInResponseSchema,
-} from './schemas/moodle/course.utils';
-import {
-  filterCourseContent,
-  includeCourseContentInResponseSchema,
-} from './schemas/moodle/course_content.utils';
-import {
-  filterUserInfo,
-  includeUserInfoInResponseSchema,
-} from './schemas/moodle/user.utils';
-import {
   objectsToHumanReadableString,
   generateColumnsFromZod,
 } from './utils/general.utils';
@@ -55,10 +39,8 @@ if (!moodleToken) {
 mcpServer.tool(
   'get_all_courses',
   'Get all courses that the user is enrolled in. Prefer "search_courses_by_name" if you need to get courses by name.',
-  {
-    include_in_response: includeCourseInResponseSchema,
-  },
-  async ({ include_in_response }) => {
+  {},
+  async () => {
     const userInfo = await moodleProvider.getUserInfo(moodleToken);
     if (!userInfo) {
       throw createResponseError('User info not found', 400);
@@ -69,17 +51,11 @@ mcpServer.tool(
       userInfo.userid,
     );
 
-    logger.debug(
-      `include_in_response: ${JSON.stringify(include_in_response, null, 2)}`,
-    );
-
-    const filteredCourses = courses.map((course) =>
-      filterCourse(course, include_in_response),
-    );
+    logger.debug(`Found ${courses.length} courses`);
 
     const humanReadableResponse = `We found ${
-      filteredCourses.length
-    } courses.\n\n${objectsToHumanReadableString(filteredCourses, {
+      courses.length
+    } courses.\n\n${objectsToHumanReadableString(courses, {
       columns: generateColumnsFromZod(CourseSchema, {
         exclude: ['assignments', 'courseimage', 'displayname'],
         maxLengths: {
@@ -91,11 +67,13 @@ mcpServer.tool(
         observation: {
           source: 'moodle_api',
           endpoint: 'get_all_courses',
-          total_courses: filteredCourses.length,
+          total_courses: courses.length,
           generated_at: new Date().toISOString(),
         },
       },
     })}`;
+
+    logger.log(`get_all_courses: \n${humanReadableResponse}`);
 
     return {
       content: [{ type: 'text', text: humanReadableResponse }],
@@ -108,9 +86,8 @@ mcpServer.tool(
   'Find courses by a search query for the course name. If there are multiple courses, return all of them. Important: Prefer this over "get_all_courses" if you need to get courses by name.',
   {
     course_name: z.string().describe('Name of the course to search for'),
-    include_in_response: includeCourseInResponseSchema,
   },
-  async ({ course_name, include_in_response }) => {
+  async ({ course_name }) => {
     logger.log(
       `search_courses_by_name: ${JSON.stringify({ course_name }, null, 2)}`,
     );
@@ -147,16 +124,12 @@ mcpServer.tool(
       ...searchResponse.courses.find((c) => c.id === course.id),
     }));
 
-    const filteredMerged = merged
-      .map((course) => filterCourse(course, include_in_response))
-      .filter((course) => course !== undefined);
-
-    logger.log(`merged: ${JSON.stringify(filteredMerged, null, 2)}`);
+    logger.log(`merged: ${JSON.stringify(merged, null, 2)}`);
 
     const humanReadableResponse = `We found ${
-      filteredMerged.length
+      merged.length
     } courses matching the search query "${course_name}":\n\n${objectsToHumanReadableString(
-      filteredMerged,
+      merged,
       {
         columns: generateColumnsFromZod(CourseSchema, {
           exclude: ['assignments', 'courseimage', 'displayname'],
@@ -170,12 +143,14 @@ mcpServer.tool(
             source: 'moodle_api',
             endpoint: 'search_courses_by_name',
             search_query: course_name,
-            total_courses: filteredMerged.length,
+            total_courses: merged.length,
             generated_at: new Date().toISOString(),
           },
         },
       },
     )}`;
+
+    logger.log(`search_courses_by_name: \n${humanReadableResponse}`);
 
     return {
       content: [
@@ -193,9 +168,8 @@ mcpServer.tool(
   'Get contents of a specific course. The course is identified by the course_id parameter. Maybe you need to call find_course_id_by_name first to get the course_id.',
   {
     course_id: z.number().describe('ID of the course to get contents for'),
-    include_in_response: includeCourseContentInResponseSchema,
   },
-  async ({ course_id, include_in_response }) => {
+  async ({ course_id }) => {
     if (!course_id) {
       throw createResponseError('Course ID is required', 400);
     }
@@ -205,19 +179,12 @@ mcpServer.tool(
       course_id,
     );
 
-    const filteredCourseContents = courseContents
-      .map((courseContent) =>
-        filterCourseContent(courseContent, include_in_response),
-      )
-      .filter((course) => course !== undefined);
-
     const humanReadableResponse = `We found ${
-      filteredCourseContents.length
+      courseContents.length
     } course contents for course ${course_id}.\n\n${objectsToHumanReadableString(
-      filteredCourseContents,
+      courseContents,
       {
         columns: generateColumnsFromZod(CourseContentSchema, {
-          exclude: ['modules', 'section'],
           maxLengths: {
             name: 80,
             summary: 150,
@@ -228,12 +195,14 @@ mcpServer.tool(
             source: 'moodle_api',
             endpoint: 'get_course_contents',
             course_id: course_id,
-            total_contents: filteredCourseContents.length,
+            total_contents: courseContents.length,
             generated_at: new Date().toISOString(),
           },
         },
       },
     )}`;
+
+    logger.log(`get_course_contents: \n${humanReadableResponse}`);
 
     return {
       content: [{ type: 'text', text: humanReadableResponse }],
@@ -259,9 +228,8 @@ mcpServer.tool(
       .describe(
         'Get assignments due before this date. It can be a date string or a timestamp. For date strings include the timezone in the format "YYYY-MM-DD HH:MM:SS TZ" (e.g. "2025-01-01 00:00:00 UTC")',
       ),
-    include_in_response: includeAssignmentInResponseSchema,
   },
-  async ({ include_in_response, due_after, due_before }) => {
+  async ({ due_after, due_before }) => {
     const assignmentsResponse =
       await moodleProvider.getAssignments(moodleToken);
     let allAssignments = assignmentsResponse.courses.flatMap(
@@ -288,13 +256,10 @@ mcpServer.tool(
       )}`,
     );
 
-    const filteredAssignments = allAssignments.map((assignment) =>
-      filterAssignment(assignment, include_in_response),
-    );
     const humanReadableResponse = `We found ${
-      filteredAssignments.length
+      allAssignments.length
     } assignments for all courses.\n\n${objectsToHumanReadableString(
-      filteredAssignments,
+      allAssignments,
       {
         columns: generateColumnsFromZod(AssignmentSchema, {
           exclude: [
@@ -318,7 +283,7 @@ mcpServer.tool(
           observation: {
             source: 'moodle_api',
             endpoint: 'get_assignments_for_all_courses',
-            total_assignments: filteredAssignments.length,
+            total_assignments: allAssignments.length,
             ...(due_after && { due_after: String(due_after) }),
             ...(due_before && { due_before: String(due_before) }),
             generated_at: new Date().toISOString(),
@@ -326,6 +291,9 @@ mcpServer.tool(
         },
       },
     )}`;
+
+    logger.log(`get_assignments_for_all_courses: \n${humanReadableResponse}`);
+
     return {
       content: [{ type: 'text', text: humanReadableResponse }],
     };
@@ -337,9 +305,8 @@ mcpServer.tool(
   'Get all assignments for a specific course. Prefer this over "get_assignments_for_all_courses" if you need to get assignments for a specific course.',
   {
     course_id: z.number().describe('ID of the course to get assignments for'),
-    include_in_response: includeAssignmentInResponseSchema,
   },
-  async ({ course_id, include_in_response }) => {
+  async ({ course_id }) => {
     logger.log(
       `get_assignments_for_course: ${JSON.stringify({ course_id }, null, 2)}`,
     );
@@ -367,13 +334,10 @@ mcpServer.tool(
       };
     }
 
-    const filteredAssignments = course.assignments.map((assignment) =>
-      filterAssignment(assignment, include_in_response),
-    );
     const humanReadableResponse = `We found ${
-      filteredAssignments.length
+      course.assignments.length
     } assignments for course ${course_id}.\n\n${objectsToHumanReadableString(
-      filteredAssignments,
+      course.assignments,
       {
         columns: generateColumnsFromZod(AssignmentSchema, {
           exclude: [
@@ -399,12 +363,15 @@ mcpServer.tool(
             source: 'moodle_api',
             endpoint: 'get_assignments_for_course',
             course_id: course_id,
-            total_assignments: filteredAssignments.length,
+            total_assignments: course.assignments.length,
             generated_at: new Date().toISOString(),
           },
         },
       },
     )}`;
+
+    logger.log(`get_assignments_for_course: \n${humanReadableResponse}`);
+
     return {
       content: [{ type: 'text', text: humanReadableResponse }],
     };
@@ -414,18 +381,14 @@ mcpServer.tool(
 mcpServer.tool(
   'get_user_info',
   'Get personal information about the user who asked the question. This function cannot get information about other users.',
-  {
-    include_in_response: includeUserInfoInResponseSchema,
-  },
-  async ({ include_in_response }) => {
+  {},
+  async () => {
     const userInfo = await moodleProvider.getUserInfo(moodleToken);
     if (!userInfo) {
       throw createResponseError('User info not found', 400);
     }
-    const filteredUserInfo = filterUserInfo(userInfo, include_in_response);
-
     const humanReadableResponse = `We successfully retrieved the user info.\n\n${objectsToHumanReadableString(
-      [filteredUserInfo],
+      [userInfo],
       {
         columns: generateColumnsFromZod(UserInfoSchema, {
           exclude: ['siteurl', 'userpictureurl', 'userlang'],
@@ -446,6 +409,9 @@ mcpServer.tool(
         },
       },
     )}`;
+
+    logger.log(`get_user_info: \n${humanReadableResponse}`);
+
     return {
       content: [{ type: 'text', text: humanReadableResponse }],
     };

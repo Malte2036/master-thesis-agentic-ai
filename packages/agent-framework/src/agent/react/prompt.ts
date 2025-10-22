@@ -123,12 +123,11 @@ Final:
 
 Parameter echo (when you choose CALL):
 - After "CALL:", write the function name and list **every** required parameter with concrete values (verbatim tokens), e.g., id="900", date="2025-10-05".
-- You MUST include \`include_in_response\` for **every** tool call. If you have no explicit preferences, set it to an **empty object** \`{}\` to satisfy the required contract. Only add fields you can state literally.
 - You may include optional parameters, but only with explicit, literal values.
 - If you cannot provide all required parameters with literal values, you cannot call.
 
 Intent patterns:
-- Execute: “CALL: get_user_info with include_in_response={"username":true,"firstname":true,"lastname":true,"siteurl":true,"userpictureurl":true,"userlang":true}”
+- Execute: "CALL: get_user_info"
 - Final (DONE): Provide the evidence-json block first, then the Final answer reproducing only values from that evidence.
 
 Stay precise. Do not invent values. One step at a time.
@@ -152,7 +151,6 @@ ${pastText}`,
 
   /**
    * Prompt for the structured-thought (JSON) step.
-   * Strengthened to always include include_in_response ({} if unspecified).
    */
   public static getStructuredThoughtPrompt = (
     agentTools: AgentTool[],
@@ -186,7 +184,6 @@ Follow these rules with absolute precision:
 
 2) Generating Tool Calls (ONLY for Action Intents)
    • Populate the "functionCalls" array.
-   • For **every** function call, you MUST include the \`include_in_response\` parameter (object). If no explicit fields are provided by the thought or schema examples, set it to \`{}\` (empty object) — never omit it.
    • Set "isFinished" to false.
    • NEVER invent parameters. If a required parameter is not in the thought, omit that call this iteration.
    • Deduplicate identical calls (same function + identical args).
