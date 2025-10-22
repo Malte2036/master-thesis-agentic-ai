@@ -63,6 +63,44 @@ if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
   exit 1
 fi
 
+# Start calendar-mcp and wait for it to be healthy
+echo "🔄 Starting calendar-mcp server..."
+osascript <<'APPLESCRIPT'
+tell application id "com.mitchellh.ghostty" to activate
+delay 0.2
+
+tell application "System Events"
+  keystroke "t" using {command down}
+  delay 0.15
+  keystroke "printf '\\e]2;calendar-mcp\\a'; pnpm run dev:calendar-mcp"
+  key code 36
+  delay 0.2
+end tell
+APPLESCRIPT
+
+# Wait for calendar-mcp to be healthy
+echo "⏳ Waiting for calendar-mcp to be ready..."
+CALENDAR_MCP_URL="http://localhost:3004"  # Adjust port if needed
+MAX_ATTEMPTS=30
+ATTEMPT=0
+
+while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+  if curl -s -f "$CALENDAR_MCP_URL/functions" > /dev/null 2>&1; then
+    echo "✅ calendar-mcp is healthy!"
+    break
+  fi
+  
+  ATTEMPT=$((ATTEMPT + 1))
+  echo "⏳ Attempt $ATTEMPT/$MAX_ATTEMPTS - waiting for calendar-mcp..."
+  sleep 2
+done
+
+if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+  echo "❌ calendar-mcp failed to start within expected time"
+  kill $CALENDAR_MCP_PID 2>/dev/null || true
+  exit 1
+fi
+
 # Now start the remaining services
 echo "🔄 Starting routing-agent..."
 osascript <<'APPLESCRIPT'
@@ -92,6 +130,20 @@ tell application "System Events"
 end tell
 APPLESCRIPT
 
+echo "🔄 Starting calendar-agent..."
+osascript <<'APPLESCRIPT'
+tell application id "com.mitchellh.ghostty" to activate
+delay 0.05
+
+tell application "System Events"
+  keystroke "t" using {command down}
+  delay 0.15
+  keystroke "printf '\\e]2;calendar-agent\\a'; pnpm run dev:calendar-agent"
+  key code 36
+  delay 0.2
+end tell
+APPLESCRIPT
+
 # Start chainlit only if not in --no-ui mode
 if [ "$NO_UI" = false ]; then
   echo "🔄 Starting chainlit..."
@@ -115,10 +167,12 @@ echo "✅ All services started in separate Ghostty tabs!"
 echo ""
 echo "Services running:"
 echo "  - moodle-mcp (first tab)"
-echo "  - routing-agent (second tab)"
-echo "  - moodle-agent (third tab)"
+echo "  - calendar-mcp (second tab)"
+echo "  - routing-agent (third tab)"
+echo "  - moodle-agent (fourth tab)"
+echo "  - calendar-agent (fifth tab)"
 if [ "$NO_UI" = false ]; then
-  echo "  - chainlit (fourth tab)"
+  echo "  - chainlit (sixth tab)"
 fi
 echo ""
 echo "💡 Each service runs in its own tab with live output"

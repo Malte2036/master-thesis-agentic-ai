@@ -81,9 +81,27 @@ if [ "$MCP_ONLY" = true ]; then
 else
   echo "🚀 Starting all services..."
   echo "🔄 Starting moodle-mcp in current tab..."
+  echo "🔄 Starting calendar-mcp in new tab..."
   echo "🔄 Starting moodle-agent in new tab..."
+  echo "🔄 Starting calendar-agent in new tab..."
   echo "🔄 Starting routing-agent in new tab..."
   
+  # Start calendar-mcp in a new tab
+  osascript <<'APPLESCRIPT'
+tell application id "com.mitchellh.ghostty" to activate
+delay 0.2
+
+tell application "System Events"
+  keystroke "t" using {command down}
+  delay 0.15
+  keystroke "printf '\\e]2;calendar-mcp\\a'; pnpm run dev:calendar-mcp"
+  key code 36
+  delay 0.2
+end tell
+APPLESCRIPT
+
+  echo "✅ calendar-mcp started in new tab!"
+
   # Start moodle-agent in a new tab
   osascript <<'APPLESCRIPT'
 tell application id "com.mitchellh.ghostty" to activate
@@ -99,6 +117,22 @@ end tell
 APPLESCRIPT
 
   echo "✅ moodle-agent started in new tab!"
+
+  # Start calendar-agent in a new tab
+  osascript <<'APPLESCRIPT'
+tell application id "com.mitchellh.ghostty" to activate
+delay 0.2
+
+tell application "System Events"
+  keystroke "t" using {command down}
+  delay 0.15
+  keystroke "printf '\\e]2;calendar-agent\\a'; pnpm run dev:calendar-agent"
+  key code 36
+  delay 0.2
+end tell
+APPLESCRIPT
+
+  echo "✅ calendar-agent started in new tab!"
   
   # Start routing-agent in a new tab
   osascript <<'APPLESCRIPT'
@@ -119,7 +153,9 @@ APPLESCRIPT
   echo ""
   echo "Services running:"
   echo "  - moodle-mcp (current tab)"
+  echo "  - calendar-mcp (new tab)"
   echo "  - moodle-agent (new tab)"
+  echo "  - calendar-agent (new tab)"
   echo "  - routing-agent (new tab)"
   echo ""
   echo "💡 moodle-mcp runs in current terminal, others in separate tabs"

@@ -15,33 +15,52 @@ export const handleToolCalls = async (
     functionCalls.map((call) => call.function),
   );
 
-  const parsedDecision = functionCalls[0];
+  // Process all function calls in parallel
+  const agentPromises = functionCalls.map(async (parsedDecision) => {
+    if (
+      !parsedDecision.args['prompt'] ||
+      typeof parsedDecision.args['prompt'] !== 'string'
+    ) {
+      logger.log(
+        'No prompt was provided for function:',
+        parsedDecision.function,
+      );
+      return 'No prompt was provided';
+    }
 
-  if (
-    !parsedDecision.args['prompt'] ||
-    typeof parsedDecision.args['prompt'] !== 'string'
-  ) {
-    logger.log('No prompt was provided');
-    return ['No prompt was provided'];
-  }
+    const agentClient = agents[parsedDecision.function];
+    let agentResponse: any = '';
 
-  const agentClient = agents[parsedDecision.function];
-  let agentResponse: any = '';
+    if (agentClient) {
+      try {
+        agentResponse = await agentClient.call(
+          `${parsedDecision.args['prompt']}; We want to call the agent because: ${parsedDecision.args['reason']}`,
+        );
+        logger.log(
+          `Result from agent ${parsedDecision.function}:`,
+          agentResponse,
+        );
+      } catch (error) {
+        logger.log(`Error calling agent ${parsedDecision.function}:`, error);
+        agentResponse = `Error calling agent: ${error}`;
+      }
+    } else {
+      logger.log(`No agent found for function: ${parsedDecision.function}`);
+      agentResponse = `No agent found for function: ${parsedDecision.function}`;
+    }
 
-  if (agentClient) {
-    agentResponse = await agentClient.call(
-      `${parsedDecision.args['prompt']}; We want to call the agent because: ${parsedDecision.args['reason']}`,
-    );
-  } else {
-    logger.log('No agent were called');
-  }
+    const textResponse =
+      typeof agentResponse === 'object' && agentResponse.response
+        ? agentResponse.response
+        : agentResponse;
 
-  logger.log('Result from agent:', agentResponse);
+    return String(textResponse);
+  });
 
-  const textResponse =
-    typeof agentResponse === 'object' && agentResponse.response
-      ? agentResponse.response
-      : agentResponse;
+  // Wait for all agent calls to complete
+  const results = await Promise.all(agentPromises);
 
-  return [String(textResponse)];
+  logger.log('All agent calls completed:', results);
+
+  return results;
 };

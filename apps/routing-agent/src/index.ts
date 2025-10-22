@@ -129,33 +129,11 @@ expressApp.post('/ask', async (req, res) => {
     logger.log(chalk.magenta('Finding out which agent to call first:'));
     const moodleAgent = new AgentClient(logger, 1234);
 
-    const mockCalendarAgent = {
-      getAgentCard: async () => ({
-        name: 'calendar-agent',
-        skills: [
-          {
-            id: '1',
-            name: 'calendar',
-            description: 'Calendar agent',
-            tags: ['calendar'],
-          },
-        ],
-      }),
-      call: async (prompt: string) => {
-        if (prompt.toLowerCase().includes('create')) {
-          return {
-            response: 'We successfully created the calendar event.',
-          };
-        }
-        return {
-          response: 'The Calendar agent is not implemented yet.',
-        };
-      },
-    } as unknown as AgentClient;
+    const calendarAgent = new AgentClient(logger, 1235);
 
     const agents: { [key: string]: AgentClient } = {
       'moodle-agent': moodleAgent,
-      'calendar-agent': mockCalendarAgent,
+      'calendar-agent': calendarAgent,
     };
 
     const availableAgents = Object.values(agents);

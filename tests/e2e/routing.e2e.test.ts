@@ -7,6 +7,7 @@ import { mockAssignments, mockUserInfo } from './routing.e2e.test.mock';
 describe('E2E Routing Agent Test', () => {
   const ROUTING_AGENT_URL = 'http://localhost:3000';
   const MOODLE_AGENT_URL = 'http://localhost:1234';
+  const CALENDAR_AGENT_URL = 'http://localhost:1235';
   let routingAgent: RoutingAgentClient;
 
   beforeAll(async () => {
@@ -19,6 +20,10 @@ describe('E2E Routing Agent Test', () => {
     await waitForService(
       `${MOODLE_AGENT_URL}/.well-known/agent.json`,
       'Moodle Agent',
+    );
+    await waitForService(
+      `${CALENDAR_AGENT_URL}/.well-known/agent.json`,
+      'Calendar Agent',
     );
 
     // All services are ready

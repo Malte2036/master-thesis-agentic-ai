@@ -1,0 +1,28 @@
+{
+  "name": "@master-thesis-agentic-ai/calendar-agent",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "nx build calendar-agent",
+    "start": "node dist/apps/calendar-agent/index.js",
+    "dev": "nx serve calendar-agent",
+    "lint": "nx lint calendar-agent",
+    "test": "nx test calendar-agent"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.5.0",
+  "dependencies": {
+    "@master-thesis-agentic-ai/agent-framework": "workspace:*",
+    "@master-thesis-agentic-ai/types": "workspace:*",
+    "zod": "*"
+  },
+  "devDependencies": {
+    "@master-thesis-agentic-ai/test-utils": "workspace:*",
+    "@nx/js": "^20.5.0",
+    "@types/node": "^20.11.24",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.3"
+  }
+}

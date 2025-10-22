@@ -3,10 +3,11 @@
   "private": true,
   "packageManager": "pnpm@9.7.0",
   "scripts": {
-    "dev": "node scripts/dev-session.js \"pnpm run build:dist && concurrently 'nx run-many -t serve --projects=routing-agent,moodle-mcp,calendar-mcp,moodle-agent' 'pnpm run dev:chainlit'\"",
+    "dev": "node scripts/dev-session.js \"pnpm run build:dist && concurrently 'nx run-many -t serve --projects=routing-agent,moodle-mcp,calendar-mcp,moodle-agent,calendar-agent' 'pnpm run dev:chainlit'\"",
     "dev:routing-agent": "node scripts/dev-session.js \"nx serve routing-agent\"",
     "dev:moodle-agent": "node scripts/dev-session.js \"nx serve moodle-agent\"",
     "dev:moodle-mcp": "node scripts/dev-session.js \"nx serve moodle-mcp\"",
+    "dev:calendar-agent": "node scripts/dev-session.js \"nx serve calendar-agent\"",
     "dev:calendar-mcp": "node scripts/dev-session.js \"nx serve calendar-mcp\"",
     "dev:chainlit": "node scripts/dev-session.js \"nx serve chainlit\"",
     "build": "nx run-many -t build",
