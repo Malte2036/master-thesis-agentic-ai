@@ -79,7 +79,9 @@ Important rules:
         },
         {
           role: 'system' as const,
-          content: `STATE: ${JSON.stringify(state)}`,
+          content: `<STATE_JSON>
+${JSON.stringify(state)}
+</STATE_JSON>`,
         },
 
         // Keep any extended domain/system guidance
@@ -132,7 +134,9 @@ Intent patterns:
 Stay precise. Do not invent values. One step at a time.
 
 TOOLS SNAPSHOT (read once as reference; do not regurgitate):
+<TOOLS_SNAPSHOT>
 ${JSON.stringify(agentTools)}
+</TOOLS_SNAPSHOT>
 `,
         },
 
@@ -198,7 +202,10 @@ Now, parse the following thought with zero deviation from these rules.`,
       },
       {
         role: 'system' as const,
-        content: `Possible function calls: ${JSON.stringify(agentTools)}`,
+        content: `Possible function calls:
+<TOOLS_SNAPSHOT>
+${JSON.stringify(agentTools)}
+</TOOLS_SNAPSHOT>`,
       },
     ],
   });
