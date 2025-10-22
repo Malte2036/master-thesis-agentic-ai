@@ -69,7 +69,26 @@ describe('E2E Routing Agent Test', () => {
     // Test completed successfully
   }, 60_000);
 
-  it.only('should combine multiple agents', async () => {
+  it.only('should create a calendar event', async () => {
+    await Wiremock.addCalendarMapping('/create_calendar_event', {});
+
+    const testPrompt =
+      'Create a calendar event with the name "Test Event" and the description "This is a test event" from 2025-10-22 to 2025-10-25.';
+    const finalResponse = await routingAgent.askAndWaitForResponse({
+      prompt: testPrompt,
+    });
+
+    expect(finalResponse).toBeDefined();
+    expect(finalResponse.length).toBeGreaterThan(0);
+    expect(finalResponse.toLowerCase()).toContain('calendar event');
+    expect(finalResponse.toLowerCase()).toContain('created');
+
+    expect(await Wiremock.countCalendarRequests('/create_calendar_event')).toBe(
+      1,
+    );
+  }, 60_000);
+
+  it('should combine multiple agents', async () => {
     await Wiremock.addMoodleMapping(
       'core_webservice_get_site_info',
       mockUserInfo,
@@ -92,5 +111,9 @@ describe('E2E Routing Agent Test', () => {
     expect(finalResponse.toLowerCase()).toContain('assignment');
     expect(finalResponse.toLowerCase()).toContain('calendar event');
     expect(finalResponse.toLowerCase()).toContain('created');
+
+    expect(await Wiremock.countCalendarRequests('/create_calendar_event')).toBe(
+      1,
+    );
   }, 120_000);
 });

@@ -27,14 +27,14 @@ if [ "$HELP" = true ]; then
   echo "Usage: $0 [OPTIONS]"
   echo ""
   echo "Options:"
-  echo "  --mcp-only    Start only the moodle-mcp service"
+  echo "  --mcp-only    Start only the MCP services (moodle-mcp + calendar-mcp)"
   echo "  --help, -h    Show this help message"
   echo ""
   echo "This script starts the e2e test environment with WireMock and services."
   echo ""
   echo "Examples:"
-  echo "  $0             # Start all services (moodle-mcp + moodle-agent + routing-agent)"
-  echo "  $0 --mcp-only  # Start only moodle-mcp"
+  echo "  $0             # Start all services (moodle-mcp + calendar-mcp + moodle-agent + calendar-agent + routing-agent)"
+  echo "  $0 --mcp-only  # Start only MCP services (moodle-mcp + calendar-mcp)"
   exit 0
 fi
 
@@ -61,19 +61,39 @@ echo "WireMock is up and running!"
 
 # Run moodle-mcp with environment variables
 export MOODLE_BASE_URL="http://localhost:8081"
+export CALENDAR_BASE_URL="http://localhost:8081"
 export MOODLE_TOKEN="test-token"
 
-echo "Starting moodle-mcp with the following environment variables:"
+echo "Starting services with the following environment variables:"
 echo "MOODLE_BASE_URL: $MOODLE_BASE_URL"
+echo "CALENDAR_BASE_URL: $CALENDAR_BASE_URL"
 echo "MOODLE_TOKEN: $MOODLE_TOKEN"
 
 # Start services based on options
 if [ "$MCP_ONLY" = true ]; then
-  echo "🚀 Starting moodle-mcp only in current tab..."
-  echo "🔄 Starting moodle-mcp..."
+  echo "🚀 Starting MCP services only..."
+  echo "🔄 Starting moodle-mcp in current tab..."
+  echo "🔄 Starting calendar-mcp in new tab..."
   echo ""
-  echo "💡 Service will run in the current terminal"
-  echo "🛑 To stop service, use Ctrl+C"
+  echo "💡 moodle-mcp runs in current terminal, calendar-mcp in new tab"
+  echo "🛑 To stop services, use Ctrl+C in current tab or close the other tab"
+  echo ""
+  
+  # Start calendar-mcp in a new tab
+  osascript <<'APPLESCRIPT'
+tell application id "com.mitchellh.ghostty" to activate
+delay 0.2
+
+tell application "System Events"
+  keystroke "t" using {command down}
+  delay 0.15
+  keystroke "printf '\\e]2;calendar-mcp\\a'; pnpm run dev:calendar-mcp"
+  key code 36
+  delay 0.2
+end tell
+APPLESCRIPT
+
+  echo "✅ calendar-mcp started in new tab!"
   echo ""
   
   # Start moodle-mcp in current tab

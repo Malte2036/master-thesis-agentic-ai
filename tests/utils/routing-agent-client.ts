@@ -149,7 +149,7 @@ export class RoutingAgentClient {
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
-    throw new Error(`❌ Routing Agent failed to start within ${timeout}ms`);
+    throw new Error(`❌ Routing Agent not ready after ${timeout}ms`);
   }
 }
 

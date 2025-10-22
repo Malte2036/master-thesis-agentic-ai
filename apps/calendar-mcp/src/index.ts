@@ -5,12 +5,18 @@ import {
 import { createResponseError } from '@master-thesis-agentic-ai/types';
 import dotenv from 'dotenv';
 import { z } from 'zod/v3';
+import { CalendarProvider } from './providers/calendarProvider';
 
 dotenv.config();
 
 const logger = new Logger({ agentName: 'calendar-mcp' });
 
-// const calendarProvider = new CalendarProvider(logger);
+const calendarBaseUrl = process.env.CALENDAR_BASE_URL;
+if (!calendarBaseUrl) {
+  throw new Error('CALENDAR_BASE_URL is not set');
+}
+
+const calendarProvider = new CalendarProvider(logger, calendarBaseUrl);
 const mcpServerFramework = createMCPServerFramework(logger, 'calendar-mcp');
 const mcpServer = mcpServerFramework.getServer();
 
@@ -46,11 +52,25 @@ mcpServer.tool(
       throw createResponseError('Required fields are missing', 400);
     }
 
+    try {
+      await calendarProvider.createCalendarEvent(
+        event_name,
+        event_description,
+        event_start_date,
+        event_end_date,
+      );
+    } catch (error) {
+      logger.error('Failed to create calendar event:', error);
+      throw createResponseError('Failed to create calendar event', 500);
+    }
+
+    const humanReadableResponse = `We successfully created the calendar event: ${event_name} with description: ${event_description} from ${event_start_date} to ${event_end_date}.`;
+    logger.log(`create_calendar_event: \n${humanReadableResponse}`);
     return {
       content: [
         {
           type: 'text',
-          text: `Successfully created calendar event: ${event_name} with description: ${event_description} from ${event_start_date} to ${event_end_date}`,
+          text: humanReadableResponse,
         },
       ],
     };

@@ -1,6 +1,8 @@
 const WIREMOCK_URL = 'http://localhost:8081/__admin';
 const MOODLE_WEBSERVICE_PATH = '/webservice/rest/server.php';
 
+type CalendarPath = `/${string}`;
+
 export class Wiremock {
   /**
    * Reset all mappings and requests in Wiremock
@@ -118,5 +120,20 @@ export class Wiremock {
     });
 
     return await Wiremock.count('POST', MOODLE_WEBSERVICE_PATH, bodyPatterns);
+  }
+
+  // calendar Wiremock helper methods
+  static async addCalendarMapping(
+    url: CalendarPath,
+    responseBody: any,
+  ): Promise<void> {
+    await Wiremock.addMapping({
+      request: { method: 'POST', url },
+      response: { status: 200, jsonBody: responseBody },
+    });
+  }
+
+  static async countCalendarRequests(url: CalendarPath): Promise<number> {
+    return await Wiremock.count('POST', url);
   }
 }
