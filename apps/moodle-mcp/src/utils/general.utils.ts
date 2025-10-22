@@ -1,7 +1,10 @@
 import { parseTimestampToISOString } from '@master-thesis-agentic-ai/agent-framework';
 
-// Table serializer types
-type ColumnSpec<T> = {
+// ============================================================================
+// TYPES
+// ============================================================================
+
+export type ColumnSpec<T> = {
   /** Property path on the row object (dot notation allowed), e.g. "course.id" */
   key: string;
   /** Optional header label; defaults to `key` */
@@ -12,8 +15,15 @@ type ColumnSpec<T> = {
   maxLen?: number;
 };
 
-// Zod schema to column spec mapping
-type ZodToColumnOptions = {
+export type SerializeOptions = {
+  delimiter?: string; // default: " | "
+  quoteMode?: 'auto' | 'always' | 'never'; // default: "auto"
+  nullAs?: string; // default: ""
+  includeObservation?: boolean; // default: true
+  observation?: Record<string, string | number | boolean>;
+};
+
+export type ZodToColumnOptions = {
   /** Custom header mappings for specific fields */
   headerMap?: Record<string, string>;
   /** Custom transforms for specific fields */
@@ -24,15 +34,10 @@ type ZodToColumnOptions = {
   exclude?: string[];
 };
 
-type SerializeOptions = {
-  delimiter?: string; // default: " | "
-  quoteMode?: 'auto' | 'always' | 'never'; // default: "auto"
-  nullAs?: string; // default: ""
-  includeObservation?: boolean; // default: true
-  observation?: Record<string, string | number | boolean>;
-};
+// ============================================================================
+// TABLE SERIALIZATION
+// ============================================================================
 
-// Main table serializer function
 export function serializeTable<T>(
   rows: T[],
   columns: ColumnSpec<T>[],
@@ -43,7 +48,6 @@ export function serializeTable<T>(
   const nullAs = opts.nullAs ?? '';
 
   const headers = columns.map((c) => c.header ?? c.key);
-
   const lines: string[] = [];
 
   // Optional OBSERVATION header
@@ -83,7 +87,233 @@ export function serializeTable<T>(
   return lines.join('\n');
 }
 
-// Helper functions
+// ============================================================================
+// DATA TRANSFORMERS
+// ============================================================================
+
+// Date field transformers
+const dateTransformers: Record<string, (value: unknown) => string> = {
+  duedate: (value) => {
+    if (typeof value === 'number' && value > 0) {
+      return parseTimestampToISOString(value);
+    }
+    return 'No due date';
+  },
+  allowsubmissionsfromdate: (value) => {
+    if (typeof value === 'number' && value > 0) {
+      return parseTimestampToISOString(value);
+    }
+    return 'Not set';
+  },
+  startdate: (value) => {
+    if (typeof value === 'number' && value > 0) {
+      return parseTimestampToISOString(value);
+    }
+    return '';
+  },
+  enddate: (value) => {
+    if (typeof value === 'number' && value > 0) {
+      return parseTimestampToISOString(value);
+    }
+    return '';
+  },
+  firstaccess: (value) => {
+    if (typeof value === 'number' && value > 0) {
+      return parseTimestampToISOString(value);
+    }
+    return 'Never';
+  },
+  lastaccess: (value) => {
+    if (typeof value === 'number' && value > 0) {
+      return parseTimestampToISOString(value);
+    }
+    return 'Never';
+  },
+};
+
+// Boolean field transformers
+const booleanTransformers: Record<string, (value: unknown) => string> = {
+  visible: (value) => (value ? 'Yes' : 'No'),
+  completed: (value) => (value ? 'Yes' : 'No'),
+  isfavourite: (value) => (value ? 'Yes' : 'No'),
+  hidden: (value) => (value ? 'Yes' : 'No'),
+  completionsubmit: (value) => (value ? 'Yes' : 'No'),
+};
+
+// Text field transformers
+const textTransformers: Record<string, (value: unknown) => string> = {
+  summary: (value) => {
+    if (typeof value === 'string') {
+      return value.length > 100 ? value.slice(0, 97) + '...' : value;
+    }
+    return String(value || '');
+  },
+  intro: (value) => {
+    if (typeof value === 'string') {
+      return value.length > 100 ? value.slice(0, 97) + '...' : value;
+    }
+    return String(value || '');
+  },
+};
+
+// Combined default transformers
+const defaultTransformers: Record<string, (value: unknown) => string> = {
+  ...dateTransformers,
+  ...booleanTransformers,
+  ...textTransformers,
+};
+
+// Default configurations
+const defaultMaxLengths: Record<string, number> = {
+  fullname: 60,
+  name: 80,
+  summary: 150,
+  intro: 150,
+  email: 50,
+  username: 30,
+  firstname: 30,
+  lastname: 30,
+  shortname: 20,
+  modname: 20,
+  type: 20,
+  url: 120,
+};
+
+const defaultHeaderMap: Record<string, string> = {
+  id: 'ID',
+  userid: 'User ID',
+  course: 'Course ID',
+  fullname: 'Name',
+  name: 'Name',
+  shortname: 'Short Name',
+  summary: 'Summary',
+  startdate: 'Start Date',
+  enddate: 'End Date',
+  duedate: 'Due Date',
+  allowsubmissionsfromdate: 'Open From',
+  grade: 'Max Grade',
+  completionsubmit: 'Submit to Complete',
+  visible: 'Visible',
+  completed: 'Completed',
+  isfavourite: 'Favourite',
+  hidden: 'Hidden',
+  firstaccess: 'First Access',
+  lastaccess: 'Last Access',
+  username: 'Username',
+  firstname: 'First Name',
+  lastname: 'Last Name',
+  email: 'Email',
+  modname: 'Module',
+  url: 'URL',
+};
+
+// ============================================================================
+// ZOD SCHEMA UTILITIES
+// ============================================================================
+
+export function generateColumnsFromZod<T>(
+  schema: unknown, // Zod schema
+  options: ZodToColumnOptions = {},
+): ColumnSpec<T>[] {
+  const {
+    headerMap = {},
+    transforms = {},
+    maxLengths = {},
+    exclude = [],
+  } = options;
+
+  // Extract field names and descriptions from Zod schema
+  const fieldNames = extractFieldNamesFromZod(schema);
+  const fieldDescriptions = extractFieldDescriptionsFromZod(schema);
+
+  return fieldNames
+    .filter((field) => !exclude.includes(field))
+    .map((field) => ({
+      key: field,
+      header:
+        headerMap[field] ||
+        fieldDescriptions[field] ||
+        defaultHeaderMap[field] ||
+        field,
+      transform: transforms[field] || defaultTransformers[field] || undefined,
+      maxLen: maxLengths[field] || defaultMaxLengths[field] || undefined,
+    }));
+}
+
+// ============================================================================
+// LEGACY COMPATIBILITY
+// ============================================================================
+
+export const objectToHumanReadableString = <T extends object>(
+  obj: T,
+): string => {
+  return Object.entries(obj)
+    .filter(
+      ([, value]) =>
+        value !== null &&
+        value !== undefined &&
+        value !== '' &&
+        !(Array.isArray(value) && value.length === 0),
+    )
+    .map(([key, value]) => {
+      let displayValue;
+      if (Array.isArray(value)) {
+        displayValue = `[${value
+          .map((item) =>
+            typeof item === 'object' ? JSON.stringify(item) : item,
+          )
+          .join(', ')}]`;
+      } else if (typeof value === 'object' && value !== null) {
+        displayValue = JSON.stringify(value);
+      } else if (typeof value === 'number') {
+        displayValue = parsePossibleDate(value);
+      } else {
+        displayValue = `"${value}"`;
+      }
+      return `${key}: ${displayValue}`;
+    })
+    .join(', ');
+};
+
+export const objectsToHumanReadableString = <T extends object>(
+  objs: T[],
+  options?: {
+    columns?: ColumnSpec<T>[];
+    serializeOptions?: SerializeOptions;
+  },
+): string => {
+  if (!objs || objs.length === 0) {
+    return 'No data available';
+  }
+
+  // If no columns specified, auto-generate from first object
+  const columns =
+    options?.columns ||
+    Object.keys(objs[0] as Record<string, unknown>).map((key) => ({
+      key,
+      header: key,
+      transform: (value: unknown) => {
+        if (typeof value === 'number' && /^\d{10}$/.test(String(value))) {
+          return new Date(value * 1000).toString();
+        }
+        return String(value || '');
+      },
+    }));
+
+  return serializeTable(objs, columns, {
+    observation: {
+      source: 'moodle_api',
+      total_items: objs.length,
+      generated_at: new Date().toISOString(),
+    },
+    ...options?.serializeOptions,
+  });
+};
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
 function getByPath(obj: Record<string, unknown>, path: string): unknown {
   return path.split('.').reduce((acc: unknown, key: string) => {
     if (acc == null || typeof acc !== 'object') return undefined;
@@ -126,159 +356,13 @@ function quoteIfNeeded(
   return text;
 }
 
-// Timezone-aware date formatting for Moodle timestamps
-function toDateString(unixSeconds: number): string {
-  return new Date(unixSeconds * 1000).toString();
-}
-
-// Generate column specifications from Zod schema
-export function generateColumnsFromZod<T>(
-  schema: unknown, // Zod schema
-  options: ZodToColumnOptions = {},
-): ColumnSpec<T>[] {
-  const {
-    headerMap = {},
-    transforms = {},
-    maxLengths = {},
-    exclude = [],
-  } = options;
-
-  // Default transforms for common field types
-  const defaultTransforms: Record<string, (value: unknown) => string> = {
-    // Date fields (Unix timestamps)
-    duedate: (value) => {
-      if (typeof value === 'number' && value > 0) {
-        return parseTimestampToISOString(value);
-      }
-      return 'No due date';
-    },
-    allowsubmissionsfromdate: (value) => {
-      if (typeof value === 'number' && value > 0) {
-        return parseTimestampToISOString(value);
-      }
-      return 'Not set';
-    },
-    startdate: (value) => {
-      if (typeof value === 'number' && value > 0) {
-        return parseTimestampToISOString(value);
-      }
-      return '';
-    },
-    enddate: (value) => {
-      if (typeof value === 'number' && value > 0) {
-        return parseTimestampToISOString(value);
-      }
-      return '';
-    },
-    firstaccess: (value) => {
-      if (typeof value === 'number' && value > 0) {
-        return parseTimestampToISOString(value);
-      }
-      return 'Never';
-    },
-    lastaccess: (value) => {
-      if (typeof value === 'number' && value > 0) {
-        return parseTimestampToISOString(value);
-      }
-      return 'Never';
-    },
-    // Boolean fields
-    visible: (value) => (value ? 'Yes' : 'No'),
-    completed: (value) => (value ? 'Yes' : 'No'),
-    isfavourite: (value) => (value ? 'Yes' : 'No'),
-    hidden: (value) => (value ? 'Yes' : 'No'),
-    completionsubmit: (value) => (value ? 'Yes' : 'No'),
-    // Default string truncation for long fields
-    summary: (value) => {
-      if (typeof value === 'string') {
-        return value.length > 100 ? value.slice(0, 97) + '...' : value;
-      }
-      return String(value || '');
-    },
-    intro: (value) => {
-      if (typeof value === 'string') {
-        return value.length > 100 ? value.slice(0, 97) + '...' : value;
-      }
-      return String(value || '');
-    },
-  };
-
-  // Default max lengths for common fields
-  const defaultMaxLengths: Record<string, number> = {
-    fullname: 60,
-    name: 80,
-    summary: 150,
-    intro: 150,
-    email: 50,
-    username: 30,
-    firstname: 30,
-    lastname: 30,
-    shortname: 20,
-    modname: 20,
-    type: 20,
-    url: 120,
-  };
-
-  // Default header mappings
-  const defaultHeaderMap: Record<string, string> = {
-    id: 'ID',
-    userid: 'User ID',
-    course: 'Course ID',
-    fullname: 'Name',
-    name: 'Name',
-    shortname: 'Short Name',
-    summary: 'Summary',
-    startdate: 'Start Date',
-    enddate: 'End Date',
-    duedate: 'Due Date',
-    allowsubmissionsfromdate: 'Open From',
-    grade: 'Max Grade',
-    completionsubmit: 'Submit to Complete',
-    visible: 'Visible',
-    completed: 'Completed',
-    isfavourite: 'Favourite',
-    hidden: 'Hidden',
-    firstaccess: 'First Access',
-    lastaccess: 'Last Access',
-    username: 'Username',
-    firstname: 'First Name',
-    lastname: 'Last Name',
-    email: 'Email',
-    modname: 'Module',
-    url: 'URL',
-  };
-
-  // Extract field names and descriptions from Zod schema
-  const fieldNames = extractFieldNamesFromZod(schema);
-  const fieldDescriptions = extractFieldDescriptionsFromZod(schema);
-
-  return fieldNames
-    .filter((field) => !exclude.includes(field))
-    .map((field) => ({
-      key: field,
-      header:
-        headerMap[field] ||
-        fieldDescriptions[field] ||
-        defaultHeaderMap[field] ||
-        field,
-      transform: transforms[field] || defaultTransforms[field] || undefined,
-      maxLen: maxLengths[field] || defaultMaxLengths[field] || undefined,
-    }));
-}
-
-// Helper function to extract field names and descriptions from Zod schema
 function extractFieldNamesFromZod(schema: unknown): string[] {
   if (!schema || typeof schema !== 'object' || !('_def' in schema)) return [];
 
   const def = (schema as { _def: unknown })._def;
 
   // Handle object schemas
-  if (
-    typeof def === 'object' &&
-    def &&
-    'typeName' in def &&
-    def.typeName === 'ZodObject'
-  ) {
+  if (isZodObject(def)) {
     const zodDef = def as unknown as { shape: () => Record<string, unknown> };
     if ('shape' in zodDef && typeof zodDef.shape === 'function') {
       const shape = zodDef.shape();
@@ -287,12 +371,7 @@ function extractFieldNamesFromZod(schema: unknown): string[] {
   }
 
   // Handle array schemas
-  if (
-    typeof def === 'object' &&
-    def &&
-    'typeName' in def &&
-    def.typeName === 'ZodArray'
-  ) {
+  if (isZodArray(def)) {
     const zodDef = def as unknown as { type: unknown };
     if ('type' in zodDef) {
       return extractFieldNamesFromZod(zodDef.type);
@@ -300,12 +379,7 @@ function extractFieldNamesFromZod(schema: unknown): string[] {
   }
 
   // Handle lazy schemas
-  if (
-    typeof def === 'object' &&
-    def &&
-    'typeName' in def &&
-    def.typeName === 'ZodLazy'
-  ) {
+  if (isZodLazy(def)) {
     const zodDef = def as unknown as { getter: () => unknown };
     if ('getter' in zodDef && typeof zodDef.getter === 'function') {
       return extractFieldNamesFromZod(zodDef.getter());
@@ -315,7 +389,6 @@ function extractFieldNamesFromZod(schema: unknown): string[] {
   return [];
 }
 
-// Helper function to extract field descriptions from Zod schema
 function extractFieldDescriptionsFromZod(
   schema: unknown,
 ): Record<string, string> {
@@ -324,12 +397,7 @@ function extractFieldDescriptionsFromZod(
   const def = (schema as { _def: unknown })._def;
 
   // Handle object schemas
-  if (
-    typeof def === 'object' &&
-    def &&
-    'typeName' in def &&
-    def.typeName === 'ZodObject'
-  ) {
+  if (isZodObject(def)) {
     const zodDef = def as unknown as { shape: () => Record<string, unknown> };
     if ('shape' in zodDef && typeof zodDef.shape === 'function') {
       const shape = zodDef.shape();
@@ -354,12 +422,7 @@ function extractFieldDescriptionsFromZod(
   }
 
   // Handle array schemas
-  if (
-    typeof def === 'object' &&
-    def &&
-    'typeName' in def &&
-    def.typeName === 'ZodArray'
-  ) {
+  if (isZodArray(def)) {
     const zodDef = def as unknown as { type: unknown };
     if ('type' in zodDef) {
       return extractFieldDescriptionsFromZod(zodDef.type);
@@ -367,12 +430,7 @@ function extractFieldDescriptionsFromZod(
   }
 
   // Handle lazy schemas
-  if (
-    typeof def === 'object' &&
-    def &&
-    'typeName' in def &&
-    def.typeName === 'ZodLazy'
-  ) {
+  if (isZodLazy(def)) {
     const zodDef = def as unknown as { getter: () => unknown };
     if ('getter' in zodDef && typeof zodDef.getter === 'function') {
       return extractFieldDescriptionsFromZod(zodDef.getter());
@@ -382,75 +440,35 @@ function extractFieldDescriptionsFromZod(
   return {};
 }
 
-// Legacy function for backward compatibility
-export const objectToHumanReadableString = <T extends object>(
-  obj: T,
-): string => {
-  return Object.entries(obj)
-    .filter(
-      ([, value]) =>
-        value !== null &&
-        value !== undefined &&
-        value !== '' &&
-        !(Array.isArray(value) && value.length === 0),
-    )
-    .map(([key, value]) => {
-      let displayValue;
-      if (Array.isArray(value)) {
-        displayValue = `[${value
-          .map((item) =>
-            typeof item === 'object' ? JSON.stringify(item) : item,
-          )
-          .join(', ')}]`;
-      } else if (typeof value === 'object' && value !== null) {
-        displayValue = JSON.stringify(value);
-      } else if (typeof value === 'number') {
-        displayValue = parsePossibleDate(value);
-      } else {
-        displayValue = `"${value}"`;
-      }
-      return `${key}: ${displayValue}`;
-    })
-    .join(', ');
-};
+// Type guards for Zod schema types
+function isZodObject(def: unknown): boolean {
+  return (
+    typeof def === 'object' &&
+    def !== null &&
+    'typeName' in def &&
+    def.typeName === 'ZodObject'
+  );
+}
 
-// Updated function using the new table serializer
-export const objectsToHumanReadableString = <T extends object>(
-  objs: T[],
-  options?: {
-    columns?: ColumnSpec<T>[];
-    serializeOptions?: SerializeOptions;
-  },
-): string => {
-  if (!objs || objs.length === 0) {
-    return 'No data available';
-  }
+function isZodArray(def: unknown): boolean {
+  return (
+    typeof def === 'object' &&
+    def !== null &&
+    'typeName' in def &&
+    def.typeName === 'ZodArray'
+  );
+}
 
-  // If no columns specified, auto-generate from first object
-  const columns =
-    options?.columns ||
-    Object.keys(objs[0] as Record<string, unknown>).map((key) => ({
-      key,
-      header: key,
-      transform: (value: unknown) => {
-        if (typeof value === 'number' && /^\d{10}$/.test(String(value))) {
-          return toDateString(value);
-        }
-        return formatCell(value, { nullAs: '' });
-      },
-    }));
+function isZodLazy(def: unknown): boolean {
+  return (
+    typeof def === 'object' &&
+    def !== null &&
+    'typeName' in def &&
+    def.typeName === 'ZodLazy'
+  );
+}
 
-  return serializeTable(objs, columns, {
-    observation: {
-      source: 'moodle_api',
-      total_items: objs.length,
-      generated_at: new Date().toISOString(),
-    },
-    ...options?.serializeOptions,
-  });
-};
-
-const parsePossibleDate = (value: string | number): string | number => {
+function parsePossibleDate(value: string | number): string | number {
   if (typeof value !== 'number') {
     return value;
   }
@@ -460,4 +478,4 @@ const parsePossibleDate = (value: string | number): string | number => {
   }
 
   return parseTimestampToISOString(value);
-};
+}

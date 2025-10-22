@@ -51,7 +51,7 @@ describe('Moodle Agent Tests', () => {
     ).toBe(true);
   }, 60_000);
 
-  it.only('should be able to determine how to get the start date of a course', async () => {
+  it('should be able to determine how to get the start date of a course', async () => {
     const searchValue = 'UX Design';
 
     await addMoodleMapping('core_webservice_get_site_info', mockUserInfo);
