@@ -40,7 +40,7 @@ const agentFramework = createA2AFramework(
   {
     name: 'calendar-agent',
     description:
-      'The Calendar Agent helps you manage your calendar. You can create new events, get events, and more.',
+      'An intelligent calendar management agent that provides comprehensive calendar operations including creating, retrieving, updating, and deleting events. The agent can view all your calendar events, schedule meetings, manage recurring events, and help you organize your schedule efficiently.',
     version: '1.0.0',
     skills: [
       // {

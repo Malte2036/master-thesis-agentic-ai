@@ -8,6 +8,14 @@ interface CalendarEvent {
   start: string | null | undefined;
   end: string | null | undefined;
   description: string | null | undefined;
+  attendees:
+    | {
+        email: string | null | undefined;
+        displayName: string | null | undefined;
+      }[]
+    | null
+    | undefined;
+  location: string | null | undefined;
 }
 
 export class CalendarProvider {
@@ -67,13 +75,21 @@ export class CalendarProvider {
     this.logger.debug('Calendar events', { events });
 
     return (
-      events.data.items?.map((event) => ({
-        id: event.id,
-        name: event.summary,
-        start: event.start?.dateTime,
-        end: event.end?.dateTime,
-        description: event.description,
-      })) ?? undefined
+      events.data.items?.map(
+        (event) =>
+          ({
+            id: event.id,
+            name: event.summary,
+            start: event.start?.dateTime,
+            end: event.end?.dateTime,
+            description: event.description,
+            attendees: event.attendees?.map((attendee) => ({
+              email: attendee.email,
+              displayName: attendee.displayName,
+            })),
+            location: event.location,
+          }) satisfies CalendarEvent,
+      ) ?? undefined
     );
   }
 }
