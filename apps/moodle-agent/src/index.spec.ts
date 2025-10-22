@@ -14,7 +14,6 @@ import {
 } from './utils/mock.spec.utils';
 import {
   compareTimes,
-  parseTimestamp,
   parseTimestampToISOString,
 } from '@master-thesis-agentic-ai/agent-framework';
 

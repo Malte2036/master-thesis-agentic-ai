@@ -1,6 +1,7 @@
 import { RouterProcess } from '@master-thesis-agentic-ai/types';
 import { AIGenerateTextOptions } from '../../services';
 import { AgentTool } from './types';
+import { parseTimestampToISOString } from '../../utils';
 
 /**
  * ReActPrompt with compact STATE injection, strict DONE/CALL enforcement,
@@ -9,15 +10,7 @@ import { AgentTool } from './types';
 export class ReActPrompt {
   public static readonly BASE_PROMPTS: string[] = [
     `Some important information for you:
-    - Current date and time: ${new Date().toLocaleString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZoneName: 'short',
-    })}
+    - Current date and time: ${parseTimestampToISOString(Math.floor(Date.now() / 1000))}
 
 Important rules:
 - Speak in the first person. Speak professionally.
