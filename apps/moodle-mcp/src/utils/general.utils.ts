@@ -1,3 +1,5 @@
+import { parseTimestampToISOString } from '@master-thesis-agentic-ai/agent-framework';
+
 // Table serializer types
 type ColumnSpec<T> = {
   /** Property path on the row object (dot notation allowed), e.g. "course.id" */
@@ -146,49 +148,37 @@ export function generateColumnsFromZod<T>(
     // Date fields (Unix timestamps)
     duedate: (value) => {
       if (typeof value === 'number' && value > 0) {
-        return new Date(value * 1000)
-          .toISOString()
-          .replace('T', ' ')
-          .split('.')[0];
+        return parseTimestampToISOString(value);
       }
       return 'No due date';
     },
     allowsubmissionsfromdate: (value) => {
       if (typeof value === 'number' && value > 0) {
-        return new Date(value * 1000)
-          .toISOString()
-          .replace('T', ' ')
-          .split('.')[0];
+        return parseTimestampToISOString(value);
       }
       return 'Not set';
     },
     startdate: (value) => {
       if (typeof value === 'number' && value > 0) {
-        return new Date(value * 1000).toISOString().split('T')[0];
+        return parseTimestampToISOString(value);
       }
       return '';
     },
     enddate: (value) => {
       if (typeof value === 'number' && value > 0) {
-        return new Date(value * 1000).toISOString().split('T')[0];
+        return parseTimestampToISOString(value);
       }
       return '';
     },
     firstaccess: (value) => {
       if (typeof value === 'number' && value > 0) {
-        return new Date(value * 1000)
-          .toISOString()
-          .replace('T', ' ')
-          .split('.')[0];
+        return parseTimestampToISOString(value);
       }
       return 'Never';
     },
     lastaccess: (value) => {
       if (typeof value === 'number' && value > 0) {
-        return new Date(value * 1000)
-          .toISOString()
-          .replace('T', ' ')
-          .split('.')[0];
+        return parseTimestampToISOString(value);
       }
       return 'Never';
     },
@@ -469,10 +459,5 @@ const parsePossibleDate = (value: string | number): string | number => {
     return value;
   }
 
-  return fromUnixTime(Number(value)).toString();
-};
-
-const fromUnixTime = (value: number): string => {
-  const date = new Date(value * 1000);
-  return date.toISOString();
+  return parseTimestampToISOString(value);
 };

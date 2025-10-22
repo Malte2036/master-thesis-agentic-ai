@@ -11,6 +11,11 @@ import {
   mockAssignments,
   mockUserInfo,
 } from './utils/mock.spec.utils';
+import {
+  compareTimes,
+  parseTimestamp,
+  parseTimestampToISOString,
+} from '@master-thesis-agentic-ai/agent-framework';
 
 const MODEL = 'qwen3:4b';
 
@@ -46,7 +51,7 @@ describe('Moodle Agent Tests', () => {
     ).toBe(true);
   }, 60_000);
 
-  it('should be able to determine how to get the start date of a course', async () => {
+  it.only('should be able to determine how to get the start date of a course', async () => {
     const searchValue = 'UX Design';
 
     await addMoodleMapping('core_webservice_get_site_info', mockUserInfo);
@@ -95,10 +100,9 @@ describe('Moodle Agent Tests', () => {
       mockCourseSearchCoursesResponseDigitalHealth.courses[0].fullname,
     );
     expect(iterationHistory?.[0]?.response).toContain(
-      new Date(
-        mockCourseSearchCoursesResponseDigitalHealth.courses[0].startdate *
-          1000,
-      ).toString(),
+      parseTimestampToISOString(
+        mockCourseSearchCoursesResponseDigitalHealth.courses[0].startdate,
+      ),
     );
 
     expect(iterationHistory?.length).toBe(2);
@@ -108,7 +112,7 @@ describe('Moodle Agent Tests', () => {
     ).toBe(true);
   }, 60_000);
 
-  it.only('get assignments for a course', async () => {
+  it('get assignments for a course', async () => {
     const searchValue =
       mockCourseSearchCoursesResponseDigitalHealth.courses[0].fullname;
     await addMoodleMapping('core_webservice_get_site_info', mockUserInfo);
@@ -257,7 +261,7 @@ describe('Moodle Agent Tests', () => {
       routerResponse?.process?.iterationHistory?.[2]?.naturalLanguageThought,
     ).toContain(
       mockCourseSearchCoursesResponseDigitalHealth.courses[0].assignments.sort(
-        (a, b) => b.duedate - a.duedate,
+        (a, b) => (compareTimes(a.duedate, b.duedate) ? 1 : -1),
       )[0].name,
     );
   }, 60_000);

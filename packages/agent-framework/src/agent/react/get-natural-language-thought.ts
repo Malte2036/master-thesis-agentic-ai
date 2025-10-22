@@ -18,11 +18,6 @@ export async function getNaturalLanguageThought(
     routerProcess,
   );
 
-  logger.log(
-    chalk.magenta('System prompt:'),
-    JSON.stringify(systemPrompt, null, 2),
-  );
-
   logger.log(chalk.magenta('Generating natural language thought...'));
 
   const responseString = await aiProvider.generateText?.(

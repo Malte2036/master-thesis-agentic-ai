@@ -10,6 +10,10 @@ export function parseTimestamp(value: string | number): Date {
     : fromUnixTime(Number(value));
 }
 
+export function parseTimestampToISOString(value: string | number): string {
+  return parseTimestamp(value).toISOString();
+}
+
 export function compareTimes(
   timestamp1: string | number,
   timestamp2: string | number,
