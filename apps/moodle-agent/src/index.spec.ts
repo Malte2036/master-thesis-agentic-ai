@@ -1,21 +1,21 @@
 import {
+  compareTimes,
+  parseTimestampToISOString,
+} from '@master-thesis-agentic-ai/agent-framework';
+import {
   addMoodleMapping,
+  getRouterResponse,
   resetMappings,
 } from '@master-thesis-agentic-ai/test-utils';
 import { describe, expect, it } from 'vitest';
 import { getRouter } from './index';
-import { getRouterResponse } from './utils/testing';
 import {
+  assignmentDefaults,
+  mockAssignments,
   mockCourseSearchCoursesResponseDigitalHealth,
   mockEnrolledCourses,
-  mockAssignments,
   mockUserInfo,
-  assignmentDefaults,
 } from './utils/mock.spec.utils';
-import {
-  compareTimes,
-  parseTimestampToISOString,
-} from '@master-thesis-agentic-ai/agent-framework';
 
 const MODEL = 'qwen3:4b';
 
@@ -266,7 +266,7 @@ describe('Moodle Agent Tests', () => {
     );
   }, 60_000);
 
-  it.only('should list assignments due in the next 7 days across all courses (windowed, field-filtered, single-call)', async () => {
+  it('should list assignments due in the next 7 days across all courses (windowed, field-filtered, single-call)', async () => {
     await addMoodleMapping('core_webservice_get_site_info', mockUserInfo);
 
     // Build a custom assignments payload with mixed due dates
@@ -337,7 +337,6 @@ describe('Moodle Agent Tests', () => {
       [
         'List all assignments due in the next 7 days across my courses.',
         'Only include: course, name, due date (ISO), and url.',
-        'Prefer a single call if possible.',
       ].join(' '),
       6,
     );
@@ -356,13 +355,6 @@ describe('Moodle Agent Tests', () => {
       expect.objectContaining({
         due_after: expect.anything(),
         due_before: expect.anything(),
-        // include_in_response: expect.objectContaining({
-        //   // Make sure the agent requested only what we asked for (or at least these):
-        //   course: true,
-        //   name: true,
-        //   duedate: true,
-        //   url: true,
-        // }),
       }),
     );
 
