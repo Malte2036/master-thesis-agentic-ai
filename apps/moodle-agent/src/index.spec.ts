@@ -12,7 +12,7 @@ import {
   mockUserInfo,
 } from './utils/mock.spec.utils';
 
-const MODEL = 'qwen3:8b';
+const MODEL = 'qwen3:4b';
 
 describe('Moodle Agent Tests', () => {
   beforeAll(async () => {

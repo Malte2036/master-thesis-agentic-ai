@@ -472,6 +472,7 @@ const parsePossibleDate = (value: string | number): string | number => {
   return fromUnixTime(Number(value)).toString();
 };
 
-const fromUnixTime = (value: number): Date => {
-  return new Date(value * 1000);
+const fromUnixTime = (value: number): string => {
+  const date = new Date(value * 1000);
+  return date.toISOString();
 };

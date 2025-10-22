@@ -117,10 +117,10 @@ DONE:
 <PASTE ONLY the minimal JSON slice(s) copied exactly from STATE.lastObservation>
 \`\`\`
 Final:
-<Write the final answer, and whenever you reproduce a value from the evidence (e.g., assignment name, date), copy it exactly (consider wrapping such literals in backticks). Do not invent fields that aren't in the evidence.>
+<Write the final answer, and whenever you reproduce a value from the evidence (e.g., id, assignment name, date), copy it exactly (consider wrapping such literals in backticks). Do not invent fields that aren't in the evidence.>
 
 Parameter echo (when you choose CALL):
-- After "CALL:", write the function name and list **every** required parameter with concrete values (verbatim tokens), e.g., date="2025-10-05".
+- After "CALL:", write the function name and list **every** required parameter with concrete values (verbatim tokens), e.g., id="900", date="2025-10-05".
 - You MUST include \`include_in_response\` for **every** tool call. If you have no explicit preferences, set it to an **empty object** \`{}\` to satisfy the required contract. Only add fields you can state literally.
 - You may include optional parameters, but only with explicit, literal values.
 - If you cannot provide all required parameters with literal values, you cannot call.
