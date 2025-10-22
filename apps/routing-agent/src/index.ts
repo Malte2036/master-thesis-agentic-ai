@@ -192,11 +192,6 @@ expressApp.post('/ask', async (req, res) => {
         .join('\n')}
       `,
       args: {
-        // include_in_response: {
-        //   type: 'object',
-        //   properties: {},
-        //   required: true,
-        // },
         prompt: {
           type: 'string',
           description: 'The prompt to call the agent with',

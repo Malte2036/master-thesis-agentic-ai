@@ -57,28 +57,6 @@ export const listAgentsToolsToAgentTools = (
         if (tool.inputSchema.required?.includes(key)) {
           args[key].required = true;
         }
-
-        // // Special handling for include_in_response - ensure it matches the expected schema structure
-        // if (key === 'include_in_response') {
-        //   // Ensure the include_in_response object has the correct structure
-        //   args[key] = {
-        //     type: 'object',
-        //     description:
-        //       'This option is mandatory and used to specify which fields should be included in the response.',
-        //     required: true,
-        //     properties: args[key].properties || {},
-        //   };
-
-        //   // Ensure all properties within include_in_response are required: true
-        //   if (args[key].properties) {
-        //     for (const propKey of Object.keys(args[key].properties)) {
-        //       args[key].properties[propKey] = {
-        //         type: 'boolean',
-        //         required: true,
-        //       };
-        //     }
-        //   }
-        // }
       }
     }
 

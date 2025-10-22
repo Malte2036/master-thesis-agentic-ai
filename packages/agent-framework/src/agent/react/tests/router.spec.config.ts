@@ -10,11 +10,6 @@ export const mockAgentTools: AgentTool[] = [
         description: 'The location to get the weather for',
         required: true,
       },
-      include_in_response: {
-        type: 'object',
-        properties: {},
-        required: true,
-      },
     },
   },
 ];

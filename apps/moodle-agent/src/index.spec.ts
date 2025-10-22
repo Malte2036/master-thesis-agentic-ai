@@ -87,14 +87,6 @@ describe('Moodle Agent Tests', () => {
       iterationHistory?.[0]?.structuredThought.functionCalls[0].args
         .course_name,
     ).toBe(searchValue);
-    // expect(
-    //   iterationHistory?.[0]?.structuredThought.functionCalls[0].args
-    //     .include_in_response,
-    // ).toEqual(
-    //   expect.objectContaining({
-    //     startdate: true,
-    //   }),
-    // );
 
     expect(iterationHistory?.[0]?.response).toContain(
       mockCourseSearchCoursesResponseDigitalHealth.courses[0].fullname,

@@ -5,38 +5,7 @@ export const mockAgentToolsComplex: AgentTool[] = [
     name: 'get_user_info',
     description:
       'Get personal information about the user who asked the question. This function cannot get information about other users.',
-    args: {
-      include_in_response: {
-        type: 'object',
-        properties: {
-          username: {
-            type: 'boolean',
-            required: true,
-          },
-          firstname: {
-            type: 'boolean',
-            required: true,
-          },
-          lastname: {
-            type: 'boolean',
-            required: true,
-          },
-          siteurl: {
-            type: 'boolean',
-            required: true,
-          },
-          userpictureurl: {
-            type: 'boolean',
-            required: true,
-          },
-          userlang: {
-            type: 'boolean',
-            required: true,
-          },
-        },
-        required: true,
-      },
-    },
+    args: {},
   },
   {
     name: 'get_course_contents',
@@ -51,48 +20,6 @@ export const mockAgentToolsComplex: AgentTool[] = [
         type: 'string',
         description: 'The name of the course to get the contents of',
         required: false,
-      },
-      include_in_response: {
-        type: 'object',
-        properties: {
-          sections: {
-            type: 'boolean',
-            required: true,
-          },
-          modules: {
-            type: 'boolean',
-            required: true,
-          },
-          contents: {
-            type: 'boolean',
-            required: true,
-          },
-          descriptions: {
-            type: 'boolean',
-            required: true,
-          },
-          names: {
-            type: 'boolean',
-            required: true,
-          },
-          start_dates: {
-            type: 'boolean',
-            required: true,
-          },
-          end_dates: {
-            type: 'boolean',
-            required: true,
-          },
-          images: {
-            type: 'boolean',
-            required: true,
-          },
-          displaynames: {
-            type: 'boolean',
-            required: true,
-          },
-        },
-        required: true,
       },
     },
   },
@@ -130,24 +57,6 @@ export const mockAgentToolsComplex: AgentTool[] = [
         description: 'Cabin class (economy | premium | business | first)',
         required: false,
       },
-      include_in_response: {
-        type: 'object',
-        properties: {
-          summary: {
-            type: 'boolean',
-            required: true,
-          },
-          prices: {
-            type: 'boolean',
-            required: true,
-          },
-          schedules: {
-            type: 'boolean',
-            required: true,
-          },
-        },
-        required: true,
-      },
     },
   },
   {
@@ -162,24 +71,6 @@ export const mockAgentToolsComplex: AgentTool[] = [
       date: {
         type: 'string',
         description: 'ISO date of departure',
-        required: true,
-      },
-      include_in_response: {
-        type: 'object',
-        properties: {
-          summary: {
-            type: 'boolean',
-            required: true,
-          },
-          gateInfo: {
-            type: 'boolean',
-            required: true,
-          },
-          delays: {
-            type: 'boolean',
-            required: true,
-          },
-        },
         required: true,
       },
     },
@@ -199,20 +90,6 @@ export const mockAgentToolsComplex: AgentTool[] = [
         description: 'Target currency code (e.g., EUR, JPY)',
         required: false,
       },
-      include_in_response: {
-        type: 'object',
-        properties: {
-          summary: {
-            type: 'boolean',
-            required: true,
-          },
-          historical: {
-            type: 'boolean',
-            required: true,
-          },
-        },
-        required: true,
-      },
     },
   },
   {
@@ -227,20 +104,6 @@ export const mockAgentToolsComplex: AgentTool[] = [
       quote: {
         type: 'string',
         description: 'Quote currency code, e.g., EUR',
-        required: true,
-      },
-      include_in_response: {
-        type: 'object',
-        properties: {
-          summary: {
-            type: 'boolean',
-            required: true,
-          },
-          timestamp: {
-            type: 'boolean',
-            required: true,
-          },
-        },
         required: true,
       },
     },
@@ -265,24 +128,6 @@ export const mockAgentToolsComplex: AgentTool[] = [
         description: 'Optional metadata filters (e.g., {project:"alpha"})',
         required: false,
       },
-      include_in_response: {
-        type: 'object',
-        properties: {
-          summary: {
-            type: 'boolean',
-            required: true,
-          },
-          snippets: {
-            type: 'boolean',
-            required: true,
-          },
-          metadata: {
-            type: 'boolean',
-            required: true,
-          },
-        },
-        required: true,
-      },
     },
   },
   {
@@ -292,20 +137,6 @@ export const mockAgentToolsComplex: AgentTool[] = [
       docId: {
         type: 'string',
         description: 'Document identifier returned by search',
-        required: true,
-      },
-      include_in_response: {
-        type: 'object',
-        properties: {
-          fullText: {
-            type: 'boolean',
-            required: true,
-          },
-          metadata: {
-            type: 'boolean',
-            required: true,
-          },
-        },
         required: true,
       },
     },
@@ -344,24 +175,6 @@ export const mockAgentToolsComplex: AgentTool[] = [
         description: 'Event description',
         required: false,
       },
-      include_in_response: {
-        type: 'object',
-        properties: {
-          summary: {
-            type: 'boolean',
-            required: true,
-          },
-          attendees: {
-            type: 'boolean',
-            required: true,
-          },
-          link: {
-            type: 'boolean',
-            required: true,
-          },
-        },
-        required: true,
-      },
     },
   },
   {
@@ -378,24 +191,6 @@ export const mockAgentToolsComplex: AgentTool[] = [
         description: 'Prepared statement parameters',
         required: false,
       },
-      include_in_response: {
-        type: 'object',
-        properties: {
-          summary: {
-            type: 'boolean',
-            required: true,
-          },
-          rows: {
-            type: 'boolean',
-            required: true,
-          },
-          schema: {
-            type: 'boolean',
-            required: true,
-          },
-        },
-        required: true,
-      },
     },
   },
   {
@@ -411,20 +206,6 @@ export const mockAgentToolsComplex: AgentTool[] = [
         type: 'string',
         description: 'Optional focus area, e.g., “pricing”',
         required: false,
-      },
-      include_in_response: {
-        type: 'object',
-        properties: {
-          summary: {
-            type: 'boolean',
-            required: true,
-          },
-          fullText: {
-            type: 'boolean',
-            required: true,
-          },
-        },
-        required: true,
       },
     },
   },
@@ -446,20 +227,6 @@ export const mockAgentToolsComplex: AgentTool[] = [
         type: 'array',
         description: 'Term mappings: [{source, target}]',
         required: false,
-      },
-      include_in_response: {
-        type: 'object',
-        properties: {
-          summary: {
-            type: 'boolean',
-            required: true,
-          },
-          glossaryApplied: {
-            type: 'boolean',
-            required: true,
-          },
-        },
-        required: true,
       },
     },
   },

@@ -157,14 +157,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
    siteurl, userpictureurl, and userlang.                                                                                                                                                                            ║
                                                                                                                                                                                                                      ║
   **Parameters:**                                                                                                                                                                                                    ║
-  - 'include_in_response': {                                                                                                                                                                                         ║
-    "username": true,                                                                                                                                                                                                ║
-    "firstname": true,                                                                                                                                                                                               ║
-    "lastname": true,                                                                                                                                                                                                ║
-    "siteurl": true,                                                                                                                                                                                                 ║
-    "userpictureurl": true,                                                                                                                                                                                          ║
-    "userlang": true                                                                                                                                                                                                 ║
-  }`,
+  - No parameters required`,
               response: JSON.stringify(
                 [
                   {
@@ -183,16 +176,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
                 functionCalls: [
                   {
                     function: 'get_user_info',
-                    args: {
-                      include_in_response: {
-                        username: true,
-                        firstname: true,
-                        lastname: true,
-                        siteurl: true,
-                        userpictureurl: true,
-                        userlang: true,
-                      },
-                    },
+                    args: {},
                   },
                 ],
                 isFinished: false,
@@ -224,17 +208,15 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
               iteration: 0,
               naturalLanguageThought:
                 '<think>\n' +
-                `Okay, the user wants to create a calendar entry for today. Let me check the available tools. There's the calendar-agent with a skill named "calendar". The required parameters are include_in_response,    ║
+                `Okay, the user wants to create a calendar entry for today. Let me check the available tools. There's the calendar-agent with a skill named "calendar". The required parameters are prompt,    ║
    prompt, and reason. The user's request is straightforward: create an entry today. But I need to make sure I have all the necessary parameters. The prompt should be the action, which is "Create a calendar ent    ║
-  ry". The reason is why it's being done, so maybe "User requested to create a calendar entry for today". Include_in_response is an object, but the user didn't specify any details to include. Since the user jus    ║
-  t said "create a calendar entry for today", I need to use the calendar-agent's skill. The parameters are all there: prompt is the action, reason is the justification, and include_in_response is an empty objec    ║
-  t as per the tool's requirement. I should call the calendar-agent with these parameters.\n` +
+  ry". The reason is why it's being done, so maybe "User requested to create a calendar entry for today". Since the user jus    ║
+  t said "create a calendar entry for today", I need to use the calendar-agent's skill. The parameters are all there: prompt is the action, reason is the justification. I should call the calendar-agent with these parameters.\n` +
                 '</think>\n' +
                 '\n' +
                 'I will now use the **calendar-agent** to create a calendar entry. **Parameters** I will pass:\n' +
                 '- prompt="Create a calendar entry"\n' +
-                '- reason="User requested to create a calendar entry for today"\n' +
-                '- include_in_response={}',
+                '- reason="User requested to create a calendar entry for today"\n',
               structuredThought: {
                 functionCalls: [
                   {
@@ -243,7 +225,6 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
                       prompt: 'Create a calendar entry',
                       reason:
                         'User requested to create a calendar entry for today',
-                      include_in_response: {},
                     },
                   },
                 ],

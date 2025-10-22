@@ -45,9 +45,9 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           ]),
         );
 
-        // All calls must have include_in_response
+        // All calls should have valid args structure
         for (const c of res.functionCalls) {
-          expect(c.args['include_in_response']).toBeInstanceOf(Object);
+          expect(c.args).toBeDefined();
         }
         expect(res.isFinished).toBe(false);
       });
@@ -84,7 +84,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         const call = res.functionCalls[0];
         expect(call.function).toBe('kb_fetch_document');
         expect(call.args['docId']).toBe('doc-123');
-        expect(call.args['include_in_response']).toBeDefined();
+        expect(call.args).toBeDefined();
       });
 
       it('No ordering assumptions: result may list calls in any order', async () => {
@@ -156,7 +156,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         expect(argsSet.size).toBeGreaterThanOrEqual(2);
 
         for (const c of flightCalls)
-          expect(c.args['include_in_response']).toBeDefined();
+          expect(c.args).toBeDefined();
       });
 
       it('Capabilities paragraph mentioning tools → descriptive only (final answer, no calls)', async () => {
@@ -186,7 +186,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         expect(res.functionCalls).toEqual([]); // nothing runs in parallel without args
       });
 
-      it('All calls include include_in_response (policy enforcement)', async () => {
+      it('All calls have valid args structure (policy enforcement)', async () => {
         const thought = `
           Parallel plan:
           - kb_vector_search query "atlas" topK 2
@@ -200,7 +200,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         );
 
         for (const c of res.functionCalls) {
-          expect(c.args['include_in_response']).toBeInstanceOf(Object);
+          expect(c.args).toBeDefined();
         }
       });
 
@@ -283,13 +283,11 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         const thought = `
         <think>
         Okay, the user is asking for their own user information. Let me check the available tools. There's a function called get_user_info that retrieves personal details about the user who asked the question. The pa    ║
-  rameters required are in the include_in_response object, which specifies which fields to include. The required fields are username, firstname, lastname, siteurl, userpictureurl, and userlang. Since the user h    ║
-  asn't specified any particular fields, but the function requires all of them, I need to make sure that all these are included. The function doesn't need any other parameters. So I should call get_user_info wi    █
-  th include_in_response set to include all those fields. Let me structure the function call accordingly.
+  rameters required are minimal. The function doesn't need any other parameters. So I should call get_user_info. Let me structure the function call accordingly.
   </think>
 
   I will now use the **get_user_info** agent to retrieve personal information about the user. **Parameters** I will pass:
-  - include_in_response: { "username": true, "firstname": true, "lastname": true, "siteurl": true, "userpictureurl": true, "userlang": true }
+  - No parameters required
         `;
         const res = await getStructuredThought(
           thought,
