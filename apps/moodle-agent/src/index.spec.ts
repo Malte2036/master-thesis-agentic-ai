@@ -10,6 +10,7 @@ import {
   mockEnrolledCourses,
   mockAssignments,
   mockUserInfo,
+  assignmentDefaults,
 } from './utils/mock.spec.utils';
 import {
   compareTimes,
@@ -264,5 +265,147 @@ describe('Moodle Agent Tests', () => {
         (a, b) => (compareTimes(a.duedate, b.duedate) ? 1 : -1),
       )[0].name,
     );
+  }, 60_000);
+
+  it.only('should list assignments due in the next 7 days across all courses (windowed, field-filtered, single-call)', async () => {
+    await addMoodleMapping('core_webservice_get_site_info', mockUserInfo);
+
+    // Build a custom assignments payload with mixed due dates
+    const now = Math.floor(Date.now() / 1000); // seconds
+    const days = (d: number) => d * 24 * 60 * 60;
+
+    const in3Days = now + days(3);
+    const in6Days = now + days(6);
+    const in15Days = now + days(15);
+    const yesterday = now - days(1);
+
+    const customAssignmentsPayload = {
+      courses: [
+        {
+          id: 101,
+          fullname: 'Data Mining WS25',
+          assignments: [
+            assignmentDefaults({
+              id: 9001,
+              course: 101,
+              name: 'HW2: Classification (inside window)',
+              duedate: in3Days,
+              url: 'https://moodle.example/mod/assign/view.php?id=9001',
+            }),
+            assignmentDefaults({
+              id: 9002,
+              course: 101,
+              name: 'Project Proposal (outside window)',
+              duedate: in15Days,
+              url: 'https://moodle.example/mod/assign/view.php?id=9002',
+            }),
+          ],
+        },
+        {
+          id: 202,
+          fullname: 'IR Systems',
+          assignments: [
+            assignmentDefaults({
+              id: 9101,
+              course: 202,
+              name: 'Paper Critique (inside window)',
+              duedate: in6Days,
+              url: 'https://moodle.example/mod/assign/view.php?id=9101',
+            }),
+            assignmentDefaults({
+              id: 9102,
+              course: 202,
+              name: 'Late Reflection (past, outside window)',
+              duedate: yesterday,
+              url: 'https://moodle.example/mod/assign/view.php?id=9102',
+            }),
+          ],
+        },
+      ],
+    };
+
+    // Map the bulk-assignments endpoint to our mixed dataset
+    await addMoodleMapping(
+      'mod_assign_get_assignments',
+      customAssignmentsPayload,
+    );
+
+    const agent = await getRouter(MODEL);
+
+    // Ask for a 7-day window and a compact table with selected fields
+    const routerResponse = await getRouterResponse(
+      agent,
+      [
+        'List all assignments due in the next 7 days across my courses.',
+        'Only include: course, name, due date (ISO), and url.',
+        'Prefer a single call if possible.',
+      ].join(' '),
+      6,
+    );
+
+    expect(routerResponse?.error).toBeUndefined();
+    const iters = routerResponse?.process?.iterationHistory ?? [];
+    expect(iters).toBeDefined();
+
+    // 1) Planning: should pick get_assignments_for_all_courses with a window
+    expect(iters[0]?.structuredThought.functionCalls).toHaveLength(1);
+    const fc = iters[0].structuredThought.functionCalls[0];
+
+    expect(fc.function).toBe('get_assignments_for_all_courses');
+    // We don't assert exact timestamps, but we require both bounds to exist:
+    expect(fc.args).toEqual(
+      expect.objectContaining({
+        due_after: expect.anything(),
+        due_before: expect.anything(),
+        include_in_response: expect.objectContaining({
+          // Make sure the agent requested only what we asked for (or at least these):
+          course: true,
+          name: true,
+          duedate: true,
+          url: true,
+        }),
+      }),
+    );
+
+    // 2) Observation → Natural language summary should contain only inside-window items
+    // Convert our timestamps to ISO strings the same way your tools do:
+    const toISO = (t: number) => parseTimestampToISOString(t);
+
+    const insideNames = [
+      'HW2: Classification (inside window)',
+      'Paper Critique (inside window)',
+    ];
+    const outsideNames = [
+      'Project Proposal (outside window)',
+      'Late Reflection (past, outside window)',
+    ];
+
+    // The final step should be finished and contain the inside-window assignments
+    const last = iters[iters.length - 1];
+    expect(last?.structuredThought.isFinished).toBe(true);
+
+    // Must include both "inside" assignments and their ISO dates
+    for (const name of insideNames) {
+      expect(last?.naturalLanguageThought ?? last?.response ?? '').toContain(
+        name,
+      );
+    }
+    expect(last?.naturalLanguageThought ?? last?.response ?? '').toContain(
+      toISO(in3Days),
+    );
+    expect(last?.naturalLanguageThought ?? last?.response ?? '').toContain(
+      toISO(in6Days),
+    );
+
+    // Must not include the "outside" ones
+    for (const name of outsideNames) {
+      expect(
+        last?.naturalLanguageThought ?? last?.response ?? '',
+      ).not.toContain(name);
+    }
+
+    // Sanity: should be 2–3 iterations (plan -> act -> finish)
+    expect(iters.length).toBeGreaterThanOrEqual(2);
+    expect(iters.length).toBeLessThanOrEqual(4);
   }, 60_000);
 });

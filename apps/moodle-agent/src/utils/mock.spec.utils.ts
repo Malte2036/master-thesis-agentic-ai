@@ -1,3 +1,27 @@
+export const assignmentDefaults = (overrides: Partial<any>): any => ({
+  id: 0,
+  course: 0,
+  name: '',
+  duedate: 0,
+  url: '',
+  nosubmissions: 0,
+  submissiondrafts: 0,
+  allowsubmissionsfromdate: 0,
+  grade: 0,
+  timemodified: 0,
+  completionsubmit: 0,
+  cutoffdate: 0,
+  gradingduedate: 0,
+  teamsubmission: 0,
+  requireallteammemberssubmit: 0,
+  teamsubmissiongroupingid: 0,
+  maxattempts: 0,
+  intro: '',
+  timelimit: 0,
+  // include any other required fields from your AssignmentSchema here
+  ...overrides,
+});
+
 export const mockUserInfo = {
   userid: 1,
   username: 'hans.muster@test.com',
