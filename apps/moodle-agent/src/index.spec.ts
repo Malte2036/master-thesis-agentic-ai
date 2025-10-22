@@ -3,14 +3,10 @@ import {
   parseTimestampToISOString,
 } from '@master-thesis-agentic-ai/agent-framework';
 import { getRouterTestResponse } from '@master-thesis-agentic-ai/agent-framework';
-import {
-  addMoodleMapping,
-  resetMappings,
-} from '@master-thesis-agentic-ai/test-utils';
+import { Wiremock } from '@master-thesis-agentic-ai/test-utils';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { getRouter } from './index';
 import {
-  assignmentDefaults,
   mockAssignments,
   mockCourseSearchCoursesResponseDigitalHealth,
   mockEnrolledCourses,
@@ -21,11 +17,14 @@ const MODEL = 'qwen3:4b';
 
 describe('Moodle Agent Tests', () => {
   beforeAll(async () => {
-    await resetMappings();
+    await Wiremock.reset();
   });
 
   it('should be able to get the user info', async () => {
-    await addMoodleMapping('core_webservice_get_site_info', mockUserInfo);
+    await Wiremock.addMoodleMapping(
+      'core_webservice_get_site_info',
+      mockUserInfo,
+    );
 
     const agent = await getRouter(MODEL);
 
@@ -54,9 +53,15 @@ describe('Moodle Agent Tests', () => {
   it('should be able to determine how to get the start date of a course', async () => {
     const searchValue = 'UX Design';
 
-    await addMoodleMapping('core_webservice_get_site_info', mockUserInfo);
-    await addMoodleMapping('core_enrol_get_users_courses', mockEnrolledCourses);
-    await addMoodleMapping(
+    await Wiremock.addMoodleMapping(
+      'core_webservice_get_site_info',
+      mockUserInfo,
+    );
+    await Wiremock.addMoodleMapping(
+      'core_enrol_get_users_courses',
+      mockEnrolledCourses,
+    );
+    await Wiremock.addMoodleMapping(
       'core_course_search_courses',
       mockCourseSearchCoursesResponseDigitalHealth,
       {
@@ -107,9 +112,15 @@ describe('Moodle Agent Tests', () => {
   it('get assignments for a course', async () => {
     const searchValue =
       mockCourseSearchCoursesResponseDigitalHealth.courses[0].fullname;
-    await addMoodleMapping('core_webservice_get_site_info', mockUserInfo);
-    await addMoodleMapping('core_enrol_get_users_courses', mockEnrolledCourses);
-    await addMoodleMapping(
+    await Wiremock.addMoodleMapping(
+      'core_webservice_get_site_info',
+      mockUserInfo,
+    );
+    await Wiremock.addMoodleMapping(
+      'core_enrol_get_users_courses',
+      mockEnrolledCourses,
+    );
+    await Wiremock.addMoodleMapping(
       'core_course_search_courses',
       mockCourseSearchCoursesResponseDigitalHealth,
       {
@@ -117,7 +128,10 @@ describe('Moodle Agent Tests', () => {
         criteriavalue: searchValue,
       },
     );
-    await addMoodleMapping('mod_assign_get_assignments', mockAssignments);
+    await Wiremock.addMoodleMapping(
+      'mod_assign_get_assignments',
+      mockAssignments,
+    );
 
     const agent = await getRouter(MODEL);
 
@@ -189,9 +203,15 @@ describe('Moodle Agent Tests', () => {
   it('should be able to get the latest assignments for a course by course name', async () => {
     const searchValue =
       mockCourseSearchCoursesResponseDigitalHealth.courses[0].fullname;
-    await addMoodleMapping('core_webservice_get_site_info', mockUserInfo);
-    await addMoodleMapping('core_enrol_get_users_courses', mockEnrolledCourses);
-    await addMoodleMapping(
+    await Wiremock.addMoodleMapping(
+      'core_webservice_get_site_info',
+      mockUserInfo,
+    );
+    await Wiremock.addMoodleMapping(
+      'core_enrol_get_users_courses',
+      mockEnrolledCourses,
+    );
+    await Wiremock.addMoodleMapping(
       'core_course_search_courses',
       mockCourseSearchCoursesResponseDigitalHealth,
       {
@@ -199,7 +219,10 @@ describe('Moodle Agent Tests', () => {
         criteriavalue: searchValue,
       },
     );
-    await addMoodleMapping('mod_assign_get_assignments', mockAssignments);
+    await Wiremock.addMoodleMapping(
+      'mod_assign_get_assignments',
+      mockAssignments,
+    );
 
     const agent = await getRouter(MODEL);
 
@@ -259,7 +282,10 @@ describe('Moodle Agent Tests', () => {
   }, 60_000);
 
   it('should list assignments due in the next 7 days across all courses (windowed, field-filtered, single-call)', async () => {
-    await addMoodleMapping('core_webservice_get_site_info', mockUserInfo);
+    await Wiremock.addMoodleMapping(
+      'core_webservice_get_site_info',
+      mockUserInfo,
+    );
 
     // Build a custom assignments payload with mixed due dates
     const now = Math.floor(Date.now() / 1000); // seconds
@@ -276,47 +302,47 @@ describe('Moodle Agent Tests', () => {
           id: 101,
           fullname: 'Data Mining WS25',
           assignments: [
-            assignmentDefaults({
+            {
               id: 9001,
               course: 101,
               name: 'HW2: Classification (inside window)',
               duedate: in3Days,
               url: 'https://moodle.example/mod/assign/view.php?id=9001',
-            }),
-            assignmentDefaults({
+            },
+            {
               id: 9002,
               course: 101,
               name: 'Project Proposal (outside window)',
               duedate: in15Days,
               url: 'https://moodle.example/mod/assign/view.php?id=9002',
-            }),
+            },
           ],
         },
         {
           id: 202,
           fullname: 'IR Systems',
           assignments: [
-            assignmentDefaults({
+            {
               id: 9101,
               course: 202,
               name: 'Paper Critique (inside window)',
               duedate: in6Days,
               url: 'https://moodle.example/mod/assign/view.php?id=9101',
-            }),
-            assignmentDefaults({
+            },
+            {
               id: 9102,
               course: 202,
               name: 'Late Reflection (past, outside window)',
               duedate: yesterday,
               url: 'https://moodle.example/mod/assign/view.php?id=9102',
-            }),
+            },
           ],
         },
       ],
     };
 
     // Map the bulk-assignments endpoint to our mixed dataset
-    await addMoodleMapping(
+    await Wiremock.addMoodleMapping(
       'mod_assign_get_assignments',
       customAssignmentsPayload,
     );

@@ -6,23 +6,27 @@ export const AssignmentSchema = z.object({
   id: z.number().describe('Assignment ID'),
   course: z.number().describe('Course ID'),
   name: z.string().describe('Assignment Name'),
-  nosubmissions: z.number().describe('No Submissions'),
-  submissiondrafts: z.number().describe('Submission Drafts'),
+  nosubmissions: z.number().describe('No Submissions').optional(),
+  submissiondrafts: z.number().describe('Submission Drafts').optional(),
   duedate: z.number().describe('Due Date'),
-  allowsubmissionsfromdate: z.number().describe('Open From Date'),
-  grade: z.number().describe('Max Grade'),
-  timemodified: z.number().describe('Time Modified'),
-  completionsubmit: z.number().describe('Submit to Complete'),
-  cutoffdate: z.number().describe('Cutoff Date'),
-  gradingduedate: z.number().describe('Grading Due Date'),
-  teamsubmission: z.number().describe('Team Submission'),
+  allowsubmissionsfromdate: z.number().describe('Open From Date').optional(),
+  grade: z.number().describe('Max Grade').optional(),
+  timemodified: z.number().describe('Time Modified').optional(),
+  completionsubmit: z.number().describe('Submit to Complete').optional(),
+  cutoffdate: z.number().describe('Cutoff Date').optional(),
+  gradingduedate: z.number().describe('Grading Due Date').optional(),
+  teamsubmission: z.number().describe('Team Submission').optional(),
   requireallteammemberssubmit: z
     .number()
-    .describe('Require All Team Members Submit'),
-  teamsubmissiongroupingid: z.number().describe('Team Submission Grouping ID'),
-  maxattempts: z.number().describe('Max Attempts'),
-  intro: z.string().describe('Introduction'),
-  timelimit: z.number().describe('Time Limit'),
+    .describe('Require All Team Members Submit')
+    .optional(),
+  teamsubmissiongroupingid: z
+    .number()
+    .describe('Team Submission Grouping ID')
+    .optional(),
+  maxattempts: z.number().describe('Max Attempts').optional(),
+  intro: z.string().describe('Introduction').optional(),
+  timelimit: z.number().describe('Time Limit').optional(),
 });
 
 export const AssignmentsResponseSchema = z.object({

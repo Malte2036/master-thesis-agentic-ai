@@ -59,6 +59,7 @@ export class RoutingAgentClient {
     request: RoutingAgentRequest,
     timeout = 120000,
   ): Promise<string> {
+    console.log('request', request);
     const { id } = await this.ask(request);
 
     return new Promise((resolve, reject) => {
@@ -79,6 +80,7 @@ export class RoutingAgentClient {
 
           if (data.type === 'final_response') {
             cleanup();
+            console.log(data.data.finalResponse);
             resolve(data.data.finalResponse || '');
           } else if (data.type === 'error') {
             cleanup();

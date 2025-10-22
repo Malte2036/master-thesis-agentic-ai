@@ -15,9 +15,12 @@ export function parseTimestampToISOString(value: string | number): string {
 }
 
 export function compareTimes(
-  timestamp1: string | number,
-  timestamp2: string | number,
+  timestamp1: string | number | undefined,
+  timestamp2: string | number | undefined,
 ): boolean {
+  if (!timestamp1 || !timestamp2) {
+    return false;
+  }
   return (
     parseTimestamp(timestamp1).getTime() > parseTimestamp(timestamp2).getTime()
   );

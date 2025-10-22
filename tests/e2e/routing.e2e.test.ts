@@ -1,10 +1,8 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { RoutingAgentClient } from '../utils/routing-agent-client';
 import { waitForService } from '../utils/wait-for-service';
-import {
-  addMoodleMapping,
-  resetMappings,
-} from '@master-thesis-agentic-ai/test-utils';
+import { Wiremock } from '@master-thesis-agentic-ai/test-utils';
+import { mockAssignments, mockUserInfo } from './routing.e2e.test.mock';
 
 describe('E2E Routing Agent Test', () => {
   const ROUTING_AGENT_URL = 'http://localhost:3000';
@@ -12,7 +10,7 @@ describe('E2E Routing Agent Test', () => {
   let routingAgent: RoutingAgentClient;
 
   beforeAll(async () => {
-    await resetMappings();
+    await Wiremock.reset();
 
     routingAgent = new RoutingAgentClient(ROUTING_AGENT_URL);
 
@@ -33,8 +31,6 @@ describe('E2E Routing Agent Test', () => {
       prompt: testPrompt,
     });
 
-    console.log(finalResponse);
-
     expect(finalResponse).toBeDefined();
     expect(finalResponse.length).toBeGreaterThan(0);
 
@@ -43,16 +39,11 @@ describe('E2E Routing Agent Test', () => {
     expect(finalResponse.toLowerCase()).toContain('calendar');
   }, 60_000);
 
-  it.only('should get a response to a question by using the moodle-agent', async () => {
-    await addMoodleMapping('core_webservice_get_site_info', {
-      userid: 90,
-      username: 'annika.schmidt@example.com',
-      firstname: 'Annika',
-      lastname: 'Schmidt',
-      siteurl: 'https://example.com',
-      userpictureurl: 'https://example.com/user.png',
-      userlang: 'de',
-    });
+  it('should get a response to a question by using the moodle-agent', async () => {
+    await Wiremock.addMoodleMapping(
+      'core_webservice_get_site_info',
+      mockUserInfo,
+    );
 
     const testPrompt = 'Can you help me get my user information?';
 
@@ -66,21 +57,35 @@ describe('E2E Routing Agent Test', () => {
     expect(finalResponse).toContain('Annika');
     expect(finalResponse).toContain('Schmidt');
 
+    expect(
+      await Wiremock.countMoodleRequests('core_webservice_get_site_info'),
+    ).toBe(1);
+
     // Test completed successfully
   }, 60_000);
 
-  // it('should combine multiple agents', async () => {
-  //   const testPrompt =
-  //     'Get my latest assignment and create a calendar event for it.';
+  it.only('should combine multiple agents', async () => {
+    await Wiremock.addMoodleMapping(
+      'core_webservice_get_site_info',
+      mockUserInfo,
+    );
 
-  //   const finalResponse = await routingAgent.askAndWaitForResponse({
-  //     prompt: testPrompt,
-  //   });
+    await Wiremock.addMoodleMapping(
+      'mod_assign_get_assignments',
+      mockAssignments,
+    );
 
-  //   expect(finalResponse).toBeDefined();
-  //   expect(finalResponse.length).toBeGreaterThan(0);
-  //   expect(finalResponse.toLowerCase()).toContain('assignment');
-  //   expect(finalResponse.toLowerCase()).toContain('calendar event');
-  //   expect(finalResponse.toLowerCase()).toContain('created');
-  // }, 120_000);
+    const testPrompt =
+      'Get my latest assignment and create a calendar event for it.';
+
+    const finalResponse = await routingAgent.askAndWaitForResponse({
+      prompt: testPrompt,
+    });
+
+    expect(finalResponse).toBeDefined();
+    expect(finalResponse.length).toBeGreaterThan(0);
+    expect(finalResponse.toLowerCase()).toContain('assignment');
+    expect(finalResponse.toLowerCase()).toContain('calendar event');
+    expect(finalResponse.toLowerCase()).toContain('created');
+  }, 120_000);
 });

@@ -142,7 +142,7 @@ expressApp.post('/ask', async (req, res) => {
         ],
       }),
       call: async (prompt: string) => {
-        if (prompt.includes('create')) {
+        if (prompt.toLowerCase().includes('create')) {
           return {
             response: 'We successfully created the calendar event.',
           };
