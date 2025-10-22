@@ -188,7 +188,10 @@ expressApp.post('/ask', async (req, res) => {
       aiProvider,
       logger,
       agentTools,
-      `You are **RouterGPT**, the dispatcher in a multi-agent system.`,
+      `You are **RouterGPT**, the dispatcher in a multi-agent system.
+      
+      Always include the "prompt" and "reason" in the function calls.
+      `,
       ``,
       (logger, functionCalls) => handleToolCalls(logger, functionCalls, agents),
       async () => {

@@ -4,6 +4,11 @@ import { AgentConfig } from '../../config';
 import express, { Request, Response } from 'express';
 import { Logger } from '../../logger';
 
+export type AuthRoutes = {
+  authEndpoint: (req: Request, res: Response) => void;
+  authCallbackEndpoint: (req: Request, res: Response) => void;
+};
+
 export class McpServerAgentAdapter {
   private expressApp: express.Application;
   private mcpServer: McpServer;
@@ -11,6 +16,7 @@ export class McpServerAgentAdapter {
   constructor(
     private readonly logger: Logger,
     private agentConfig: AgentConfig,
+    private readonly authRoutes: AuthRoutes | undefined,
   ) {
     this.mcpServer = new McpServer(
       {
@@ -97,6 +103,21 @@ export class McpServerAgentAdapter {
       }));
       res.json(functions);
     });
+
+    this.expressApp.get(
+      '/auth',
+      this.authRoutes?.authEndpoint ??
+        ((req, res) => {
+          res.status(404).send('Not found');
+        }),
+    );
+    this.expressApp.get(
+      '/auth/callback',
+      this.authRoutes?.authCallbackEndpoint ??
+        ((req, res) => {
+          res.status(404).send('Not found');
+        }),
+    );
   }
 
   listen(): Promise<void> {

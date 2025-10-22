@@ -43,13 +43,19 @@ const agentFramework = createA2AFramework(
       'The Calendar Agent helps you create calendar events. You can create new events with title, description, start time, end time, and location.',
     version: '1.0.0',
     skills: [
-      {
-        id: 'create-calendar-event',
-        name: 'Create Calendar Event',
-        description:
-          'Create a new calendar event with title, description, start time, end time, and optional location.',
-        tags: ['calendar', 'events', 'create'],
-      },
+      // {
+      //   id: 'create-calendar-event',
+      //   name: 'Create Calendar Event',
+      //   description:
+      //     'Create a new calendar event with title, description, start time, end time, and optional location.',
+      //   tags: ['calendar', 'events', 'create'],
+      // },
+      // {
+      //   id: 'get-calendar-events',
+      //   name: 'Get Calendar Events',
+      //   description: 'Get all calendar events for the current user.',
+      //   tags: ['calendar', 'events', 'get'],
+      // },
     ],
   },
   () => getRouter(MODEL),

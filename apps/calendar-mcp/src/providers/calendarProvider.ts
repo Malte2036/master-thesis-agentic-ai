@@ -1,4 +1,6 @@
 import { Logger } from '@master-thesis-agentic-ai/agent-framework';
+import { google } from 'googleapis';
+import { oauth2Client } from '../auth/google';
 
 export class CalendarProvider {
   constructor(
@@ -19,35 +21,32 @@ export class CalendarProvider {
       eventEndDate,
     });
 
-    const response = await fetch(
-      `${this.calendarBaseUrl}/create_calendar_event`,
-      {
-        method: 'POST',
-        body: JSON.stringify({
-          eventName,
-          eventDescription,
-          eventStartDate,
-          eventEndDate,
-        }),
+    // Ensure dateTime includes timezone information
+    const formatDateTime = (dateString: string): string => {
+      // If the date string doesn't include timezone info, add UTC timezone
+      if (
+        !dateString.includes('Z') &&
+        !dateString.includes('+') &&
+        !dateString.includes('-', 10)
+      ) {
+        return dateString.endsWith('Z') ? dateString : `${dateString}Z`;
+      }
+      return dateString;
+    };
+
+    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+    const event = await calendar.events.insert({
+      calendarId: 'primary',
+      requestBody: {
+        summary: eventName,
+        description: eventDescription,
+        start: { dateTime: formatDateTime(eventStartDate) },
+        end: { dateTime: formatDateTime(eventEndDate) },
       },
-    );
+    });
 
-    if (!response.ok) {
-      this.logger.error(
-        `Failed to create calendar event: ${response.statusText}`,
-        {
-          status: response.status,
-          statusText: response.statusText,
-          body: await response.text(),
-        },
-      );
-      throw new Error(
-        `Failed to create calendar event: ${response.statusText}`,
-      );
-    }
+    this.logger.debug('Calendar event created', { event });
 
-    const data = await response.json();
-
-    return data;
+    return 'Calendar event created';
   }
 }

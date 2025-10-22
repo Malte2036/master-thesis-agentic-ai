@@ -11,6 +11,7 @@ export class ReActPrompt {
   public static readonly BASE_PROMPTS: string[] = [
     `Some important information for you:
     - Current date and time: ${parseTimestampToISOString(Math.floor(Date.now() / 1000))}
+    - Current timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
 
 Important rules:
 - Speak in the first person. Speak professionally.

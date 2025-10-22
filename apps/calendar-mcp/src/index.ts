@@ -6,6 +6,7 @@ import { createResponseError } from '@master-thesis-agentic-ai/types';
 import dotenv from 'dotenv';
 import { z } from 'zod/v3';
 import { CalendarProvider } from './providers/calendarProvider';
+import { googleAuthRoutes } from './auth/google';
 
 dotenv.config();
 
@@ -17,7 +18,12 @@ if (!calendarBaseUrl) {
 }
 
 const calendarProvider = new CalendarProvider(logger, calendarBaseUrl);
-const mcpServerFramework = createMCPServerFramework(logger, 'calendar-mcp');
+
+const mcpServerFramework = createMCPServerFramework(
+  logger,
+  'calendar-mcp',
+  googleAuthRoutes(logger),
+);
 const mcpServer = mcpServerFramework.getServer();
 
 mcpServer.tool(
@@ -28,8 +34,14 @@ mcpServer.tool(
     event_description: z.string().describe('Description of the calendar event'),
     event_start_date: z
       .string()
-      .describe('Start date of the event in ISO format'),
-    event_end_date: z.string().describe('End date of the event in ISO format'),
+      .describe(
+        'Start date of the event in ISO format (e.g., 2025-10-22T13:00:00 or 2025-10-22T13:00:00Z)',
+      ),
+    event_end_date: z
+      .string()
+      .describe(
+        'End date of the event in ISO format (e.g., 2025-10-22T14:00:00 or 2025-10-22T14:00:00Z)',
+      ),
   },
   async ({
     event_name,
