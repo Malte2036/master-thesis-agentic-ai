@@ -20,6 +20,24 @@ export const mockAssignments = {
           name: 'What is the meaning of life?',
           duedate: 1734854400,
         },
+        {
+          id: 324,
+          course: 183823,
+          name: 'Machine Learning Assignment',
+          duedate: 1734940800,
+        },
+      ],
+    },
+    {
+      id: 183824,
+      fullname: 'Software Engineering WS25',
+      assignments: [
+        {
+          id: 325,
+          course: 183824,
+          name: 'Design Patterns Exercise',
+          duedate: 1735027200,
+        },
       ],
     },
   ],

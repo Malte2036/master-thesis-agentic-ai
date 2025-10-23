@@ -1,8 +1,9 @@
+import { RouterResponse } from '@master-thesis-agentic-ai/types';
 import { AIProvider } from './types';
 
 export interface FriendlyResponseOptions {
   userPrompt: string;
-  agentResponse: string;
+  agentResponse: RouterResponse;
   aiProvider: AIProvider;
 }
 
@@ -22,7 +23,7 @@ about facts contained in \`agentResponse\`.
 
 ══════════════════════════  CONTEXT  ══════════════════════════
 • user_question  : """${userPrompt.toString().trim()}"""
-• agent_response : """${agentResponse.toString().trim()}"""
+• agent_response : """${JSON.stringify(agentResponse)}"""
 ═══════════════════════════════════════════════════════════════
 
 TASK

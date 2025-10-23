@@ -216,7 +216,7 @@ expressApp.post('/ask', async (req, res) => {
 
     let finalResponse = await generateFriendlyResponse({
       userPrompt: body.prompt,
-      agentResponse: JSON.stringify(results, null, 2),
+      agentResponse: results,
       aiProvider: aiProvider,
     });
     finalResponse = finalResponse

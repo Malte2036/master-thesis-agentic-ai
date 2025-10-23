@@ -1,4 +1,4 @@
-import { RouterProcess } from '@master-thesis-agentic-ai/types';
+import { RouterProcess, RouterResponse } from '@master-thesis-agentic-ai/types';
 import { AIGenerateTextOptions } from '../../services';
 import { AgentTool } from './types';
 import { parseTimestampToISOString } from '../../utils';
@@ -197,6 +197,57 @@ Now, parse the following thought with zero deviation from these rules.`,
 <TOOLS_SNAPSHOT>
 ${JSON.stringify(agentTools)}
 </TOOLS_SNAPSHOT>`,
+      },
+    ],
+  });
+
+  public static getRouterResponseSummaryPrompt = (
+    routerResponse: RouterResponse,
+  ): AIGenerateTextOptions => ({
+    messages: [
+      ...this.BASE_PROMPTS.map((content) => ({
+        role: 'system' as const,
+        content,
+      })),
+
+      // Full process as single source of truth
+      {
+        role: 'system' as const,
+        content: `<STATE_JSON>
+  ${JSON.stringify(routerResponse.process)}
+  ${routerResponse.error ? `\nERROR: ${routerResponse.error}` : ''}
+  </STATE_JSON>`,
+      },
+
+      // Original goal (for intent + language mirroring)
+      {
+        role: 'system' as const,
+        content: `ORIGINAL_GOAL: ${routerResponse.process?.question}`,
+      },
+
+      {
+        role: 'system' as const,
+        content: `
+  You are a summarization engine inside an autonomous AI agent.
+  
+  Your reply MUST begin with exactly this token:
+  - "SUMMARY:" followed by a work-ready, multi-paragraph prose summary (no lists, no bullets, no markdown headings).
+  
+  Grounding & Truthfulness (apply to every sentence):
+  1) Use ONLY facts present inside <STATE_JSON>. No invention, no guessing, no external knowledge.
+  2) Prefer the most recent observation when describing the outcome.
+  3) Copy concrete literals exactly (IDs, titles, dates, URLs, counts) and wrap them in backticks.
+  4) Do not include raw JSON, stack traces, or tool noise.
+  
+  Coverage requirements (include all of these, in flowing prose):
+  • State the original goal in your own words and the current overall status as one of: success, partial, or failure.
+  • Report the concrete results available now using exact literals from state (names, IDs, dates, URLs, counts).
+  
+  Failure handling:
+  - If <STATE_JSON> contains strings like "error", "failed", "not implemented", "unauthorized", "forbidden", "not found", acknowledge the failure explicitly and clarify its impact on the goal.
+  
+  Output format (exactly):
+  SUMMARY: <multi-paragraph prose in the user's language, using backticks for any exact literals from state and covering all sections above>`.trim(),
       },
     ],
   });

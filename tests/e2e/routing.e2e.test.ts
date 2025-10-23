@@ -88,7 +88,7 @@ describe('E2E Routing Agent Test', () => {
     );
   }, 60_000);
 
-  it.only('should combine the moodle-agent and the calendar-agent', async () => {
+  it('should combine the moodle-agent and the calendar-agent', async () => {
     await Wiremock.addMoodleMapping(
       'core_webservice_get_site_info',
       mockUserInfo,
@@ -114,6 +114,60 @@ describe('E2E Routing Agent Test', () => {
 
     // expect(await Wiremock.countCalendarRequests('/create_calendar_event')).toBe(
     //   1,
+    // );
+  }, 120_000);
+
+  it.only('should handle German request for all assignments and create calendar entries', async () => {
+    await Wiremock.addMoodleMapping(
+      'core_webservice_get_site_info',
+      mockUserInfo,
+    );
+
+    await Wiremock.addMoodleMapping(
+      'mod_assign_get_assignments',
+      mockAssignments,
+    );
+
+    await Wiremock.addCalendarMapping('/create_calendar_event', {});
+
+    const testPrompt =
+      'Hole mir alle Abgaben und erstelle je einen Kalendareintrag pro assignment';
+
+    const finalResponse = await routingAgent.askAndWaitForResponse({
+      prompt: testPrompt,
+    });
+
+    expect(finalResponse).toBeDefined();
+    expect(finalResponse.length).toBeGreaterThan(0);
+
+    // The response should contain German keywords or English translations
+    const responseLower = finalResponse.toLowerCase();
+    expect(
+      responseLower.includes('assignment') ||
+        responseLower.includes('abgabe') ||
+        responseLower.includes('aufgabe'),
+    ).toBe(true);
+
+    expect(
+      responseLower.includes('calendar') ||
+        responseLower.includes('kalender') ||
+        responseLower.includes('termin'),
+    ).toBe(true);
+
+    expect(
+      responseLower.includes('created') ||
+        responseLower.includes('erstellt') ||
+        responseLower.includes('angelegt'),
+    ).toBe(true);
+
+    // Verify that the moodle agent was called to get assignments
+    expect(
+      await Wiremock.countMoodleRequests('mod_assign_get_assignments'),
+    ).toBe(1);
+
+    // // Verify that calendar events were created (one per assignment)
+    // expect(await Wiremock.countCalendarRequests('/create_calendar_event')).toBe(
+    //   3, // Based on mockAssignments, there are 3 assignments total
     // );
   }, 120_000);
 });

@@ -8,7 +8,8 @@ import { RouterResponse } from '@master-thesis-agentic-ai/types';
 import { randomUUID } from 'crypto';
 import { Router } from '../../agent';
 import { Logger } from '../../logger';
-import { AIProvider, generateFriendlyResponse } from '../../services';
+import { AIProvider } from '../../services';
+import { getRouterResponseSummary } from '../../agent/react/get-router-response-summary';
 
 // 1. Define your agent's logic as a AgentExecutor
 export class MyAgentExecutor implements AgentExecutor {
@@ -103,11 +104,11 @@ export class MyAgentExecutor implements AgentExecutor {
       this.logger.log('Step:', value);
     }
 
-    const finalResponse = await generateFriendlyResponse({
-      userPrompt: userMessageText,
-      agentResponse: JSON.stringify(results, null, 2),
-      aiProvider: this.aiProvider,
-    });
+    const finalResponse = await getRouterResponseSummary(
+      results,
+      this.aiProvider,
+      this.logger,
+    );
 
     this.logger.log('Final response:', finalResponse);
 
