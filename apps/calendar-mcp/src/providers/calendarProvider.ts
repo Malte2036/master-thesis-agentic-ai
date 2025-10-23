@@ -1,7 +1,7 @@
 import { Logger } from '@master-thesis-agentic-ai/agent-framework';
-import { calendar_v3, google } from 'googleapis';
-import { oauth2Client } from '../auth/google';
+import { google } from 'googleapis';
 import z from 'zod';
+import { oauth2Client } from '../auth/google';
 import { createResponseError } from '@master-thesis-agentic-ai/types';
 
 const CalendarEventSchema = z.object({
@@ -36,6 +36,39 @@ const CalendarEventSchema = z.object({
 
 export type CalendarEvent = z.infer<typeof CalendarEventSchema>;
 
+export const PatchCalendarEventSchema = z.object({
+  summary: z.string().nullish(),
+  description: z.string().nullish(),
+});
+
+export type PatchCalendarEvent = z.infer<typeof PatchCalendarEventSchema>;
+
+// Utility function to check if error is a 404
+const errorHasStatusCode = (error: unknown, statusCode: number): boolean => {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'code' in error &&
+    (error as { code: number }).code === statusCode
+  ) {
+    return true;
+  }
+  return false;
+};
+
+// Ensure dateTime includes timezone information
+const formatDateTime = (dateString: string): string => {
+  // If the date string doesn't include timezone info, add UTC timezone
+  if (
+    !dateString.includes('Z') &&
+    !dateString.includes('+') &&
+    !dateString.includes('-', 10)
+  ) {
+    return dateString.endsWith('Z') ? dateString : `${dateString}Z`;
+  }
+  return dateString;
+};
+
 export class CalendarProvider {
   constructor(
     private readonly logger: Logger,
@@ -47,26 +80,13 @@ export class CalendarProvider {
     eventDescription: string,
     eventStartDate: string,
     eventEndDate: string,
-  ): Promise<string> {
+  ): Promise<CalendarEvent> {
     this.logger.debug('Creating calendar event', {
       eventName,
       eventDescription,
       eventStartDate,
       eventEndDate,
     });
-
-    // Ensure dateTime includes timezone information
-    const formatDateTime = (dateString: string): string => {
-      // If the date string doesn't include timezone info, add UTC timezone
-      if (
-        !dateString.includes('Z') &&
-        !dateString.includes('+') &&
-        !dateString.includes('-', 10)
-      ) {
-        return dateString.endsWith('Z') ? dateString : `${dateString}Z`;
-      }
-      return dateString;
-    };
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
     const event = await calendar.events.insert({
@@ -79,21 +99,20 @@ export class CalendarProvider {
       },
     });
 
-    this.logger.debug('Calendar event created', { event });
+    const validatedEvent = CalendarEventSchema.safeParse(event.data);
+    if (!validatedEvent.success) {
+      this.logger.error('Failed to validate created calendar event', {
+        error: validatedEvent.error,
+      });
+      throw Error('Failed to validate created calendar event');
+    }
 
-    return 'Calendar event created';
+    return validatedEvent.data;
   }
 
-  public async getCalendarEvents(): Promise<CalendarEvent[] | undefined> {
-    this.logger.debug('Getting calendar events');
-
+  public async getCalendarEvents(): Promise<CalendarEvent[]> {
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
     const events = await calendar.events.list({ calendarId: 'primary' });
-
-    this.logger.debug(
-      'Calendar events',
-      JSON.stringify(events.data.items, null, 2),
-    );
 
     const validatedEvents = CalendarEventSchema.array().safeParse(
       events.data.items,
@@ -108,27 +127,69 @@ export class CalendarProvider {
     return validatedEvents.data;
   }
 
-  public async updateCalendarEvent(
-    eventId: string,
-    event: CalendarEvent,
-  ): Promise<string> {
+  public async findCalendarEventsByFreeTextQuery(
+    query: string,
+  ): Promise<CalendarEvent[]> {
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-    const events = await calendar.events.update({
+    const events = await calendar.events.list({
       calendarId: 'primary',
-      eventId: eventId,
-      requestBody: {
-        summary: event.summary,
-        description: event.description,
-        start: { dateTime: event.start },
-        end: { dateTime: event.end },
-        attendees: event.attendees?.map((attendee) => ({
-          email: attendee.email,
-          displayName: attendee.displayName,
-        })),
-        location: event.location,
-        htmlLink: event.htmlLink,
-      },
+      q: query,
     });
+    const validatedEvents = CalendarEventSchema.array().safeParse(
+      events.data.items,
+    );
+    if (!validatedEvents.success) {
+      this.logger.error('Failed to validate calendar events', {
+        error: validatedEvents.error,
+      });
+      throw Error('Failed to validate calendar events');
+    }
+
+    return validatedEvents.data;
+  }
+
+  public async patchCalendarEvent(
+    eventId: string,
+    data: {
+      summary: string | undefined;
+      description: string | undefined;
+      start: string | undefined;
+      end: string | undefined;
+    },
+  ): Promise<CalendarEvent> {
+    this.logger.debug('Patching calendar event', {
+      eventId,
+      data,
+    });
+
+    let events;
+    try {
+      const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+      events = await calendar.events.patch({
+        calendarId: 'primary',
+        eventId: eventId,
+        requestBody: {
+          summary: data.summary,
+          description: data.description,
+          start: {
+            dateTime: data.start ? formatDateTime(data.start) : undefined,
+          },
+          end: { dateTime: data.end ? formatDateTime(data.end) : undefined },
+        },
+      });
+    } catch (error: unknown) {
+      if (errorHasStatusCode(error, 404)) {
+        this.logger.error(
+          `Calendar event with eventId "${eventId}" could not be found:`,
+          error,
+        );
+        throw createResponseError(
+          `Calendar event with eventId "${eventId}" could not be found`,
+          404,
+        );
+      }
+      throw createResponseError('Failed to update calendar event', 500);
+    }
 
     const validatedUpdatedEvent = CalendarEventSchema.safeParse(events.data);
     if (!validatedUpdatedEvent.success) {
@@ -138,11 +199,6 @@ export class CalendarProvider {
       throw Error('Failed to validate updated calendar event');
     }
 
-    this.logger.debug(
-      'Calendar event updated',
-      JSON.stringify(validatedUpdatedEvent.data, null, 2),
-    );
-
-    return `Successfully updated calendar event with id ${validatedUpdatedEvent.data.id}. Updated event: ${JSON.stringify(validatedUpdatedEvent.data)}`;
+    return validatedUpdatedEvent.data;
   }
 }

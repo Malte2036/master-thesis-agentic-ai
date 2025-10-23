@@ -10,7 +10,7 @@ import { MoodleProvider } from './providers/moodleProvider';
 import {
   objectsToHumanReadableString,
   generateColumnsFromZod,
-} from './utils/general.utils';
+} from '@master-thesis-agentic-ai/agent-framework';
 import { CourseSchema } from './schemas/moodle/course';
 import { AssignmentSchema } from './schemas/moodle/assignment';
 import { CourseContentSchema } from './schemas/moodle/course_content';

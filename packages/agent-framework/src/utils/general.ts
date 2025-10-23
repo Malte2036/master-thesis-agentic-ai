@@ -1,8 +1,8 @@
-import { parseTimestampToISOString } from '@master-thesis-agentic-ai/agent-framework';
-
 // ============================================================================
 // TYPES
 // ============================================================================
+
+import { parseTimestampToISOString } from './time';
 
 export type ColumnSpec<T> = {
   /** Property path on the row object (dot notation allowed), e.g. "course.id" */
@@ -302,7 +302,7 @@ export const objectsToHumanReadableString = <T extends object>(
 
   return serializeTable(objs, columns, {
     observation: {
-      source: 'moodle_api',
+      source: 'api',
       total_items: objs.length,
       generated_at: new Date().toISOString(),
     },

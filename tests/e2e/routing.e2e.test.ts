@@ -99,9 +99,8 @@ describe('E2E Routing Agent Test', () => {
       mockAssignments,
     );
 
-    const testPrompt = 'Get my calendar events';
-    // const testPrompt =
-    //   'Get my last past assignment and create a calendar event for the date of the assignment. The Description of the calendar event should be the assignment description.';
+    const testPrompt =
+      'Get my last past assignment and create a calendar event for the date of the assignment and for 1.5hours. The Description of the calendar event should be the assignment description.';
 
     const finalResponse = await routingAgent.askAndWaitForResponse({
       prompt: testPrompt,
