@@ -69,7 +69,7 @@ describe('E2E Routing Agent Test', () => {
     // Test completed successfully
   }, 60_000);
 
-  it.only('should create a calendar event', async () => {
+  it('should create a calendar event', async () => {
     await Wiremock.addCalendarMapping('/create_calendar_event', {});
 
     const testPrompt =
