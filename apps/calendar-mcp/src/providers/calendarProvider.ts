@@ -1,22 +1,40 @@
 import { Logger } from '@master-thesis-agentic-ai/agent-framework';
-import { google } from 'googleapis';
+import { calendar_v3, google } from 'googleapis';
 import { oauth2Client } from '../auth/google';
+import z from 'zod';
+import { createResponseError } from '@master-thesis-agentic-ai/types';
 
-interface CalendarEvent {
-  id: string | null | undefined;
-  name: string | null | undefined;
-  start: string | null | undefined;
-  end: string | null | undefined;
-  description: string | null | undefined;
-  attendees:
-    | {
-        email: string | null | undefined;
-        displayName: string | null | undefined;
-      }[]
-    | null
-    | undefined;
-  location: string | null | undefined;
-}
+const CalendarEventSchema = z.object({
+  id: z.string().nullish(),
+  summary: z.string().nullish(),
+  start: z
+    .object({
+      dateTime: z.string(),
+      timeZone: z.string(),
+    })
+    .nullish()
+    .transform((val) => (val ? val.dateTime : undefined)),
+  end: z
+    .object({
+      dateTime: z.string(),
+      timeZone: z.string(),
+    })
+    .nullish()
+    .transform((val) => (val ? val.dateTime : undefined)),
+  description: z.string().nullish(),
+  attendees: z
+    .array(
+      z.object({
+        email: z.string().nullish(),
+        displayName: z.string().nullish(),
+      }),
+    )
+    .nullish(),
+  location: z.string().nullish(),
+  htmlLink: z.string().nullish(),
+});
+
+export type CalendarEvent = z.infer<typeof CalendarEventSchema>;
 
 export class CalendarProvider {
   constructor(
@@ -72,24 +90,59 @@ export class CalendarProvider {
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
     const events = await calendar.events.list({ calendarId: 'primary' });
 
-    this.logger.debug('Calendar events', { events });
-
-    return (
-      events.data.items?.map(
-        (event) =>
-          ({
-            id: event.id,
-            name: event.summary,
-            start: event.start?.dateTime,
-            end: event.end?.dateTime,
-            description: event.description,
-            attendees: event.attendees?.map((attendee) => ({
-              email: attendee.email,
-              displayName: attendee.displayName,
-            })),
-            location: event.location,
-          }) satisfies CalendarEvent,
-      ) ?? undefined
+    this.logger.debug(
+      'Calendar events',
+      JSON.stringify(events.data.items, null, 2),
     );
+
+    const validatedEvents = CalendarEventSchema.array().safeParse(
+      events.data.items,
+    );
+    if (!validatedEvents.success) {
+      this.logger.error('Failed to validate calendar events', {
+        error: validatedEvents.error,
+      });
+      throw Error('Failed to validate calendar events');
+    }
+
+    return validatedEvents.data;
+  }
+
+  public async updateCalendarEvent(
+    eventId: string,
+    event: CalendarEvent,
+  ): Promise<string> {
+    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+    const events = await calendar.events.update({
+      calendarId: 'primary',
+      eventId: eventId,
+      requestBody: {
+        summary: event.summary,
+        description: event.description,
+        start: { dateTime: event.start },
+        end: { dateTime: event.end },
+        attendees: event.attendees?.map((attendee) => ({
+          email: attendee.email,
+          displayName: attendee.displayName,
+        })),
+        location: event.location,
+        htmlLink: event.htmlLink,
+      },
+    });
+
+    const validatedUpdatedEvent = CalendarEventSchema.safeParse(events.data);
+    if (!validatedUpdatedEvent.success) {
+      this.logger.error('Failed to validate updated calendar event', {
+        error: validatedUpdatedEvent.error,
+      });
+      throw Error('Failed to validate updated calendar event');
+    }
+
+    this.logger.debug(
+      'Calendar event updated',
+      JSON.stringify(validatedUpdatedEvent.data, null, 2),
+    );
+
+    return `Successfully updated calendar event with id ${validatedUpdatedEvent.data.id}. Updated event: ${JSON.stringify(validatedUpdatedEvent.data)}`;
   }
 }
