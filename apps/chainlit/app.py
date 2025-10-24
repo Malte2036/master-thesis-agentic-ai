@@ -3,10 +3,64 @@ from chainlit.input_widget import Select
 import httpx
 import json
 import asyncio
+import re
 from typing import Optional, Dict, Any, List
 
 # Configuration
 ROUTING_AGENT_URL = "http://localhost:3000"
+
+def parse_nested_json_response(response_text: str) -> str:
+    """Parse and format nested JSON response strings."""
+    try:
+        # First, try to parse the outer JSON array
+        if response_text.startswith('[') and response_text.endswith(']'):
+            parsed = json.loads(response_text)
+            if isinstance(parsed, list) and len(parsed) > 0:
+                # If it's a list of strings, join them and fix newlines
+                if all(isinstance(item, str) for item in parsed):
+                    formatted_items = []
+                    for item in parsed:
+                        # Convert literal \n to actual newlines
+                        formatted_item = item.replace('\\n', '\n')
+                        formatted_items.append(formatted_item)
+                    return '\n\n'.join(formatted_items)
+                # If it's a list of lists (nested), flatten and join
+                elif all(isinstance(item, list) for item in parsed):
+                    flattened = []
+                    for sublist in parsed:
+                        if all(isinstance(subitem, str) for subitem in sublist):
+                            for subitem in sublist:
+                                # Convert literal \n to actual newlines
+                                formatted_subitem = subitem.replace('\\n', '\n')
+                                flattened.append(formatted_subitem)
+                    return '\n\n'.join(flattened)
+        
+        # If it's a string that looks like JSON, try to parse it
+        if response_text.startswith('"') and response_text.endswith('"'):
+            # Remove outer quotes and unescape
+            cleaned = response_text[1:-1]
+            cleaned = cleaned.replace('\\"', '"').replace('\\n', '\n')
+            return cleaned
+            
+        # If it contains escaped JSON strings, try to extract them
+        if '\\"' in response_text:
+            # Find JSON-like strings and clean them
+            pattern = r'\\"([^"]*)\\"'
+            matches = re.findall(pattern, response_text)
+            if matches:
+                cleaned_matches = [match.replace('\\n', '\n') for match in matches]
+                return '\n\n'.join(cleaned_matches)
+        
+        # If it's a plain string with literal \n, convert them
+        if '\\n' in response_text:
+            return response_text.replace('\\n', '\n')
+        
+        return response_text
+        
+    except (json.JSONDecodeError, ValueError) as e:
+        print(f"Error parsing nested JSON response: {e}")
+        # Even if JSON parsing fails, try to fix newlines
+        return response_text.replace('\\n', '\n')
 
 async def get_available_models() -> List[str]:
     """Fetch available models from the routing agent."""
@@ -72,13 +126,20 @@ async def stream_updates(session_id: str, agentic_viewer_element: cl.CustomEleme
     final_answer_received = False
     iterations = []
     
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    # Use a longer timeout and retry logic
+    timeout = httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=5.0)
+    
+    async with httpx.AsyncClient(timeout=timeout) as client:
         try:
             async with client.stream('GET', f"{ROUTING_AGENT_URL}/stream/{session_id}") as response:
                 response.raise_for_status()
                 print("SSE connection established")
                 
                 async for line in response.aiter_lines():
+                    # Skip empty lines and ping messages
+                    if not line.strip() or line.strip() == ': ping':
+                        continue
+                        
                     print(f"Received SSE line: {line}")
                     if line.startswith('data: '):
                         try:
@@ -87,15 +148,47 @@ async def stream_updates(session_id: str, agentic_viewer_element: cl.CustomEleme
                             update_type = data.get('type')
                             update_data = data.get('data')
 
-                            if update_type == 'iteration_update':
-                                # Add new iteration to the list
-                                iteration = {
-                                    'iteration': update_data.get('iteration'),
-                                    'naturalLanguageThought': update_data.get('naturalLanguageThought'),
-                                    'structuredThought': update_data.get('structuredThought'),
-                                    'response': update_data.get('response')
-                                }
-                                iterations.append(iteration)
+                            if update_type == 'connected':
+                                print("SSE connection confirmed")
+                                continue
+
+                            elif update_type == 'iteration_update':
+                                # Extract iteration history from the data
+                                iteration_history = update_data.get('iterationHistory', [])
+                                print(f"Processing {len(iteration_history)} iterations from history")
+                                
+                                # Process each iteration in the history
+                                for iteration_data in iteration_history:
+                                    # Parse and format the response
+                                    raw_response = iteration_data.get('response', '')
+                                    formatted_response = parse_nested_json_response(raw_response)
+                                    
+                                    print(f"Raw response length: {len(raw_response)}")
+                                    print(f"Formatted response length: {len(formatted_response)}")
+                                    print(f"Formatted response preview: {formatted_response[:200]}...")
+                                    
+                                    iteration = {
+                                        'iteration': iteration_data.get('iteration'),
+                                        'naturalLanguageThought': iteration_data.get('naturalLanguageThought', ''),
+                                        'structuredThought': iteration_data.get('structuredThought', {}),
+                                        'response': formatted_response
+                                    }
+                                    
+                                    print(f"Processing iteration {iteration.get('iteration')}: {len(iteration.get('naturalLanguageThought', ''))} chars of thought")
+                                    
+                                    # Check if this iteration already exists to avoid duplicates
+                                    existing_iteration = next(
+                                        (i for i in iterations if i.get('iteration') == iteration.get('iteration')), 
+                                        None
+                                    )
+                                    
+                                    if not existing_iteration:
+                                        iterations.append(iteration)
+                                        print(f"Added new iteration {iteration.get('iteration')}")
+                                    else:
+                                        print(f"Iteration {iteration.get('iteration')} already exists, skipping")
+                                
+                                print(f"Total iterations now: {len(iterations)}")
                                 
                                 # Update the AgenticProcessViewer component
                                 agentic_viewer_element.props['iterations'] = iterations
@@ -121,6 +214,7 @@ async def stream_updates(session_id: str, agentic_viewer_element: cl.CustomEleme
                                     content=striped_final_response,
                                     author="Assistant"
                                 ).send()
+                                break  # Exit the loop after final response
                             
                             elif update_type == 'error':
                                 if final_answer_received:
@@ -138,12 +232,26 @@ async def stream_updates(session_id: str, agentic_viewer_element: cl.CustomEleme
                             print(f"JSON decode error: {e}")
                             continue
 
+        except httpx.ConnectError as e:
+            print(f"Connection error in SSE stream: {e}")
+            if not final_answer_received:
+                agentic_viewer_element.props['iterations'] = iterations
+                agentic_viewer_element.props['error'] = 'Unable to connect to the server. Please check if the routing agent is running.'
+                agentic_viewer_element.props['status'] = 'error'
+                await agentic_viewer_element.update()
+        except httpx.TimeoutException as e:
+            print(f"Timeout error in SSE stream: {e}")
+            if not final_answer_received:
+                agentic_viewer_element.props['iterations'] = iterations
+                agentic_viewer_element.props['error'] = 'Request timed out. The server may be taking too long to respond.'
+                agentic_viewer_element.props['status'] = 'error'
+                await agentic_viewer_element.update()
         except Exception as e:
             print(f"Error in SSE stream: {e}")
             # Only show connection error if we haven't received the final answer yet
             if not final_answer_received:
                 agentic_viewer_element.props['iterations'] = iterations
-                agentic_viewer_element.props['error'] = 'Lost connection to the server.'
+                agentic_viewer_element.props['error'] = f'Lost connection to the server: {str(e)}'
                 agentic_viewer_element.props['status'] = 'error'
                 await agentic_viewer_element.update()
 

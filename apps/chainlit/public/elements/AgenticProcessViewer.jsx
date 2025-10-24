@@ -4,9 +4,22 @@ import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronRight, Brain, Code, Eye, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { useState } from "react";
 
-export default function AgenticProcessViewer() {
+export default function AgenticProcessViewer(props) {
     const { iterations = [], status = "processing", error = null, finalResponse = null } = props;
     const [expandedSteps, setExpandedSteps] = useState(new Set());
+
+    // Simple Markdown renderer for basic formatting
+    const renderMarkdown = (text) => {
+        if (!text) return "";
+        
+        return text
+            // Bold text: **text** -> <strong>text</strong>
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            // Inline code: `code` -> <code>code</code>
+            .replace(/`([^`]+)`/g, '<code class="bg-blue-100 text-blue-800 px-1 py-0.5 rounded text-sm font-mono">$1</code>')
+            // Line breaks: \n -> <br>
+            .replace(/\n/g, '<br>');
+    };
 
     const toggleStep = (stepIndex) => {
         const newExpanded = new Set(expandedSteps);
@@ -51,7 +64,7 @@ export default function AgenticProcessViewer() {
                 <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-lg">
                         {getStatusIcon()}
-                        <span>Agentic AI Process</span>
+                        <span>Student AI Agent</span>
                         <Badge variant={status === "error" ? "destructive" : status === "completed" ? "default" : "secondary"}>
                             {getStatusText()}
                         </Badge>
@@ -66,8 +79,10 @@ export default function AgenticProcessViewer() {
                     <Card key={index} className="border-l-4 border-l-blue-500">
                         <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => toggleStep(index)}>
                             <CardTitle className="flex items-center justify-between text-base">
-                                <div className="flex items-center gap-2">
-                                    <Badge variant="outline">Step {iteration.iteration}</Badge>
+                                <div className="flex items-center gap-3">
+                                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200 font-semibold px-3 py-1">
+                                        {iteration.iteration}
+                                    </Badge>
                                     <span className="text-sm font-medium text-gray-600">
                                         {iteration.naturalLanguageThought?.substring(0, 100)}
                                         {iteration.naturalLanguageThought?.length > 100 ? "..." : ""}
@@ -122,9 +137,7 @@ export default function AgenticProcessViewer() {
                                         <h4 className="font-semibold text-sm text-green-700">Observation</h4>
                                     </div>
                                     <div className="bg-green-50 p-3 rounded-md border-l-2 border-green-200">
-                                        <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                                            {iteration.response || "No response available"}
-                                        </p>
+                                        <div className="text-sm text-gray-700" dangerouslySetInnerHTML={{ __html: renderMarkdown(iteration.response || "No response available") }} />
                                     </div>
                                 </div>
                             </CardContent>
@@ -133,24 +146,6 @@ export default function AgenticProcessViewer() {
                 );
             })}
 
-            {/* Final Response */}
-            {finalResponse && (
-                <Card className="border-l-4 border-l-green-500">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-base">
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                            <span>Final Response</span>
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="bg-green-50 p-4 rounded-md border-l-2 border-green-200">
-                            <div className="prose prose-sm max-w-none text-gray-700">
-                                {finalResponse}
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
 
             {/* Error Display */}
             {error && (

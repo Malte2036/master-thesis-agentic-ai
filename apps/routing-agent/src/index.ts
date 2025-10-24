@@ -7,7 +7,7 @@ import {
   ReActRouter,
   getRouterResponseSummary,
 } from '@master-thesis-agentic-ai/agent-framework';
-import { RouterResponse } from '@master-thesis-agentic-ai/types';
+import { RouterProcess, RouterResponse } from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
 import cors from 'cors';
 import express from 'express';
@@ -51,6 +51,7 @@ expressApp.get('/stream/:sessionId', (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
   res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
 
   // Send initial connection message
   res.write('data: {"type":"connected","data":"Connected to SSE stream"}\n\n');
@@ -58,15 +59,39 @@ expressApp.get('/stream/:sessionId', (req, res) => {
   // Store the connection
   activeConnections.set(sessionId, res);
 
+  // Set up keep-alive ping
+  const keepAliveInterval = setInterval(() => {
+    if (activeConnections.has(sessionId)) {
+      try {
+        res.write(': ping\n\n');
+      } catch {
+        logger.debug('Keep-alive ping failed, connection may be closed');
+        clearInterval(keepAliveInterval);
+        activeConnections.delete(sessionId);
+      }
+    } else {
+      clearInterval(keepAliveInterval);
+    }
+  }, 30000); // Send ping every 30 seconds
+
   // Remove connection when client disconnects
   req.on('close', () => {
-    logger.log('Client disconnected');
+    logger.log('Client disconnected from SSE stream');
+    clearInterval(keepAliveInterval);
     activeConnections.delete(sessionId);
   });
 
   // Handle errors
   req.on('error', (error) => {
     logger.error('SSE connection error:', error);
+    clearInterval(keepAliveInterval);
+    activeConnections.delete(sessionId);
+  });
+
+  // Handle aborted requests
+  req.on('aborted', () => {
+    logger.log('SSE connection aborted');
+    clearInterval(keepAliveInterval);
     activeConnections.delete(sessionId);
   });
 });
@@ -79,10 +104,17 @@ const sendSSEUpdate = (sessionId: string, data: unknown) => {
     try {
       const message = `data: ${JSON.stringify(data)}\n\n`;
       connection.write(message);
+      logger.debug('SSE update sent successfully');
     } catch (error) {
       logger.error('Error sending SSE update:', error);
-      activeConnections.delete(sessionId);
+      // Check if connection is still writable
+      if (connection.destroyed || connection.writableEnded) {
+        logger.log('Connection is closed, removing from active connections');
+        activeConnections.delete(sessionId);
+      }
     }
+  } else {
+    logger.debug('No active connection found for session:', sessionId);
   }
 };
 
@@ -185,11 +217,17 @@ expressApp.post('/ask', async (req, res) => {
     while (true) {
       const { done, value } = await generator.next();
       if (done) {
-        results = value;
+        results = value as RouterResponse;
         break;
       }
 
-      logger.log('Step:', value);
+      const step = value as RouterProcess;
+      sendSSEUpdate(id, {
+        type: 'iteration_update',
+        data: step,
+      });
+
+      // logger.log('Step:', value);
     }
 
     const summaryResponse = await getRouterResponseSummary(
@@ -230,6 +268,14 @@ expressApp.post('/ask', async (req, res) => {
           ? error.message
           : 'An error occurred while processing your question.',
     });
+  } finally {
+    // Ensure we always clean up the connection
+    setTimeout(() => {
+      if (activeConnections.has(id)) {
+        logger.log('Cleaning up SSE connection for session:', id);
+        activeConnections.delete(id);
+      }
+    }, 5000); // Clean up after 5 seconds
   }
 });
 
