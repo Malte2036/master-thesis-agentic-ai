@@ -70,22 +70,54 @@ describe('E2E Routing Agent Test', () => {
   }, 60_000);
 
   it('should create a calendar event', async () => {
-    await Wiremock.addCalendarMapping('/create_calendar_event', {});
+    const requestBody = {
+      summary: 'Meeting with John Doe',
+      description: 'We will discuss the project',
+      start: {
+        dateTime: '2025-10-22T13:22:00Z',
+      },
+      end: {
+        dateTime: '2025-10-25T17:09:00Z',
+      },
+    };
 
-    const testPrompt =
-      'Create a calendar event with the name "Test Event" and the description "This is a test event" from 2025-10-22 to 2025-10-25.';
+    const responseBody = {
+      id: '1234567890',
+      summary: requestBody.summary,
+      description: requestBody.description,
+      start: {
+        dateTime: requestBody.start.dateTime,
+        timeZone: 'UTC',
+      },
+      end: {
+        dateTime: requestBody.end.dateTime,
+        timeZone: 'UTC',
+      },
+    };
+
+    await Wiremock.addCalendarMapping(
+      '/calendar/v3/calendars/primary/events',
+      requestBody,
+      responseBody,
+    );
+
+    const testPrompt = `Create a calendar event with the name "${requestBody.summary}" and the description "${requestBody.description}" from ${new Date(requestBody.start.dateTime).toUTCString()} to ${new Date(requestBody.end.dateTime).toUTCString()}.`;
     const finalResponse = await routingAgent.askAndWaitForResponse({
       prompt: testPrompt,
     });
 
     expect(finalResponse).toBeDefined();
     expect(finalResponse.length).toBeGreaterThan(0);
-    expect(finalResponse.toLowerCase()).toContain('calendar event');
-    expect(finalResponse.toLowerCase()).toContain('created');
+    expect(finalResponse).toContain(responseBody.summary);
+    expect(finalResponse).toContain(responseBody.description);
+    expect(finalResponse).toContain(responseBody.id);
 
-    // expect(await Wiremock.countCalendarRequests('/create_calendar_event')).toBe(
-    //   1,
-    // );
+    expect(
+      await Wiremock.countCalendarRequests(
+        '/calendar/v3/calendars/primary/events',
+        requestBody,
+      ),
+    ).toBe(1);
   }, 60_000);
 
   it('should combine the moodle-agent and the calendar-agent', async () => {
@@ -99,8 +131,44 @@ describe('E2E Routing Agent Test', () => {
       mockAssignments,
     );
 
+    const lastPastAssignment = mockAssignments.courses
+      .flatMap((course) => course.assignments)
+      .sort((a, b) => b.duedate - a.duedate)[0];
+
+    const calendarRequestBody = {
+      summary: lastPastAssignment.name,
+      intro: lastPastAssignment.intro,
+      start: {
+        dateTime: lastPastAssignment.duedate,
+      },
+      end: {
+        dateTime: lastPastAssignment.duedate + 1.5 * 60 * 60 * 1000,
+      },
+    };
+
+    const calendarResponseBody = {
+      id: '1234567890',
+      summary: calendarRequestBody.summary,
+      description: calendarRequestBody.intro,
+      start: {
+        dateTime: new Date(calendarRequestBody.start.dateTime).toUTCString(),
+        timeZone: 'UTC',
+      },
+      end: {
+        dateTime: new Date(calendarRequestBody.end.dateTime).toUTCString(),
+        timeZone: 'UTC',
+      },
+    };
+
+    await Wiremock.addCalendarMapping(
+      '/calendar/v3/calendars/primary/events',
+      // calendarRequestBody,
+      undefined,
+      calendarResponseBody,
+    );
+
     const testPrompt =
-      'Get my last past assignment and create a calendar event for the date of the assignment and for 1.5hours. The Description of the calendar event should be the assignment description.';
+      'Get my last past assignment and create a calendar event for the date of the assignment and for 1.5hours. The Description of the calendar event should be the assignment intro.';
 
     const finalResponse = await routingAgent.askAndWaitForResponse({
       prompt: testPrompt,
@@ -112,9 +180,13 @@ describe('E2E Routing Agent Test', () => {
     expect(finalResponse.toLowerCase()).toContain('calendar event');
     expect(finalResponse.toLowerCase()).toContain('created');
 
-    // expect(await Wiremock.countCalendarRequests('/create_calendar_event')).toBe(
-    //   1,
-    // );
+    expect(
+      await Wiremock.countCalendarRequests(
+        '/calendar/v3/calendars/primary/events',
+        // calendarRequestBody,
+        undefined,
+      ),
+    ).toBe(1);
   }, 120_000);
 
   it('should handle German request for all assignments and create calendar entries', async () => {
@@ -128,7 +200,7 @@ describe('E2E Routing Agent Test', () => {
       mockAssignments,
     );
 
-    await Wiremock.addCalendarMapping('/create_calendar_event', {});
+    await Wiremock.addCalendarMapping('/create_calendar_event', undefined, {});
 
     const testPrompt =
       'Hole mir alle Abgaben und erstelle je einen Kalendareintrag pro assignment';

@@ -17,9 +17,10 @@ services:
     env_file:
       - .env
     environment:
-      # - MOODLE_BASE_URL=http://wiremock:8080
-      - MOODLE_BASE_URL=http://moodle:8080
-      - MOODLE_TOKEN=$MOODLE_TOKEN
+      - MOODLE_BASE_URL=http://wiremock:8080
+      - MOODLE_TOKEN=mock-token
+      # - MOODLE_BASE_URL=http://moodle:8080
+      # - MOODLE_TOKEN=$MOODLE_TOKEN
 
   # Calendar MCP
   calendar-mcp:
@@ -36,7 +37,7 @@ services:
       - GOOGLE_REDIRECT_URI=$GOOGLE_REDIRECT_URI
       - GOOGLE_PRIVATE_REFRESH_TOKEN=$GOOGLE_PRIVATE_REFRESH_TOKEN
       - CALENDAR_BASE_URL=http://localhost:3004
-
+      - NODE_ENV=test
   # ---- AGENTS ---- #
 
   # Moodle Agent

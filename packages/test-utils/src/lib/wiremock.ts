@@ -3,6 +3,21 @@ const MOODLE_WEBSERVICE_PATH = '/webservice/rest/server.php';
 
 type CalendarPath = `/${string}`;
 
+type BodyPattern = { contains?: string; equalToJson?: Record<string, any> };
+
+type Mapping = {
+  request: {
+    method: string;
+    url: string;
+    bodyPatterns?: BodyPattern[];
+  };
+  response: {
+    status: number;
+    jsonBody: any;
+    headers: Record<string, string>;
+  };
+};
+
 export class Wiremock {
   /**
    * Reset all mappings and requests in Wiremock
@@ -15,7 +30,7 @@ export class Wiremock {
   /**
    * Add a new mapping to Wiremock
    */
-  private static async addMapping(mapping: any): Promise<void> {
+  private static async addMapping(mapping: Mapping): Promise<void> {
     await fetch(`${WIREMOCK_URL}/mappings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -37,7 +52,7 @@ export class Wiremock {
   static async count(
     method: string,
     urlPattern: string,
-    bodyPatterns?: { contains: string }[],
+    bodyPatterns?: BodyPattern[],
   ): Promise<number> {
     const requestBody: any = { method, urlPattern };
     if (bodyPatterns) {
@@ -60,7 +75,7 @@ export class Wiremock {
     responseBody: T,
     args?: Record<string, string>,
   ): Promise<void> {
-    const bodyPatterns: { contains: string }[] = [
+    const bodyPatterns: BodyPattern[] = [
       {
         contains: `wsfunction=${wsfunction}`,
       },
@@ -101,7 +116,7 @@ export class Wiremock {
     wsfunction: string,
     args?: Record<string, string>,
   ): Promise<number> {
-    const bodyPatterns: { contains: string }[] = [
+    const bodyPatterns: BodyPattern[] = [
       {
         contains: `wsfunction=${wsfunction}`,
       },
@@ -125,15 +140,37 @@ export class Wiremock {
   // calendar Wiremock helper methods
   static async addCalendarMapping(
     url: CalendarPath,
+    requestBody: any,
     responseBody: any,
   ): Promise<void> {
     await Wiremock.addMapping({
-      request: { method: 'POST', url },
-      response: { status: 200, jsonBody: responseBody },
+      request: {
+        method: 'POST',
+        url,
+        bodyPatterns: requestBody ? [{ equalToJson: requestBody }] : undefined,
+      },
+      response: {
+        status: 200,
+        jsonBody: responseBody,
+        headers: { 'Content-Type': 'application/json' },
+      },
     });
   }
 
-  static async countCalendarRequests(url: CalendarPath): Promise<number> {
-    return await Wiremock.count('POST', url);
+  static async countCalendarRequests(
+    url: CalendarPath,
+    requestBody: any,
+  ): Promise<number> {
+    return await Wiremock.count(
+      'POST',
+      url,
+      requestBody
+        ? [
+            {
+              equalToJson: requestBody,
+            },
+          ]
+        : undefined,
+    );
   }
 }

@@ -4,6 +4,14 @@ import z from 'zod';
 import { oauth2Client } from '../auth/google';
 import { createResponseError } from '@master-thesis-agentic-ai/types';
 
+const GOOGLE_API_SETTINGS =
+  process.env.NODE_ENV === 'test'
+    ? {
+        http2: false,
+        rootUrl: 'http://wiremock:8080/',
+      }
+    : undefined;
+
 const CalendarEventSchema = z.object({
   id: z.string().nullish(),
   summary: z.string().nullish(),
@@ -89,15 +97,18 @@ export class CalendarProvider {
     });
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-    const event = await calendar.events.insert({
-      calendarId: 'primary',
-      requestBody: {
-        summary: eventName,
-        description: eventDescription,
-        start: { dateTime: formatDateTime(eventStartDate) },
-        end: { dateTime: formatDateTime(eventEndDate) },
+    const event = await calendar.events.insert(
+      {
+        calendarId: 'primary',
+        requestBody: {
+          summary: eventName,
+          description: eventDescription,
+          start: { dateTime: formatDateTime(eventStartDate) },
+          end: { dateTime: formatDateTime(eventEndDate) },
+        },
       },
-    });
+      GOOGLE_API_SETTINGS,
+    );
 
     const validatedEvent = CalendarEventSchema.safeParse(event.data);
     if (!validatedEvent.success) {
@@ -115,11 +126,14 @@ export class CalendarProvider {
     endDate: string | undefined,
   ): Promise<CalendarEvent[]> {
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-    const events = await calendar.events.list({
-      calendarId: 'primary',
-      timeMin: startDate,
-      timeMax: endDate,
-    });
+    const events = await calendar.events.list(
+      {
+        calendarId: 'primary',
+        timeMin: startDate,
+        timeMax: endDate,
+      },
+      GOOGLE_API_SETTINGS,
+    );
 
     const validatedEvents = CalendarEventSchema.array().safeParse(
       events.data.items,
@@ -138,10 +152,13 @@ export class CalendarProvider {
     query: string,
   ): Promise<CalendarEvent[]> {
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-    const events = await calendar.events.list({
-      calendarId: 'primary',
-      q: query,
-    });
+    const events = await calendar.events.list(
+      {
+        calendarId: 'primary',
+        q: query,
+      },
+      GOOGLE_API_SETTINGS,
+    );
     const validatedEvents = CalendarEventSchema.array().safeParse(
       events.data.items,
     );
@@ -172,18 +189,21 @@ export class CalendarProvider {
     let events;
     try {
       const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-      events = await calendar.events.patch({
-        calendarId: 'primary',
-        eventId: eventId,
-        requestBody: {
-          summary: data.summary,
-          description: data.description,
-          start: {
-            dateTime: data.start ? formatDateTime(data.start) : undefined,
+      events = await calendar.events.patch(
+        {
+          calendarId: 'primary',
+          eventId: eventId,
+          requestBody: {
+            summary: data.summary,
+            description: data.description,
+            start: {
+              dateTime: data.start ? formatDateTime(data.start) : undefined,
+            },
+            end: { dateTime: data.end ? formatDateTime(data.end) : undefined },
           },
-          end: { dateTime: data.end ? formatDateTime(data.end) : undefined },
         },
-      });
+        GOOGLE_API_SETTINGS,
+      );
     } catch (error: unknown) {
       if (errorHasStatusCode(error, 404)) {
         this.logger.error(

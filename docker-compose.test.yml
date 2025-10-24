@@ -6,5 +6,15 @@ services:
   wiremock:
     image: wiremock/wiremock:3.9.1
     ports:
-      - '8081:8080' # Expose WireMock on port 8081 to avoid conflicts
-    command: ['--global-response-templating']
+      - '8081:8080' # Expose WireMock on port 8081
+    command: [
+        '--global-response-templating',
+        '--verbose', # enable detailed request/response logging
+        '--record-mappings', # (optional) saves received requests to mappings
+        '--max-request-journal-entries',
+        '1000', # increase the number of stored requests
+      ]
+    volumes:
+      - ./wiremock:/home/wiremock # store logs and mappings locally
+    environment:
+      - JAVA_OPTS=-Dwiremock.notifier.ConsoleNotifier.enabled=true

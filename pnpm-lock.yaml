@@ -318,6 +318,10 @@ importers:
       tslib:
         specifier: ^2.3.0
         version: 2.8.1
+    devDependencies:
+      wiremock-captain:
+        specifier: ^4.1.2
+        version: 4.1.2
 
   packages/types:
     dependencies:
@@ -7098,6 +7102,10 @@ packages:
 
   wildcard@2.0.1:
     resolution: {integrity: sha512-CC1bOL87PIWSBhDcTrdeLo6eGT7mCFtrg0uIJtqJUFyK+eJnzl8A1niH56uu7KMa5XFrtiV+AQuHO3n7DsHnLQ==}
+
+  wiremock-captain@4.1.2:
+    resolution: {integrity: sha512-uz4odQldmAaQ2A8UP9YaJ75NO50fnzCV1NN+ODnpqYxhhbSZCzlwB03YvmPrSvL8cr3GmsY0CFnavRv5iKG8/g==}
+    engines: {node: '>=22.11.0', npm: '>=10.9.2'}
 
   word-wrap@1.2.5:
     resolution: {integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==}
@@ -15620,6 +15628,8 @@ snapshots:
       stackback: 0.0.2
 
   wildcard@2.0.1: {}
+
+  wiremock-captain@4.1.2: {}
 
   word-wrap@1.2.5: {}
 
