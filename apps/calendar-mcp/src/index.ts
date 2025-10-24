@@ -6,11 +6,7 @@ import {
 import { createResponseError } from '@master-thesis-agentic-ai/types';
 import dotenv from 'dotenv';
 import { z } from 'zod/v3';
-import {
-  CalendarEvent,
-  CalendarProvider,
-  PatchCalendarEventSchema,
-} from './providers/calendarProvider';
+import { CalendarEvent, CalendarProvider } from './providers/calendarProvider';
 import { googleAuthRoutes } from './auth/google';
 
 dotenv.config();
@@ -164,11 +160,27 @@ mcpServer.tool(
 mcpServer.tool(
   'get_calendar_events',
   'Get all calendar events for the current user.',
-  {},
-  async () => {
+  {
+    start_date: z
+      .string()
+      .describe(
+        'Start date of the events in RFC3339 timestamp format (e.g., 2025-10-22T13:00:00Z)',
+      )
+      .nullish(),
+    end_date: z
+      .string()
+      .describe(
+        'End date of the events in RFC3339 timestamp format (e.g., 2025-10-22T14:00:00Z)',
+      )
+      .nullish(),
+  },
+  async ({ start_date, end_date }) => {
     let calendarEvents: CalendarEvent[];
     try {
-      calendarEvents = await calendarProvider.getCalendarEvents();
+      calendarEvents = await calendarProvider.getCalendarEvents(
+        start_date ?? undefined,
+        end_date ?? undefined,
+      );
     } catch (error) {
       logger.error('Failed to get calendar events:', error);
       throw createResponseError('Failed to get calendar events', 500);

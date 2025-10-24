@@ -110,9 +110,16 @@ export class CalendarProvider {
     return validatedEvent.data;
   }
 
-  public async getCalendarEvents(): Promise<CalendarEvent[]> {
+  public async getCalendarEvents(
+    startDate: string | undefined,
+    endDate: string | undefined,
+  ): Promise<CalendarEvent[]> {
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-    const events = await calendar.events.list({ calendarId: 'primary' });
+    const events = await calendar.events.list({
+      calendarId: 'primary',
+      timeMin: startDate,
+      timeMax: endDate,
+    });
 
     const validatedEvents = CalendarEventSchema.array().safeParse(
       events.data.items,
