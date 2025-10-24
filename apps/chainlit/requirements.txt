@@ -1,2 +1,2 @@
-chainlit>=0.7.700
-httpx>=0.24.1 
+chainlit>=2.8.3
+httpx>=0.28.1 
