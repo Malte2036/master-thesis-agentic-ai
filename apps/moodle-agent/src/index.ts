@@ -8,6 +8,8 @@ import {
 import dotenv from 'dotenv';
 dotenv.config();
 
+const HOSTNAME = process.env.HOSTNAME || 'localhost';
+
 const logger = new Logger({ agentName: 'moodle-agent' });
 
 const MODEL = 'qwen3:4b';
@@ -86,6 +88,7 @@ I cannot call \`get_course_contents\` from the moodle-mcp agent yet because I do
 
 const agentFramework = createA2AFramework(
   logger,
+  HOSTNAME,
   1234,
   {
     name: 'moodle-agent',

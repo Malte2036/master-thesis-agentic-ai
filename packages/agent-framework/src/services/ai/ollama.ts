@@ -9,12 +9,17 @@ export class OllamaProvider implements AIProvider {
 
   constructor(
     private readonly logger: Logger,
-    options?: { baseUrl?: string; model?: string },
+    options?: { model?: string },
   ) {
+    const host = process.env['OLLAMA_BASE_URL'];
+    if (!host) {
+      throw new Error('OLLAMA_BASE_URL is not set');
+    }
+
     this.client = new Ollama({
-      host: options?.baseUrl || process.env['OLLAMA_BASE_URL'],
+      host,
     });
-    this.model = options?.model || 'mistral:instruct';
+    this.model = options?.model || 'qwen3:4b';
 
     this.healthCheck().then((isAvailable) => {
       if (!isAvailable) {

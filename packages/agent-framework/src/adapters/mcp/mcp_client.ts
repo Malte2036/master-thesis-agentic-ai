@@ -34,7 +34,9 @@ export class MCPClient {
     });
 
     this.transport = new StreamableHTTPClientTransport(
-      new URL(`http://localhost:${this.agentConfig.port}/mcp`),
+      new URL(
+        `http://${this.agentConfig.hostname}:${this.agentConfig.port}/mcp`,
+      ),
       {
         sessionId: this.sessionId,
       },

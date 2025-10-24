@@ -7,7 +7,7 @@
     "serve": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "bash -c 'cd apps/chainlit && source venv/bin/activate && chainlit run app.py'",
+        "command": "sh -c 'cd apps/chainlit && source venv/bin/activate && chainlit run app.py'",
         "cwd": "."
       }
     },

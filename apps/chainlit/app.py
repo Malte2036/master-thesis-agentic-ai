@@ -7,7 +7,12 @@ import re
 from typing import Optional, Dict, Any, List
 
 # Configuration
-ROUTING_AGENT_URL = "http://localhost:3000"
+# ROUTING_AGENT_URL = "http://localhost:3000"
+import os
+
+ROUTING_AGENT_URL = os.getenv('ROUTING_AGENT_URL')
+if not ROUTING_AGENT_URL:
+    raise ValueError("ROUTING_AGENT_URL is not set")
 
 def parse_nested_json_response(response_text: str) -> str:
     """Parse and format nested JSON response strings."""

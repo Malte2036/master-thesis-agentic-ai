@@ -22,6 +22,7 @@ const logger = new Logger({ agentName: 'moodle-mcp' });
 
 const moodleBaseUrl = process.env.MOODLE_BASE_URL;
 
+console.log('MOODLE_BASE_URL:', moodleBaseUrl);
 if (!moodleBaseUrl) {
   throw new Error('MOODLE_BASE_URL is not set');
 }

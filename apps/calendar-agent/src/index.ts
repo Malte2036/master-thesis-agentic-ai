@@ -8,6 +8,8 @@ import {
 import dotenv from 'dotenv';
 dotenv.config();
 
+const HOSTNAME = process.env.HOSTNAME || 'localhost';
+
 const logger = new Logger({ agentName: 'calendar-agent' });
 
 const MODEL = 'qwen3:4b';
@@ -36,6 +38,7 @@ export async function getRouter(model: string): Promise<Router> {
 
 const agentFramework = createA2AFramework(
   logger,
+  HOSTNAME,
   1235,
   {
     name: 'calendar-agent',

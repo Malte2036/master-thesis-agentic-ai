@@ -3,7 +3,7 @@ import { AgentClient, Logger } from '@master-thesis-agentic-ai/agent-framework';
 export const handleToolCalls = async (
   logger: Logger,
   functionCalls: any[],
-  agents: { [key: string]: AgentClient },
+  agents: AgentClient[],
 ): Promise<string[]> => {
   functionCalls = functionCalls.map((call) => ({
     ...call,
@@ -28,25 +28,26 @@ export const handleToolCalls = async (
       return 'No prompt was provided';
     }
 
-    const agentClient = agents[parsedDecision.function];
+    const agentClient = agents.find(
+      (agent) => agent.name === parsedDecision.function,
+    );
+    if (!agentClient) {
+      logger.log(`No agent found for function: ${parsedDecision.function}`);
+      return `No agent found for function: ${parsedDecision.function}`;
+    }
     let agentResponse: any = '';
 
-    if (agentClient) {
-      try {
-        agentResponse = await agentClient.call(
-          `${parsedDecision.args['prompt']}; We want to call the agent because: ${parsedDecision.args['reason']}`,
-        );
-        logger.log(
-          `Result from agent ${parsedDecision.function}:`,
-          agentResponse,
-        );
-      } catch (error) {
-        logger.log(`Error calling agent ${parsedDecision.function}:`, error);
-        agentResponse = `Error calling agent: ${error}`;
-      }
-    } else {
-      logger.log(`No agent found for function: ${parsedDecision.function}`);
-      agentResponse = `No agent found for function: ${parsedDecision.function}`;
+    try {
+      agentResponse = await agentClient.call(
+        `${parsedDecision.args['prompt']}; We want to call the agent because: ${parsedDecision.args['reason']}`,
+      );
+      logger.log(
+        `Result from agent ${parsedDecision.function}:`,
+        agentResponse,
+      );
+    } catch (error) {
+      logger.log(`Error calling agent ${parsedDecision.function}:`, error);
+      agentResponse = `Error calling agent: ${error}`;
     }
 
     const textResponse =

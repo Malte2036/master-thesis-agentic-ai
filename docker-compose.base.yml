@@ -1,0 +1,89 @@
+name: master-thesis-agentic-ai-base
+
+x-common-build: &common-build
+  context: .
+  dockerfile: Dockerfile
+
+services:
+  # ---- MCPs ---- #
+
+  # Moodle MCP
+  moodle-mcp:
+    image: master-thesis-agentic-ai
+    build: *common-build
+    ports:
+      - '3003:3003'
+    entrypoint: ['sh', '-c', 'pnpm run dev:moodle-mcp']
+    environment:
+      - MOODLE_BASE_URL=http://wiremock:8080
+      - MOODLE_TOKEN=test-token
+
+  # Calendar MCP
+  calendar-mcp:
+    image: master-thesis-agentic-ai
+    build: *common-build
+    ports:
+      - '3004:3004'
+    entrypoint: ['sh', '-c', 'pnpm run dev:calendar-mcp']
+    env_file:
+      - .env
+    environment:
+      - GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+      - GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+      - GOOGLE_REDIRECT_URI=$GOOGLE_REDIRECT_URI
+      - GOOGLE_PRIVATE_REFRESH_TOKEN=$GOOGLE_PRIVATE_REFRESH_TOKEN
+      - CALENDAR_BASE_URL=http://localhost:3004
+
+  # ---- AGENTS ---- #
+
+  # Moodle Agent
+  moodle-agent:
+    image: master-thesis-agentic-ai
+    build: *common-build
+    ports:
+      - '1234:1234'
+    entrypoint: ['sh', '-c', 'pnpm run dev:moodle-agent']
+    environment:
+      - OLLAMA_BASE_URL=http://10.50.60.153:11434
+      - HOSTNAME=moodle-agent
+    depends_on:
+      - moodle-mcp
+
+  # Calendar Agent
+  calendar-agent:
+    image: master-thesis-agentic-ai
+    build: *common-build
+    ports:
+      - '1235:1235'
+    entrypoint: ['sh', '-c', 'pnpm run dev:calendar-agent']
+    environment:
+      - OLLAMA_BASE_URL=http://10.50.60.153:11434
+      - HOSTNAME=calendar-agent
+    depends_on:
+      - calendar-mcp
+
+  # Routing Agent
+  routing-agent:
+    image: master-thesis-agentic-ai
+    build: *common-build
+    ports:
+      - '3000:3000'
+    entrypoint: ['sh', '-c', 'pnpm run dev:routing-agent']
+    environment:
+      - OLLAMA_BASE_URL=http://10.50.60.153:11434
+      - AGENT_URLS=http://moodle-agent:1234,http://calendar-agent:1235
+    depends_on:
+      - moodle-agent
+      - calendar-agent
+
+  chainlit:
+    image: master-thesis-agentic-ai-chainlit
+    build:
+      context: apps/chainlit
+      dockerfile: Dockerfile
+    ports:
+      - '8000:8000'
+    environment:
+      - ROUTING_AGENT_URL=http://routing-agent:3000
+    depends_on:
+      - routing-agent

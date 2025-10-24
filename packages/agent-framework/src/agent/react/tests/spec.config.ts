@@ -5,13 +5,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// export const TEST_OLLAMA_BASE_URL = 'http://10.50.60.153:11434';
-// export const TEST_OLLAMA_BASE_URL = 'http://localhost:11434';
-export const TEST_OLLAMA_BASE_URL = process.env['OLLAMA_BASE_URL'];
-if (!TEST_OLLAMA_BASE_URL) {
-  throw new Error('OLLAMA_BASE_URL is not set');
-}
-
 export const TEST_CONFIG = {
   testTimeout: 20000,
 };
@@ -63,7 +56,6 @@ export const setupTest = (
   let aiProvider: AIProvider;
   if (provider === 'ollama') {
     aiProvider = new OllamaProvider(logger, {
-      baseUrl: TEST_OLLAMA_BASE_URL,
       model,
     });
   } else if (provider === 'openai') {

@@ -104,6 +104,10 @@ export class McpServerAgentAdapter {
       res.json(functions);
     });
 
+    this.expressApp.get('/health', (req, res) => {
+      res.send('OK');
+    });
+
     this.expressApp.get(
       '/auth',
       this.authRoutes?.authEndpoint ??

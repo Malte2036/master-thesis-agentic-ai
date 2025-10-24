@@ -12,17 +12,49 @@ import { Logger } from '../../logger';
 import { randomUUID } from 'crypto';
 import { A2AClient } from '@a2a-js/sdk/client';
 import { AgentCard } from '@a2a-js/sdk';
+import { z } from 'zod/v4';
+
+// // undici-diagnostics.ts
+// import dc from 'node:diagnostics_channel';
+//
+// dc.channel('undici:request:create').subscribe((msg: any) => {
+//   const { request } = msg;
+//   // Some undici versions expose .origin/.path, others via msg.info
+//   const origin = request?.origin ?? msg?.info?.origin;
+//   const method = request?.method ?? msg?.info?.method;
+//   const path = request?.path ?? msg?.info?.path;
+//   console.log(`[undici] ${method} ${origin}${path}`);
+// });
+
+// dc.channel('undici:request:error').subscribe((msg: any) => {
+//   const { error } = msg;
+//   console.error('[undici:error]', error);
+// });
 
 export class AgentClient {
-  private readonly client: A2AClient;
   public readonly id: string;
 
-  constructor(
+  private constructor(
     private readonly logger: Logger,
-    private port: number,
+    public readonly name: string,
+    private readonly client: A2AClient,
   ) {
-    this.client = new A2AClient(`http://localhost:${this.port}`);
     this.id = randomUUID();
+  }
+
+  static async createFromUrl(
+    logger: Logger,
+    url: string,
+  ): Promise<AgentClient> {
+    if (!z.url().safeParse(url).success) {
+      throw new Error('Invalid agent URL');
+    }
+
+    const a2aClient = new A2AClient(url);
+    const agentCard = await a2aClient.getAgentCard();
+
+    logger.debug(`Created agent client for ${agentCard.name}`);
+    return new AgentClient(logger, agentCard.name, a2aClient);
   }
 
   async getAgentCard(): Promise<AgentCard> {
@@ -34,7 +66,7 @@ export class AgentClient {
     let taskId: string | undefined;
 
     this.logger.debug(
-      `[AgentClient] Calling agent with messageId: ${messageId}`,
+      `[AgentClient] Calling ${this.name} with messageId: ${messageId}`,
     );
 
     try {

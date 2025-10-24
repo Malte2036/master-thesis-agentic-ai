@@ -23,6 +23,7 @@ export class A2AServer {
 
   constructor(
     private readonly logger: Logger,
+    private hostname: string,
     private port: number,
     card: MinimalAgentCard,
     getRouter: () => Promise<Router>,
@@ -30,7 +31,7 @@ export class A2AServer {
   ) {
     this.card = {
       ...card,
-      url: `http://localhost:${this.port}`,
+      url: `http://${this.hostname}:${this.port}`,
       capabilities: {
         streaming: false,
         pushNotifications: false,
@@ -62,12 +63,16 @@ export class A2AServer {
 
   listen(): Promise<void> {
     return new Promise((resolve) => {
-      this.expressApp.listen(this.port, () => {
+      this.expressApp.get('/health', async (req, res) => {
+        res.send('OK');
+      });
+
+      this.expressApp.listen(this.port, this.hostname, () => {
         this.logger.debug(
           `Agent is running on port ${this.port} for agent ${this.card.name}`,
         );
         this.logger.debug(
-          `Agent Card: http://localhost:${this.port}/.well-known/agent.json`,
+          `Agent Card: http://${this.hostname}:${this.port}/.well-known/agent.json`,
         );
         resolve();
       });

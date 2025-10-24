@@ -16,15 +16,16 @@ import { handleToolCalls } from './handle-tool-calls';
 
 const logger = new Logger({ agentName: 'routing-agent' });
 
-const OLLAMA_BASE_URL = process.env['OLLAMA_BASE_URL'];
-logger.log(`OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}`);
+const AGENT_URLS = process.env['AGENT_URLS']?.split(',') || [];
+if (AGENT_URLS.length === 0) {
+  throw new Error('AGENT_URLS is not set');
+}
 
 // Store active SSE connections
 const activeConnections = new Map<string, express.Response>();
 
 const getAIProvider = (model: string) => {
   return new OllamaProvider(logger, {
-    baseUrl: OLLAMA_BASE_URL,
     model,
   });
 };
@@ -33,7 +34,7 @@ const RequestBodySchema = z.object({
   prompt: z.string(),
   router: z.enum(['legacy', 'react']).optional().default('react'),
   max_iterations: z.number().optional().default(5),
-  model: z.string().optional().default('mixtral:8x7b'),
+  model: z.string().optional().default('qwen3:4b'),
 });
 type RequestBody = z.infer<typeof RequestBodySchema>;
 
@@ -158,16 +159,11 @@ expressApp.post('/ask', async (req, res) => {
     const aiProvider = getAIProvider(body.model);
 
     logger.log(chalk.magenta('Finding out which agent to call first:'));
-    const moodleAgent = new AgentClient(logger, 1234);
 
-    const calendarAgent = new AgentClient(logger, 1235);
+    const availableAgents = await Promise.all(
+      AGENT_URLS.map((url) => AgentClient.createFromUrl(logger, url)),
+    );
 
-    const agents: { [key: string]: AgentClient } = {
-      'moodle-agent': moodleAgent,
-      'calendar-agent': calendarAgent,
-    };
-
-    const availableAgents = Object.values(agents);
     const availableAgentsCards = await Promise.all(
       availableAgents.map((agent) => agent.getAgentCard()),
     );
@@ -203,7 +199,8 @@ expressApp.post('/ask', async (req, res) => {
       Always include the "prompt" and "reason" in the function calls.
       `,
       ``,
-      (logger, functionCalls) => handleToolCalls(logger, functionCalls, agents),
+      (logger, functionCalls) =>
+        handleToolCalls(logger, functionCalls, availableAgents),
       async () => {
         logger.log('Disconnecting from Client');
       },
@@ -280,7 +277,7 @@ expressApp.get('/models', async (req, res) => {
   }
 });
 
-expressApp.get('/health', async (req, res) => {
+expressApp.get('/health', (req, res) => {
   res.send('OK');
 });
 

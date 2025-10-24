@@ -1,5 +1,28 @@
 #!/bin/bash
 
+# Function to start a service in a new Ghostty tab
+start_ghostty_tab() {
+  local service_name="$1"
+  local command="$2"
+  
+  echo "🔄 Starting $service_name in new tab..."
+  
+  osascript <<APPLESCRIPT
+tell application id "com.mitchellh.ghostty" to activate
+delay 0.2
+
+tell application "System Events"
+  keystroke "t" using {command down}
+  delay 0.15
+  keystroke "printf '\\\\e]2;$service_name\\\\a'; $command"
+  key code 36
+  delay 0.2
+end tell
+APPLESCRIPT
+  
+  echo "✅ $service_name started in new tab!"
+}
+
 # Parse command line arguments
 MCP_ONLY=false
 HELP=false
@@ -80,20 +103,7 @@ if [ "$MCP_ONLY" = true ]; then
   echo ""
   
   # Start calendar-mcp in a new tab
-  osascript <<'APPLESCRIPT'
-tell application id "com.mitchellh.ghostty" to activate
-delay 0.2
-
-tell application "System Events"
-  keystroke "t" using {command down}
-  delay 0.15
-  keystroke "printf '\\e]2;calendar-mcp\\a'; pnpm run dev:calendar-mcp"
-  key code 36
-  delay 0.2
-end tell
-APPLESCRIPT
-
-  echo "✅ calendar-mcp started in new tab!"
+  start_ghostty_tab "calendar-mcp" "pnpm run dev:calendar-mcp"
   echo ""
   
   # Start moodle-mcp in current tab
@@ -107,68 +117,16 @@ else
   echo "🔄 Starting routing-agent in new tab..."
   
   # Start calendar-mcp in a new tab
-  osascript <<'APPLESCRIPT'
-tell application id "com.mitchellh.ghostty" to activate
-delay 0.2
-
-tell application "System Events"
-  keystroke "t" using {command down}
-  delay 0.15
-  keystroke "printf '\\e]2;calendar-mcp\\a'; pnpm run dev:calendar-mcp"
-  key code 36
-  delay 0.2
-end tell
-APPLESCRIPT
-
-  echo "✅ calendar-mcp started in new tab!"
+  start_ghostty_tab "calendar-mcp" "pnpm run dev:calendar-mcp"
 
   # Start moodle-agent in a new tab
-  osascript <<'APPLESCRIPT'
-tell application id "com.mitchellh.ghostty" to activate
-delay 0.2
-
-tell application "System Events"
-  keystroke "t" using {command down}
-  delay 0.15
-  keystroke "printf '\\e]2;moodle-agent\\a'; pnpm run dev:moodle-agent"
-  key code 36
-  delay 0.2
-end tell
-APPLESCRIPT
-
-  echo "✅ moodle-agent started in new tab!"
+  start_ghostty_tab "moodle-agent" "pnpm run dev:moodle-agent"
 
   # Start calendar-agent in a new tab
-  osascript <<'APPLESCRIPT'
-tell application id "com.mitchellh.ghostty" to activate
-delay 0.2
-
-tell application "System Events"
-  keystroke "t" using {command down}
-  delay 0.15
-  keystroke "printf '\\e]2;calendar-agent\\a'; pnpm run dev:calendar-agent"
-  key code 36
-  delay 0.2
-end tell
-APPLESCRIPT
-
-  echo "✅ calendar-agent started in new tab!"
+  start_ghostty_tab "calendar-agent" "pnpm run dev:calendar-agent"
   
   # Start routing-agent in a new tab
-  osascript <<'APPLESCRIPT'
-tell application id "com.mitchellh.ghostty" to activate
-delay 0.2
-
-tell application "System Events"
-  keystroke "t" using {command down}
-  delay 0.15
-  keystroke "printf '\\e]2;routing-agent\\a'; pnpm run dev:routing-agent"
-  key code 36
-  delay 0.2
-end tell
-APPLESCRIPT
-
-  echo "✅ routing-agent started in new tab!"
+  start_ghostty_tab "routing-agent" "pnpm run dev:routing-agent"
 
   echo ""
   echo "Services running:"

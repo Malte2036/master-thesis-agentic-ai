@@ -24,12 +24,13 @@ export function createMCPServerFramework(
 
 export function createA2AFramework(
   logger: Logger,
+  hostname: string,
   port: number,
   card: MinimalAgentCard,
   getRouter: () => Promise<Router>,
   aiProvider: AIProvider,
 ) {
-  return new A2AServer(logger, port, card, getRouter, aiProvider);
+  return new A2AServer(logger, hostname, port, card, getRouter, aiProvider);
 }
 
 export * from './adapters';

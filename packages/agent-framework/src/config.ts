@@ -7,6 +7,7 @@ export interface AgentFunction {
 }
 
 export interface AgentConfig {
+  hostname: string;
   port: number;
   name: string;
   friendlyName: string;
@@ -16,6 +17,7 @@ export interface AgentConfig {
 
 const MCP_CONFIGS: Record<'moodle-mcp' | 'calendar-mcp', AgentConfig> = {
   'moodle-mcp': {
+    hostname: 'moodle-mcp',
     port: 3003,
     name: 'moodle-mcp',
     friendlyName: 'Moodle Agent',
@@ -72,6 +74,7 @@ const MCP_CONFIGS: Record<'moodle-mcp' | 'calendar-mcp', AgentConfig> = {
     ],
   },
   'calendar-mcp': {
+    hostname: 'calendar-mcp',
     port: 3004,
     name: 'calendar-mcp',
     friendlyName: 'Calendar Agent',
