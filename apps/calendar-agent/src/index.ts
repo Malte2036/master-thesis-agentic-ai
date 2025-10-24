@@ -40,23 +40,9 @@ const agentFramework = createA2AFramework(
   {
     name: 'calendar-agent',
     description:
-      'An intelligent calendar management agent that provides comprehensive calendar operations including creating, retrieving, updating, and deleting calendar events. The agent can view all your calendar events, schedule meetings, manage recurring events, and help you organize your schedule efficiently.',
+      'The Calendar Agent is a specialized AI assistant for comprehensive calendar management and event scheduling. It provides full CRUD operations for calendar events through Google Calendar integration, including creating new events with detailed descriptions and ISO-formatted timestamps, updating existing events by event ID, retrieving all calendar events for complete schedule overview, and searching events using free-text queries for intelligent event discovery. The agent uses ReAct reasoning to intelligently route user requests to the appropriate Google Calendar API functions, making it an essential tool for personal and professional schedule management, meeting coordination, and time planning.',
     version: '1.0.0',
-    skills: [
-      // {
-      //   id: 'create-calendar-event',
-      //   name: 'Create Calendar Event',
-      //   description:
-      //     'Create a new calendar event with title, description, start time, end time, and optional location.',
-      //   tags: ['calendar', 'events', 'create'],
-      // },
-      // {
-      //   id: 'get-calendar-events',
-      //   name: 'Get Calendar Events',
-      //   description: 'Get all calendar events for the current user.',
-      //   tags: ['calendar', 'events', 'get'],
-      // },
-    ],
+    skills: [],
   },
   () => getRouter(MODEL),
   getAIProvider(MODEL),

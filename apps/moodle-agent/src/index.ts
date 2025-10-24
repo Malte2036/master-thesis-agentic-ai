@@ -90,52 +90,9 @@ const agentFramework = createA2AFramework(
   {
     name: 'moodle-agent',
     description:
-      'The Moodle Agent helps you explore Moodle: list courses, find a course by name, inspect course contents, and see assignments across all or specific courses.',
+      'The Moodle Agent is a specialized AI assistant for Moodle Learning Management System (LMS) operations. It provides comprehensive access to course management, assignment tracking, and user information through a set of powerful MCP tools. The agent can retrieve all enrolled courses, search for specific courses by name, inspect detailed course contents, view assignments across all courses or for specific courses with optional date filtering, and access personal user information. It uses ReAct reasoning to intelligently route user requests to the appropriate Moodle API functions, making it an essential tool for students and educators navigating their Moodle environment.',
     version: '1.1.0',
-    skills: [
-      {
-        id: 'get-all-courses',
-        name: 'Get All Courses',
-        description:
-          'List all courses the current user is enrolled in. Optionally include summary, image, display name, and start/end dates.',
-        tags: ['moodle', 'courses'],
-      },
-      {
-        id: 'search-courses-by-name',
-        name: 'Search Courses by Name',
-        description:
-          'Find courses by full or partial name for the current user. Can work with whatever course information is available (e.g., name, ID).',
-        tags: ['moodle', 'courses', 'search'],
-      },
-      {
-        id: 'get-course-contents',
-        name: 'Get Course Contents',
-        description:
-          'Retrieve the sections and modules of a specific course. Accepts any identifying info you have (course ID, name, etc.), or will try to resolve automatically. Can include module descriptions, names, and contents.',
-        tags: ['moodle', 'courses', 'contents'],
-      },
-      {
-        id: 'get-assignments-for-all-courses',
-        name: 'Get Assignments for All Courses',
-        description:
-          'List assignments across all enrolled courses. Accepts optional filters (due_after/due_before) and extra fields like due date, grade, etc.',
-        tags: ['moodle', 'assignments'],
-      },
-      {
-        id: 'get-assignments-for-course',
-        name: 'Get Assignments for a Course',
-        description:
-          'List assignments for a specific course. Can use any available course info (ID, name, etc.) or resolve automatically. Supports extra fields such as due date, grade, etc.',
-        tags: ['moodle', 'assignments', 'courses'],
-      },
-      {
-        id: 'get-moodle-user-info',
-        name: 'Get Moodle User Info',
-        description:
-          'Retrieve profile information for the current user, such as firstname, lastname, username, and picture URL.',
-        tags: ['moodle', 'user'],
-      },
-    ],
+    skills: [],
   },
   () => getRouter(MODEL),
   getAIProvider(MODEL),

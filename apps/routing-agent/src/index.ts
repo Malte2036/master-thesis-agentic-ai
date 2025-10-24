@@ -1,12 +1,11 @@
 import {
   AgentCard,
-  AgentSkill,
   AgentClient,
+  AgentToolSchema,
   Logger,
   OllamaProvider,
-  generateFriendlyResponse,
   ReActRouter,
-  AgentTool,
+  getRouterResponseSummary,
 } from '@master-thesis-agentic-ai/agent-framework';
 import { RouterResponse } from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
@@ -141,47 +140,26 @@ expressApp.post('/ask', async (req, res) => {
       availableAgents.map((agent) => agent.getAgentCard()),
     );
 
-    const minimalAgentsCards = availableAgentsCards.map((agent: AgentCard) => ({
-      name: agent.name,
-      description: agent.capabilities,
-      // skills: agent.skills.map((skill: AgentSkill) => ({
-      //   name: skill.name,
-      //   description: skill.description,
-      //   tags: skill.tags,
-      // })),
-      skills: agent.skills
-        .map((skill: AgentSkill) => skill.description)
-        .join('\n'),
-    }));
+    const agentTools = availableAgentsCards.map((agent: AgentCard) =>
+      AgentToolSchema.parse({
+        name: agent.name,
+        description: agent.description,
+        args: {
+          prompt: {
+            type: 'string',
+            description: 'The prompt to call the agent with',
+            required: true,
+          },
+          reason: {
+            type: 'string',
+            description: 'The reason for calling the agent',
+            required: true,
+          },
+        },
+      }),
+    );
     logger.log(chalk.magenta('Available agents:'));
-    logger.table(minimalAgentsCards);
-
-    const agentTools = availableAgentsCards.map((agent: AgentCard) => ({
-      name: agent.name,
-      description: `Description of the agent: ${agent.description}
-      Skills of the agent: ${agent.skills
-        .map(
-          (skill: AgentSkill) => `
-        Skill Name: ${skill.name}
-        Skill Description: ${skill.description}
-        Skill Tags: ${skill.tags.join(', ')}
-      `,
-        )
-        .join('\n')}
-      `,
-      args: {
-        prompt: {
-          type: 'string',
-          description: 'The prompt to call the agent with',
-          required: true,
-        },
-        reason: {
-          type: 'string',
-          description: 'The reason for calling the agent',
-          required: true,
-        },
-      },
-    })) satisfies AgentTool[];
+    logger.table(agentTools);
 
     const agentRouter = new ReActRouter(
       aiProvider,
@@ -214,22 +192,29 @@ expressApp.post('/ask', async (req, res) => {
       logger.log('Step:', value);
     }
 
-    let finalResponse = await generateFriendlyResponse({
-      userPrompt: body.prompt,
-      agentResponse: results,
-      aiProvider: aiProvider,
-    });
-    finalResponse = finalResponse
-      .slice(finalResponse.indexOf('</think>') + 8)
-      .trim();
+    const summaryResponse = await getRouterResponseSummary(
+      results,
+      aiProvider,
+      logger,
+    );
 
-    logger.log(chalk.green('Final friendly response:'), finalResponse);
+    // let finalResponse = await generateFriendlyResponse({
+    //   userPrompt: body.prompt,
+    //   agentResponse: results,
+    //   aiProvider: aiProvider,
+    // });
+    // finalResponse = finalResponse
+    //   .slice(finalResponse.indexOf('</think>') + 8)
+    //   .trim();
+
+    // logger.log(chalk.green('Final friendly response:'), finalResponse);
+    logger.log(chalk.green('Final summary response:'), summaryResponse);
 
     // Send final SSE update
     sendSSEUpdate(id, {
       type: 'final_response',
       data: {
-        finalResponse,
+        finalResponse: summaryResponse,
       },
     });
 

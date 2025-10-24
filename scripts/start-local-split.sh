@@ -18,6 +18,11 @@ pkill -f "pnpm run build:agent-framework" || true
 pkill -f "pnpm run dev:" || true
 sleep 0.4
 
+### Start docker compose
+echo "🐳 Starting docker compose..."
+docker compose up -d
+
+
 ### 2) Start services with health checks
 echo "🚀 Starting services..."
 
