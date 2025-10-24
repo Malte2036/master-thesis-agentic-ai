@@ -5,7 +5,7 @@ import {
   Logger,
   OllamaProvider,
   ReActRouter,
-  getRouterResponseSummary,
+  getFriendlyResponse,
 } from '@master-thesis-agentic-ai/agent-framework';
 import { RouterProcess, RouterResponse } from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
@@ -230,29 +230,19 @@ expressApp.post('/ask', async (req, res) => {
       // logger.log('Step:', value);
     }
 
-    const summaryResponse = await getRouterResponseSummary(
+    const friendlyResponse = await getFriendlyResponse(
       results,
       aiProvider,
       logger,
     );
 
-    // let finalResponse = await generateFriendlyResponse({
-    //   userPrompt: body.prompt,
-    //   agentResponse: results,
-    //   aiProvider: aiProvider,
-    // });
-    // finalResponse = finalResponse
-    //   .slice(finalResponse.indexOf('</think>') + 8)
-    //   .trim();
-
-    // logger.log(chalk.green('Final friendly response:'), finalResponse);
-    logger.log(chalk.green('Final summary response:'), summaryResponse);
+    logger.log(chalk.green('Final friendly response:'), friendlyResponse);
 
     // Send final SSE update
     sendSSEUpdate(id, {
       type: 'final_response',
       data: {
-        finalResponse: summaryResponse,
+        finalResponse: friendlyResponse,
       },
     });
 

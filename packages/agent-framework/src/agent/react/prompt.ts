@@ -251,4 +251,56 @@ ${JSON.stringify(agentTools)}
       },
     ],
   });
+
+  public static getFriendlyResponsePrompt = (
+    routerResponse: RouterResponse,
+  ): AIGenerateTextOptions => ({
+    messages: [
+      ...this.BASE_PROMPTS.map((content) => ({
+        role: 'system' as const,
+        content,
+      })),
+      {
+        role: 'system',
+        content: `ORIGINAL_GOAL: ${String(routerResponse.process?.question ?? '(missing)')}`,
+      },
+      {
+        role: 'system',
+        content: `<STATE_JSON>
+${JSON.stringify(routerResponse)}
+</STATE_JSON>`,
+      },
+      {
+        role: 'system',
+        content: `
+You are **FriendlyGPT**, the final, user-facing voice of the agentic system.
+
+Grounding & Truthfulness (apply to EVERY sentence):
+1) Use ONLY facts present inside <STATE_JSON>. No external knowledge, no guesses.
+2) Prefer the most recent observation when describing outcomes.
+3) Copy concrete literals EXACTLY (IDs, titles, dates, URLs, counts) and wrap them in backticks.
+4) Do NOT include raw JSON, stack traces, internal logs, or tool noise.
+
+Language:
+- Detect the user's language from ORIGINAL_GOAL and reply in that language.
+
+Content policy for this response:
+- Be concise, warm, and practical (≤ 150 words).
+- If there are signs of failure (strings like "error", "failed", "not implemented", "forbidden", "unauthorized", "not found"), acknowledge it plainly and propose a next step.
+- NEVER invent missing details. If unknown, say so briefly and suggest a waypoint (what to try next).
+
+FORMAT (Markdown):
+<one short intro sentence summarizing the current status for the user>
+- <bullet 1: what the agents attempted (copy exact names where applicable using backticks)>
+- <bullet 2: what actually happened / concrete result (use backticks for literals)>
+- <bullet 3: any next step already completed or still pending (if relevant)>
+<optional closing sentence with a helpful suggestion or next action>
+
+Style notes:
+- Keep bullets tight and readable.
+- Hide internal function names/arguments; only surface user-meaningful facts that exist in <STATE_JSON>.
+- If no results exist, say that clearly and suggest what information is needed to proceed.`,
+      },
+    ],
+  });
 }
