@@ -5,18 +5,8 @@ import { ChevronDown, ChevronRight, Brain, Code, Eye, CheckCircle, AlertCircle, 
 import { useState } from "react";
 
 export default function AgenticProcessViewer(props) {
-    const { iterations = [], status = "processing", error = "No Data", finalResponse = null } = props;
+    const { iterations = [], status = "processing", error = null, finalResponse = null } = props;
     const [expandedSteps, setExpandedSteps] = useState(new Set());
-
-    // Debug logging
-    console.log('AgenticProcessViewer rendered with props:', {
-        iterations: iterations,
-        iterationsLength: iterations.length,
-        status: status,
-        error: error,
-        finalResponse: finalResponse
-    });
-
 
     // Simple Markdown renderer for basic formatting
     const renderMarkdown = (text) => {
@@ -176,7 +166,7 @@ export default function AgenticProcessViewer(props) {
                 </Card>
             )}
 
-            {/* Processing Indicator - only show when no iterations and still processing */}
+            {/* Processing Indicator */}
             {status === "processing" && iterations.length === 0 && (
                 <Card>
                     <CardContent className="py-8">
@@ -187,17 +177,6 @@ export default function AgenticProcessViewer(props) {
                     </CardContent>
                 </Card>
             )}
-
-                <Card className="bg-yellow-50 border-yellow-200">
-                    <CardContent className="py-4">
-                        <div className="text-sm text-yellow-800">
-                            <strong>Debug Info:</strong><br/>
-                            Status: {status}<br/>
-                            Iterations count: {iterations.length}<br/>
-                            Iterations: {JSON.stringify(iterations, null, 2)}
-                        </div>
-                    </CardContent>
-                </Card>
         </div>
     );
 } 

@@ -1,20 +1,14 @@
-# Master Thesis - Agentic AI System
+# Welcome to Chainlit! 🚀🤖
 
-Welcome to the Agentic AI System for Master Thesis research! This application demonstrates advanced AI agent capabilities with multi-agent coordination and tool integration.
+Hi there, Developer! 👋 We're excited to have you on board. Chainlit is a powerful tool designed to help you prototype, debug and share applications built on top of LLMs.
 
-## Features 🚀
+## Useful Links 🔗
 
-- **Multi-Agent Architecture**: Coordinated AI agents working together
-- **Tool Integration**: Seamless integration with external services and APIs
-- **Real-time Processing**: Live agent interactions and responses
-- **Process Visualization**: Interactive process viewer for agent workflows
+- **Documentation:** Get started with our comprehensive [Chainlit Documentation](https://docs.chainlit.io) 📚
+- **Discord Community:** Join our friendly [Chainlit Discord](https://discord.gg/k73SQ3FyUh) to ask questions, share your projects, and connect with other developers! 💬
 
-## Available Agents 🎯
+We can't wait to see what you create with Chainlit! Happy coding! 💻😊
 
-- **Routing Agent**: Intelligent request routing and coordination
-- **Calendar Agent**: Calendar management and scheduling
-- **Moodle Agent**: Learning management system integration
+## Welcome screen
 
----
-
-_This application is part of a Master Thesis research project on Agentic AI Systems._
+To modify the welcome screen, edit the `chainlit.md` file at the root of your project. If you do not want a welcome screen, just leave this file empty.
