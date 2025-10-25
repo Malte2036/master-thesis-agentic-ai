@@ -18,12 +18,45 @@ import { UserInfo, UserInfoSchema } from '../schemas/moodle/user';
 import { Logger } from '@master-thesis-agentic-ai/agent-framework';
 
 const MOODLE_WEBSERVICE_PATH = '/webservice/rest/server.php';
+const MOODLE_SERVICE_NAME = 'custom_rest_api';
 
 export class MoodleProvider {
   constructor(
     private readonly logger: Logger,
     private readonly moodleBaseUrl: string,
   ) {}
+
+  public async getToken(username: string, password: string): Promise<string> {
+    try {
+      const response = await fetch(`${this.moodleBaseUrl}/login/token.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          username: username,
+          password: password,
+          service: MOODLE_SERVICE_NAME,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `HTTP error! status: ${response.status} - ${await response.text()}`,
+        );
+      }
+
+      const data = await response.json();
+      if (!data.token) {
+        throw new Error(`Token not found in response: ${JSON.stringify(data)}`);
+      }
+
+      return data.token;
+    } catch (error) {
+      this.logger.error('Failed to get token:', error);
+      throw error;
+    }
+  }
 
   /**
    * Generic function to call Moodle REST API functions
@@ -42,7 +75,6 @@ export class MoodleProvider {
     args: Record<string, unknown> = {},
   ): Promise<T> {
     const MoodleUrl = `${moodleBaseUrl}${MOODLE_WEBSERVICE_PATH}`;
-
     const params = new URLSearchParams();
     params.append('wstoken', token);
     params.append('wsfunction', wsfunction);
@@ -65,6 +97,7 @@ export class MoodleProvider {
       });
 
       if (!response.ok) {
+        this.logger.error('HTTP error:', JSON.stringify(response, null, 2));
         throw new Error(
           `HTTP error! status: ${response.status} - ${await response.text()}`,
         );
@@ -83,17 +116,8 @@ export class MoodleProvider {
 
       return data as T;
     } catch (error) {
-      if (error instanceof Error) {
-        this.logger.error(
-          `Failed to call Moodle function ${wsfunction}:`,
-          error.message,
-        );
-      } else {
-        this.logger.error(
-          `Failed to call Moodle function ${wsfunction}:`,
-          error,
-        );
-      }
+      this.logger.error(`Failed to call Moodle function ${wsfunction}:`, error);
+
       throw error;
     }
   }

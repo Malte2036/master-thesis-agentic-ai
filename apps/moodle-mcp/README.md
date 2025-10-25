@@ -4,7 +4,31 @@
 
 Dieses Dokument beschreibt die nötigen Schritte, um die Moodle-REST-API mit einem Token-basierten Zugriff zu verwenden – z. B. zum Abrufen von Hausaufgaben, Kursen oder Nutzerdaten per Skript oder Anwendung.
 
-Die Moodle-Instanz läuft auf: `http://localhost:8080`
+Die Moodle-Instanz läuft auf `http://moodle:80` im docker container
+
+---
+
+## 🌐 Zugriff auf die Moodle UI (lokal)
+
+Um die Moodle-Weboberfläche lokal im Browser zu öffnen, muss ein Eintrag in der `/etc/hosts` Datei hinzugefügt werden:
+
+**Auf Linux/Mac:**
+
+```bash
+sudo nano /etc/hosts
+```
+
+Füge folgende Zeile hinzu:
+
+```
+127.0.0.1 moodle
+```
+
+Danach kannst du Moodle unter folgenden URLs erreichen:
+
+- `http://moodle:80`
+
+**Hinweis:** Der Eintrag in `/etc/hosts` ist notwendig, da die Moodle-Installation mit `$CFG->wwwroot=http://moodle:80` konfiguriert ist und die Host-Überprüfung sonst einen Fehler verursacht.
 
 ---
 
@@ -45,7 +69,7 @@ Stelle sicher, dass der Benutzer diese Rolle systemweit zugewiesen bekommt.
 
 ### 🔌 2. Externen Dienst definieren
 
-1. `Website-Administration → Server → Webservices → Externe Dienste`
+1. [`Website-Administration → Server → Webservices → Externe Dienste`](http://localhost:8080/admin/settings.php?section=externalservices)
 2. „Neuen Dienst hinzufügen“ → z. B. **`Custom REST API`**
 3. Aktivieren: `[x] Benutzer kann Dienst aktivieren`
 4. Speichern
@@ -92,11 +116,9 @@ Gehe zu:
 ### Admin User:
 
 ```
-username: user
+username: admin
 password: Test123!
-email: user@example.com
-
-(default password: bitnami)
+email: admin@example.com
 ```
 
 ### Student User:
@@ -106,4 +128,12 @@ username: student
 password: Test123!
 email: student@example.com
 
+```
+
+### Get Token
+
+```
+curl -X POST http://localhost:8080/login/token.php \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d 'username=student&password=Test123!&service=custom_rest_api'
 ```

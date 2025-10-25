@@ -22,26 +22,32 @@ const logger = new Logger({ agentName: 'moodle-mcp' });
 
 const moodleBaseUrl = process.env.MOODLE_BASE_URL;
 
-console.log('MOODLE_BASE_URL:', moodleBaseUrl);
 if (!moodleBaseUrl) {
   throw new Error('MOODLE_BASE_URL is not set');
 }
+logger.debug('MOODLE_BASE_URL:', moodleBaseUrl);
 
 const moodleProvider = new MoodleProvider(logger, moodleBaseUrl);
 
+const MOODLE_USERNAME = process.env.MOODLE_USERNAME;
+const MOODLE_PASSWORD = process.env.MOODLE_PASSWORD;
+
+if (!MOODLE_USERNAME || !MOODLE_PASSWORD) {
+  throw new Error('MOODLE_USERNAME or MOODLE_PASSWORD is not set');
+}
+
 const mcpServerFramework = createMCPServerFramework(logger, 'moodle-mcp');
 const mcpServer = mcpServerFramework.getServer();
-
-const moodleToken = process.env.MOODLE_TOKEN;
-if (!moodleToken) {
-  throw new Error('MOODLE_TOKEN is not set');
-}
 
 mcpServer.tool(
   'get_all_courses',
   'Get all courses that the user is enrolled in. Prefer "search_courses_by_name" if you need to get courses by name.',
   {},
   async () => {
+    const moodleToken = await moodleProvider.getToken(
+      MOODLE_USERNAME,
+      MOODLE_PASSWORD,
+    );
     const userInfo = await moodleProvider.getUserInfo(moodleToken);
     if (!userInfo) {
       throw createResponseError('User info not found', 400);
@@ -96,6 +102,11 @@ mcpServer.tool(
     if (!course_name) {
       throw createResponseError('Course name is required', 400);
     }
+
+    const moodleToken = await moodleProvider.getToken(
+      MOODLE_USERNAME,
+      MOODLE_PASSWORD,
+    );
 
     const [searchResponse, enrolledCourses] = await Promise.all([
       moodleProvider.findCoursesByName(moodleToken, course_name),
@@ -175,6 +186,11 @@ mcpServer.tool(
       throw createResponseError('Course ID is required', 400);
     }
 
+    const moodleToken = await moodleProvider.getToken(
+      MOODLE_USERNAME,
+      MOODLE_PASSWORD,
+    );
+
     const courseContents = await moodleProvider.getCourseContents(
       moodleToken,
       course_id,
@@ -231,6 +247,11 @@ mcpServer.tool(
       ),
   },
   async ({ due_after, due_before }) => {
+    const moodleToken = await moodleProvider.getToken(
+      MOODLE_USERNAME,
+      MOODLE_PASSWORD,
+    );
+
     const assignmentsResponse =
       await moodleProvider.getAssignments(moodleToken);
     let allAssignments = assignmentsResponse.courses.flatMap(
@@ -316,6 +337,11 @@ mcpServer.tool(
       throw createResponseError('Course ID is required', 400);
     }
 
+    const moodleToken = await moodleProvider.getToken(
+      MOODLE_USERNAME,
+      MOODLE_PASSWORD,
+    );
+
     const course = await moodleProvider.getAssignmentsForCourse(
       moodleToken,
       course_id,
@@ -384,6 +410,11 @@ mcpServer.tool(
   'Get personal information about the user who asked the question. This function cannot get information about other users.',
   {},
   async () => {
+    const moodleToken = await moodleProvider.getToken(
+      MOODLE_USERNAME,
+      MOODLE_PASSWORD,
+    );
+
     const userInfo = await moodleProvider.getUserInfo(moodleToken);
     if (!userInfo) {
       throw createResponseError('User info not found', 400);
