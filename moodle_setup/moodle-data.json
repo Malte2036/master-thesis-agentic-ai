@@ -1,0 +1,716 @@
+{
+  "users": [
+    {
+      "username": "student",
+      "firstname": "Sabrina",
+      "lastname": "Studentin",
+      "email": "student@example.com",
+      "password": "Test123!",
+      "auth": "manual"
+    },
+    {
+      "username": "teacher",
+      "firstname": "Thomas",
+      "lastname": "Teacher",
+      "email": "teacher@example.com",
+      "password": "Test123!",
+      "auth": "manual"
+    }
+  ],
+  "courses": [
+    {
+      "shortname": "SAFE-101",
+      "fullname": "Intro to Safety",
+      "category": 1,
+      "summary": "Basic safety training",
+      "idnumber": "SAFE-101-2025",
+      "visible": 1,
+      "format": "topics",
+      "numsections": 3,
+      "enrollments": [
+        { "username": "student", "role": "student" },
+        { "username": "teacher", "role": "editingteacher" }
+      ],
+      "sections": [
+        {
+          "section": 0,
+          "name": "General",
+          "summary": "",
+          "forums": [
+            {
+              "name": "Course Announcements",
+              "intro": "Important course updates and announcements will be posted here",
+              "type": "news"
+            },
+            {
+              "name": "General Discussion",
+              "intro": "Ask questions and discuss course topics with your peers",
+              "type": "general"
+            }
+          ],
+          "pages": [
+            {
+              "name": "Course Syllabus",
+              "content": "<h2>SAFE-101: Intro to Safety</h2><h3>Course Description</h3><p>This course provides fundamental knowledge of workplace safety procedures, hazard identification, and emergency response protocols.</p><h3>Learning Objectives</h3><ul><li>Identify common workplace hazards</li><li>Understand OSHA regulations</li><li>Demonstrate proper PPE usage</li><li>Execute emergency response procedures</li></ul><h3>Required Materials</h3><ul><li>Safety Equipment Manual (provided)</li><li>OSHA Quick Card</li><li>Safety goggles and gloves</li></ul><h3>Grading</h3><ul><li>Quizzes: 40%</li><li>Essays: 30%</li><li>Final Exam: 30%</li></ul>"
+            }
+          ],
+          "urls": [
+            {
+              "name": "OSHA Safety Standards",
+              "intro": "Official OSHA workplace safety regulations",
+              "externalurl": "https://www.osha.gov/laws-regs/regulations/standardnumber"
+            },
+            {
+              "name": "Safety Training Videos",
+              "intro": "Video library of safety demonstrations and procedures",
+              "externalurl": "https://www.youtube.com/playlist?list=safety-training"
+            }
+          ]
+        },
+        {
+          "section": 1,
+          "name": "Week 1: Workplace Hazard Identification",
+          "summary": "Learn to identify common workplace hazards and understand risk assessment procedures",
+          "pages": [
+            {
+              "name": "Hazard Types Overview",
+              "content": "<h2>Types of Workplace Hazards</h2><h3>Physical Hazards</h3><p>Noise, temperature extremes, radiation, vibration</p><h3>Chemical Hazards</h3><p>Toxic substances, corrosives, flammables</p><h3>Biological Hazards</h3><p>Bacteria, viruses, blood-borne pathogens</p><h3>Ergonomic Hazards</h3><p>Repetitive motion, poor posture, heavy lifting</p><h3>Psychosocial Hazards</h3><p>Stress, violence, harassment</p>"
+            }
+          ],
+          "assignments": [
+            {
+              "name": "Safety Quiz 1",
+              "intro": "Complete this quiz to test your basic safety knowledge",
+              "assignsubmission_onlinetext_enabled": 1,
+              "duedate": "+7 days",
+              "grade": 100
+            }
+          ]
+        },
+        {
+          "section": 2,
+          "name": "Week 2: Personal Protective Equipment (PPE)",
+          "summary": "Understanding proper selection, use, and maintenance of PPE",
+          "pages": [
+            {
+              "name": "Emergency Procedures",
+              "content": "<h2>Emergency Response Guide</h2><h3>Fire Emergency</h3><ol><li>Activate nearest fire alarm</li><li>Evacuate using nearest exit</li><li>Assemble at designated meeting point</li><li>Report to safety officer</li></ol><h3>Medical Emergency</h3><ol><li>Call emergency services (ext. 5555)</li><li>Provide first aid if trained</li><li>Do not move injured person unless necessary</li><li>Complete incident report</li></ol><h3>Chemical Spill</h3><ol><li>Evacuate area immediately</li><li>Alert nearby personnel</li><li>Contact hazmat team</li><li>Do not attempt cleanup unless trained</li></ol>"
+            }
+          ],
+          "assignments": [
+            {
+              "name": "Safety Equipment Essay",
+              "intro": "Write a 500-word essay on proper safety equipment usage",
+              "assignsubmission_file_enabled": 1,
+              "duedate": "+14 days",
+              "grade": 100
+            }
+          ],
+          "forums": [
+            {
+              "name": "Safety Incident Reports",
+              "intro": "Share and discuss workplace safety incidents (anonymized)",
+              "type": "general"
+            }
+          ]
+        },
+        {
+          "section": 3,
+          "name": "Week 3: Emergency Response & Final Assessment",
+          "summary": "Emergency procedures and course wrap-up",
+          "pages": [
+            {
+              "name": "Final Exam Study Guide",
+              "content": "<h2>Final Exam Preparation</h2><h3>Topics Covered</h3><ul><li>Hazard identification and risk assessment</li><li>PPE selection and proper use</li><li>OSHA regulations and standards</li><li>Emergency response procedures</li><li>Incident reporting and investigation</li></ul><h3>Exam Format</h3><p>50 multiple choice questions (60 minutes)</p><p>Passing score: 70%</p><h3>Study Tips</h3><ul><li>Review all lecture slides and notes</li><li>Complete practice quizzes</li><li>Review OSHA Quick Card</li><li>Attend review session (see calendar)</li></ul>"
+            }
+          ]
+        }
+      ],
+      "blocks": [
+        {
+          "blockname": "html",
+          "region": "side-pre",
+          "weight": 0,
+          "title": "Course Information",
+          "content": "<h3>Welcome to Safety Training!</h3><p>This course covers essential safety procedures and protocols. Please complete all assignments on time.</p><ul><li>Weekly quizzes</li><li>Safety equipment demonstrations</li><li>Final certification exam</li></ul>"
+        },
+        {
+          "blockname": "calendar_month",
+          "region": "side-pre",
+          "weight": 1
+        },
+        {
+          "blockname": "timeline",
+          "region": "side-pre",
+          "weight": 2
+        },
+        {
+          "blockname": "html",
+          "region": "side-post",
+          "weight": 0,
+          "title": "Important Contacts",
+          "content": "<p><strong>Instructor:</strong> Thomas Teacher</p><p><strong>Email:</strong> teacher@example.com</p><p><strong>Office Hours:</strong> Mon-Fri 10:00-12:00</p><p><strong>Emergency:</strong> Call campus security at ext. 5555</p>"
+        }
+      ]
+    },
+    {
+      "shortname": "OPS-201",
+      "fullname": "Operations Level 2",
+      "category": 1,
+      "summary": "Advanced operations",
+      "idnumber": "OPS-201-2025",
+      "visible": 1,
+      "format": "topics",
+      "numsections": 4,
+      "enrollments": [
+        { "username": "student", "role": "student" },
+        { "username": "teacher", "role": "editingteacher" }
+      ],
+      "sections": [
+        {
+          "section": 0,
+          "name": "General",
+          "summary": "",
+          "forums": [
+            {
+              "name": "Announcements",
+              "intro": "Course announcements and updates",
+              "type": "news"
+            },
+            {
+              "name": "Operations Q&A",
+              "intro": "Ask questions about operations concepts and methodologies",
+              "type": "general"
+            }
+          ],
+          "pages": [
+            {
+              "name": "Course Syllabus",
+              "content": "<h2>OPS-201: Operations Level 2</h2><h3>Course Overview</h3><p>Advanced operations management focusing on lean methodologies, Six Sigma, and continuous improvement strategies.</p><h3>Topics</h3><ul><li>Process mapping and value stream analysis</li><li>Lean manufacturing principles</li><li>Six Sigma DMAIC methodology</li><li>Statistical process control</li><li>Change management</li></ul><h3>Assessment</h3><p>Case studies (60%), Final project (40%)</p>"
+            }
+          ],
+          "urls": [
+            {
+              "name": "Lean Enterprise Institute",
+              "intro": "Resources and case studies on lean methodologies",
+              "externalurl": "https://www.lean.org"
+            }
+          ]
+        },
+        {
+          "section": 1,
+          "name": "Weeks 1-2: Process Mapping & Value Stream Analysis",
+          "summary": "Learn to map processes and identify value streams in operations",
+          "pages": [
+            {
+              "name": "Lean Principles Guide",
+              "content": "<h2>Introduction to Lean</h2><h3>Core Principles</h3><ol><li>Identify Value</li><li>Map the Value Stream</li><li>Create Flow</li><li>Establish Pull</li><li>Seek Perfection</li></ol><h3>7 Wastes of Lean</h3><ul><li>Transportation</li><li>Inventory</li><li>Motion</li><li>Waiting</li><li>Overproduction</li><li>Over-processing</li><li>Defects</li></ul>"
+            }
+          ]
+        },
+        {
+          "section": 2,
+          "name": "Weeks 3-4: Lean Methodologies",
+          "summary": "Deep dive into lean manufacturing principles and applications",
+          "assignments": [
+            {
+              "name": "Operations Analysis",
+              "intro": "Analyze the provided operational scenario and submit your findings",
+              "assignsubmission_file_enabled": 1,
+              "assignsubmission_onlinetext_enabled": 1,
+              "duedate": "+10 days",
+              "grade": 100
+            }
+          ]
+        },
+        {
+          "section": 3,
+          "name": "Weeks 5-6: Six Sigma Principles",
+          "summary": "Understanding DMAIC methodology and statistical process control"
+        },
+        {
+          "section": 4,
+          "name": "Weeks 7-8: Continuous Improvement",
+          "summary": "Strategies for implementing continuous improvement in organizations"
+        }
+      ],
+      "blocks": [
+        {
+          "blockname": "html",
+          "region": "side-pre",
+          "weight": 0,
+          "title": "Course Schedule",
+          "content": "<h4>Module Overview</h4><p><strong>Week 1-2:</strong> Process mapping and analysis</p><p><strong>Week 3-4:</strong> Lean methodologies</p><p><strong>Week 5-6:</strong> Six Sigma principles</p><p><strong>Week 7-8:</strong> Continuous improvement strategies</p>"
+        },
+        {
+          "blockname": "calendar_month",
+          "region": "side-pre",
+          "weight": 1
+        },
+        {
+          "blockname": "recent_activity",
+          "region": "side-pre",
+          "weight": 2
+        },
+        {
+          "blockname": "html",
+          "region": "side-post",
+          "weight": 0,
+          "title": "Resources",
+          "content": "<ul><li><a href='#'>Operations Management Handbook</a></li><li><a href='#'>Case Study Library</a></li><li><a href='#'>Industry Best Practices</a></li><li><a href='#'>Discussion Forum</a></li></ul>"
+        }
+      ]
+    },
+    {
+      "shortname": "MATH-301",
+      "fullname": "Advanced Mathematics",
+      "category": 1,
+      "summary": "Complex mathematical concepts and applications",
+      "idnumber": "MATH-301-2025",
+      "visible": 1,
+      "format": "topics",
+      "numsections": 5,
+      "enrollments": [
+        { "username": "student", "role": "student" },
+        { "username": "teacher", "role": "editingteacher" }
+      ],
+      "sections": [
+        {
+          "section": 0,
+          "name": "General",
+          "summary": "",
+          "forums": [
+            {
+              "name": "Course Announcements",
+              "intro": "Important announcements about exams, deadlines, and office hours",
+              "type": "news"
+            },
+            {
+              "name": "Problem Set Help",
+              "intro": "Get help with homework problems from peers and teaching assistants",
+              "type": "general"
+            },
+            {
+              "name": "Study Groups",
+              "intro": "Organize study groups and exam prep sessions",
+              "type": "general"
+            }
+          ],
+          "pages": [
+            {
+              "name": "Course Syllabus",
+              "content": "<h2>MATH-301: Advanced Mathematics</h2><h3>Prerequisites</h3><p>MATH-201 (Calculus II) and MATH-205 (Linear Algebra I) with grades of C or better</p><h3>Course Topics</h3><ul><li>Multivariable calculus</li><li>Vector calculus</li><li>Differential equations</li><li>Linear transformations</li><li>Eigenvalues and eigenvectors</li></ul><h3>Textbook</h3><p><em>Advanced Engineering Mathematics</em> by Kreyszig (10th ed.)</p><h3>Grading Policy</h3><ul><li>Problem Sets: 30%</li><li>Midterm 1: 20%</li><li>Midterm 2: 20%</li><li>Final Exam: 30%</li></ul>"
+            },
+            {
+              "name": "Formula Sheet",
+              "content": "<h2>Key Formulas</h2><h3>Derivatives</h3><p>Product rule: (fg)' = f'g + fg'</p><p>Chain rule: (f∘g)' = f'(g(x))·g'(x)</p><h3>Integration</h3><p>Integration by parts: ∫udv = uv - ∫vdu</p><h3>Linear Algebra</h3><p>Determinant (2x2): det(A) = ad - bc</p><p>Eigenvalue equation: Av = λv</p><p><em>Note: This is a quick reference. See textbook for complete formulas.</em></p>"
+            }
+          ],
+          "urls": [
+            {
+              "name": "Wolfram MathWorld",
+              "intro": "Comprehensive mathematics reference",
+              "externalurl": "https://mathworld.wolfram.com"
+            },
+            {
+              "name": "Khan Academy - Multivariable Calculus",
+              "intro": "Free video lessons on multivariable calculus",
+              "externalurl": "https://www.khanacademy.org/math/multivariable-calculus"
+            },
+            {
+              "name": "MIT OpenCourseWare - Linear Algebra",
+              "intro": "Free lectures by Prof. Gilbert Strang",
+              "externalurl": "https://ocw.mit.edu/courses/mathematics/18-06-linear-algebra-spring-2010/"
+            }
+          ]
+        },
+        {
+          "section": 1,
+          "name": "Week 1: Multivariable Calculus",
+          "summary": "Partial derivatives, multiple integrals, and applications",
+          "assignments": [
+            {
+              "name": "Calculus Problem Set 1",
+              "intro": "Complete the first set of calculus problems",
+              "assignsubmission_file_enabled": 1,
+              "duedate": "+7 days",
+              "grade": 50
+            }
+          ]
+        },
+        {
+          "section": 2,
+          "name": "Week 2: Vector Calculus",
+          "summary": "Gradient, divergence, curl, and line integrals"
+        },
+        {
+          "section": 3,
+          "name": "Week 3: Differential Equations",
+          "summary": "First and second order differential equations and their applications"
+        },
+        {
+          "section": 4,
+          "name": "Week 4: Linear Transformations",
+          "summary": "Matrix representations and properties of linear transformations",
+          "assignments": [
+            {
+              "name": "Linear Algebra Assignment",
+              "intro": "Solve the linear algebra problems in the textbook",
+              "assignsubmission_file_enabled": 1,
+              "duedate": "+14 days",
+              "grade": 75
+            }
+          ]
+        },
+        {
+          "section": 5,
+          "name": "Week 5: Eigenvalues & Eigenvectors",
+          "summary": "Computing and applying eigenvalues and eigenvectors"
+        }
+      ],
+      "blocks": [
+        {
+          "blockname": "html",
+          "region": "side-pre",
+          "weight": 0,
+          "title": "Prerequisites",
+          "content": "<p>⚠️ <strong>Required background:</strong></p><ul><li>Calculus I & II</li><li>Linear Algebra basics</li><li>Proof techniques</li></ul><p>If you need help, visit the Math Learning Center (Building A, Room 101)</p>"
+        },
+        {
+          "blockname": "timeline",
+          "region": "side-pre",
+          "weight": 1
+        },
+        {
+          "blockname": "calendar_upcoming",
+          "region": "side-pre",
+          "weight": 2
+        },
+        {
+          "blockname": "html",
+          "region": "side-post",
+          "weight": 0,
+          "title": "Study Tools",
+          "content": "<h4>Recommended Software:</h4><ul><li>MATLAB/Octave</li><li>Wolfram Alpha</li><li>Desmos Graphing Calculator</li></ul><h4>Study Groups:</h4><p>Join our Discord server for peer collaboration</p>"
+        }
+      ]
+    },
+    {
+      "shortname": "CS-401",
+      "fullname": "Computer Science Fundamentals",
+      "category": 1,
+      "summary": "Introduction to programming and algorithms",
+      "idnumber": "CS-401-2025",
+      "visible": 1,
+      "format": "topics",
+      "numsections": 6,
+      "enrollments": [
+        { "username": "student", "role": "student" },
+        { "username": "teacher", "role": "editingteacher" }
+      ],
+      "sections": [
+        {
+          "section": 0,
+          "name": "General",
+          "summary": "",
+          "forums": [
+            {
+              "name": "Course News",
+              "intro": "Announcements about lectures, deadlines, and course policies",
+              "type": "news"
+            },
+            {
+              "name": "General Discussion",
+              "intro": "General discussion about programming, career advice, and tech news",
+              "type": "general"
+            },
+            {
+              "name": "Help with Code",
+              "intro": "Post your code questions here. Include error messages and what you've tried!",
+              "type": "general"
+            },
+            {
+              "name": "Project Showcase",
+              "intro": "Share your projects and cool things you've built",
+              "type": "general"
+            }
+          ],
+          "pages": [
+            {
+              "name": "Course Syllabus",
+              "content": "<h2>CS-401: Computer Science Fundamentals</h2><h3>Course Description</h3><p>An introduction to computer science through programming in Python. Topics include variables, control structures, functions, recursion, object-oriented programming, and fundamental data structures.</p><h3>Learning Outcomes</h3><ul><li>Write well-structured Python programs</li><li>Understand algorithmic thinking</li><li>Implement basic data structures</li><li>Apply object-oriented design principles</li><li>Debug and test code effectively</li></ul><h3>Grading</h3><table style='border-collapse:collapse;'><tr><th style='border:1px solid #ddd; padding:8px;'>Component</th><th style='border:1px solid #ddd; padding:8px;'>Weight</th></tr><tr><td style='border:1px solid #ddd; padding:8px;'>Programming Assignments</td><td style='border:1px solid #ddd; padding:8px;'>40%</td></tr><tr><td style='border:1px solid #ddd; padding:8px;'>Midterm Exam</td><td style='border:1px solid #ddd; padding:8px;'>25%</td></tr><tr><td style='border:1px solid #ddd; padding:8px;'>Final Project</td><td style='border:1px solid #ddd; padding:8px;'>30%</td></tr><tr><td style='border:1px solid #ddd; padding:8px;'>Participation</td><td style='border:1px solid #ddd; padding:8px;'>5%</td></tr></table>"
+            },
+            {
+              "name": "Python Style Guide",
+              "content": "<h2>Python Coding Standards</h2><h3>PEP 8 Guidelines</h3><ul><li>Use 4 spaces for indentation (not tabs)</li><li>Limit lines to 79 characters</li><li>Use snake_case for function and variable names</li><li>Use PascalCase for class names</li><li>Add docstrings to all functions and classes</li></ul><h3>Example</h3><pre><code>def calculate_average(numbers):\n    \"\"\"Calculate the average of a list of numbers.\n    \n    Args:\n        numbers (list): List of numeric values\n    \n    Returns:\n        float: The average value\n    \"\"\"\n    return sum(numbers) / len(numbers)</code></pre>"
+            },
+            {
+              "name": "Debugging Tips",
+              "content": "<h2>Common Debugging Strategies</h2><h3>Read the Error Message</h3><p>Python error messages tell you exactly what went wrong and on which line. Read them carefully!</p><h3>Use Print Statements</h3><p>Add print() statements to see variable values at different points in your code.</p><h3>Check Your Indentation</h3><p>Python is sensitive to indentation. Make sure all blocks are properly indented.</p><h3>Test with Simple Inputs</h3><p>Try your function with simple test cases before complex ones.</p><h3>Use the Python Debugger</h3><p>Learn to use pdb or your IDE's debugger to step through code line by line.</p>"
+            }
+          ],
+          "urls": [
+            {
+              "name": "Python Official Documentation",
+              "intro": "The official Python 3 documentation",
+              "externalurl": "https://docs.python.org/3/"
+            },
+            {
+              "name": "Python Tutor - Visualize Code Execution",
+              "intro": "Step through Python code and see what happens in memory",
+              "externalurl": "http://pythontutor.com"
+            },
+            {
+              "name": "LeetCode - Practice Problems",
+              "intro": "Practice coding problems (optional, for extra challenge)",
+              "externalurl": "https://leetcode.com"
+            },
+            {
+              "name": "Course GitHub Repository",
+              "intro": "Starter code and examples for all assignments",
+              "externalurl": "https://github.com/university/cs401-fall2025"
+            }
+          ]
+        },
+        {
+          "section": 1,
+          "name": "Week 1: Introduction to Python",
+          "summary": "Variables, data types, and your first Python program",
+          "assignments": [
+            {
+              "name": "Hello World Program",
+              "intro": "Write your first program in Python",
+              "assignsubmission_file_enabled": 1,
+              "assignsubmission_onlinetext_enabled": 1,
+              "duedate": "+3 days",
+              "grade": 25
+            }
+          ]
+        },
+        {
+          "section": 2,
+          "name": "Week 2: Control Structures",
+          "summary": "If statements, loops, and conditional logic"
+        },
+        {
+          "section": 3,
+          "name": "Week 3: Functions & Modules",
+          "summary": "Writing reusable code with functions and organizing code into modules"
+        },
+        {
+          "section": 4,
+          "name": "Week 4: Object-Oriented Programming",
+          "summary": "Classes, objects, inheritance, and polymorphism"
+        },
+        {
+          "section": 5,
+          "name": "Week 5: Data Structures",
+          "summary": "Lists, stacks, queues, and linked lists",
+          "assignments": [
+            {
+              "name": "Data Structures Project",
+              "intro": "Implement common data structures: linked list, stack, and queue",
+              "assignsubmission_file_enabled": 1,
+              "duedate": "+21 days",
+              "grade": 150
+            }
+          ]
+        },
+        {
+          "section": 6,
+          "name": "Week 6: Algorithms & Final Project",
+          "summary": "Searching, sorting algorithms, and course wrap-up"
+        }
+      ],
+      "blocks": [
+        {
+          "blockname": "html",
+          "region": "side-pre",
+          "weight": 0,
+          "title": "Getting Started",
+          "content": "<h3>🚀 Welcome to CS-401!</h3><p>This course introduces fundamental programming concepts using Python.</p><p><strong>What you'll learn:</strong></p><ul><li>Variables and data types</li><li>Control structures</li><li>Functions and modules</li><li>Object-oriented programming</li><li>Algorithms and data structures</li></ul>"
+        },
+        {
+          "blockname": "timeline",
+          "region": "side-pre",
+          "weight": 1
+        },
+        {
+          "blockname": "recent_activity",
+          "region": "side-pre",
+          "weight": 2
+        },
+        {
+          "blockname": "html",
+          "region": "side-post",
+          "weight": 0,
+          "title": "Development Setup",
+          "content": "<h4>Required Software:</h4><ul><li>Python 3.11+</li><li>VS Code or PyCharm</li><li>Git for version control</li></ul><h4>Useful Links:</h4><ul><li><a href='#'>Course GitHub</a></li><li><a href='#'>Python Documentation</a></li><li><a href='#'>Stack Overflow</a></li></ul>"
+        },
+        {
+          "blockname": "html",
+          "region": "side-post",
+          "weight": 1,
+          "title": "Grading Policy",
+          "content": "<table style='width:100%'><tr><th>Component</th><th>Weight</th></tr><tr><td>Assignments</td><td>40%</td></tr><tr><td>Midterm</td><td>25%</td></tr><tr><td>Final Project</td><td>30%</td></tr><tr><td>Participation</td><td>5%</td></tr></table>"
+        }
+      ]
+    },
+    {
+      "shortname": "DH-501",
+      "fullname": "Digital Health UX",
+      "category": 1,
+      "summary": "Advanced digital health user experience design",
+      "idnumber": "DH-501-2025",
+      "visible": 1,
+      "format": "topics",
+      "numsections": 4,
+      "enrollments": [
+        { "username": "student", "role": "student" },
+        { "username": "teacher", "role": "editingteacher" }
+      ],
+      "sections": [
+        {
+          "section": 0,
+          "name": "General",
+          "summary": "",
+          "forums": [
+            {
+              "name": "Course Announcements",
+              "intro": "Important updates about the course and project deadlines",
+              "type": "news"
+            },
+            {
+              "name": "Design Critique Forum",
+              "intro": "Share your designs and get feedback from peers",
+              "type": "general"
+            },
+            {
+              "name": "Healthcare UX Resources",
+              "intro": "Share interesting articles, case studies, and resources",
+              "type": "general"
+            }
+          ],
+          "pages": [
+            {
+              "name": "Course Syllabus",
+              "content": "<h2>DH-501: Digital Health UX Design</h2><h3>Course Overview</h3><p>This advanced course explores user experience design principles specifically for digital health applications. Students will learn to design accessible, compliant, and user-centered healthcare interfaces.</p><h3>Key Topics</h3><ul><li>Healthcare user research methodologies</li><li>HIPAA compliance in UX design</li><li>Accessibility standards (WCAG 2.1 AA)</li><li>Design for diverse patient populations</li><li>Prototyping and usability testing</li><li>Design systems for healthcare</li></ul><h3>Course Project</h3><p>Teams of 3-4 students will design a complete digital health application from research through high-fidelity prototypes.</p><h3>Grading</h3><ul><li>Individual Assignments: 30%</li><li>Team Project: 50%</li><li>Peer Reviews: 10%</li><li>Participation: 10%</li></ul>"
+            }
+          ],
+          "urls": [
+            {
+              "name": "Nielsen Norman Group - Healthcare UX",
+              "intro": "Research articles on healthcare UX design",
+              "externalurl": "https://www.nngroup.com/topic/healthcare/"
+            },
+            {
+              "name": "WCAG 2.1 Guidelines",
+              "intro": "Official Web Content Accessibility Guidelines",
+              "externalurl": "https://www.w3.org/WAI/WCAG21/quickref/"
+            },
+            {
+              "name": "HHS.gov - HIPAA for Designers",
+              "intro": "HIPAA compliance guide for designers",
+              "externalurl": "https://www.hhs.gov/hipaa/index.html"
+            },
+            {
+              "name": "Figma Community - Healthcare Templates",
+              "intro": "Free design templates and resources",
+              "externalurl": "https://www.figma.com/community/search?q=healthcare"
+            }
+          ]
+        },
+        {
+          "section": 1,
+          "name": "Week 1: Healthcare UX Research",
+          "summary": "Understanding users in healthcare contexts and research methodologies",
+          "pages": [
+            {
+              "name": "UX Research Methods",
+              "content": "<h2>User Research in Healthcare</h2><h3>Qualitative Methods</h3><ul><li><strong>User Interviews:</strong> One-on-one conversations with patients, providers, and caregivers</li><li><strong>Contextual Inquiry:</strong> Observing users in their natural environment</li><li><strong>Diary Studies:</strong> Long-term insights into patient experiences</li></ul><h3>Quantitative Methods</h3><ul><li><strong>Surveys:</strong> Large-scale data collection</li><li><strong>Analytics:</strong> Usage patterns and behavior tracking</li><li><strong>A/B Testing:</strong> Comparing design variations</li></ul><h3>Special Considerations for Healthcare</h3><ul><li>IRB approval for research with patients</li><li>HIPAA compliance in data collection</li><li>Sensitive topic handling</li><li>Diverse user populations (age, ability, health literacy)</li></ul>"
+            }
+          ],
+          "assignments": [
+            {
+              "name": "UX Research Report",
+              "intro": "Conduct user research and submit a comprehensive report",
+              "assignsubmission_file_enabled": 1,
+              "duedate": "+14 days",
+              "grade": 100
+            }
+          ]
+        },
+        {
+          "section": 2,
+          "name": "Week 2: Accessibility & Compliance",
+          "summary": "WCAG standards and HIPAA requirements for healthcare UX",
+          "pages": [
+            {
+              "name": "Accessibility Guidelines",
+              "content": "<h2>Designing for Accessibility</h2><h3>WCAG 2.1 Level AA Requirements</h3><ul><li><strong>Perceivable:</strong> Text alternatives, captions, adaptable content</li><li><strong>Operable:</strong> Keyboard accessible, enough time, navigable</li><li><strong>Understandable:</strong> Readable, predictable, input assistance</li><li><strong>Robust:</strong> Compatible with assistive technologies</li></ul><h3>Healthcare-Specific Considerations</h3><ul><li>Large touch targets for users with tremors</li><li>High contrast for low vision</li><li>Plain language for health literacy</li><li>Screen reader support for blind users</li><li>Cognitive accessibility for elderly users</li></ul><h3>Testing Tools</h3><ul><li>WAVE (Web Accessibility Evaluation Tool)</li><li>axe DevTools</li><li>Screen readers (NVDA, JAWS, VoiceOver)</li></ul>"
+            }
+          ]
+        },
+        {
+          "section": 3,
+          "name": "Week 3: Prototyping & Design Systems",
+          "summary": "Creating prototypes and establishing design systems for healthcare",
+          "assignments": [
+            {
+              "name": "Wireframe Design",
+              "intro": "Create wireframes for a digital health application",
+              "assignsubmission_file_enabled": 1,
+              "duedate": "+21 days",
+              "grade": 100
+            }
+          ]
+        },
+        {
+          "section": 4,
+          "name": "Week 4: Usability Testing & Course Project",
+          "summary": "Testing methodologies and final project presentations"
+        }
+      ],
+      "blocks": [
+        {
+          "blockname": "html",
+          "region": "side-pre",
+          "weight": 0,
+          "title": "Course Overview",
+          "content": "<h3>Digital Health UX Design</h3><p>Learn to create user-centered designs for healthcare applications.</p><p><strong>Topics covered:</strong></p><ul><li>User research methodologies</li><li>Healthcare-specific UX challenges</li><li>Accessibility standards (WCAG)</li><li>HIPAA compliance in design</li><li>Prototyping tools</li></ul>"
+        },
+        {
+          "blockname": "calendar_month",
+          "region": "side-pre",
+          "weight": 1
+        },
+        {
+          "blockname": "timeline",
+          "region": "side-pre",
+          "weight": 2
+        },
+        {
+          "blockname": "html",
+          "region": "side-post",
+          "weight": 0,
+          "title": "Design Tools",
+          "content": "<h4>Software Access:</h4><ul><li>Figma (Free education license)</li><li>Adobe XD</li><li>Sketch (Mac users)</li><li>InVision for prototyping</li></ul><p>Contact IT services to activate your licenses.</p>"
+        },
+        {
+          "blockname": "html",
+          "region": "side-post",
+          "weight": 1,
+          "title": "Project Teams",
+          "content": "<p><strong>Team Formation:</strong> Week 2</p><p>You'll work in groups of 3-4 students on a semester-long project designing a healthcare app.</p><p><strong>Current teams:</strong></p><ul><li>Team Alpha (4 members)</li><li>Team Beta (3 members)</li><li>Team Gamma (4 members)</li></ul>"
+        },
+        {
+          "blockname": "html",
+          "region": "side-post",
+          "weight": 2,
+          "title": "Guest Speakers",
+          "content": "<h4>Upcoming Sessions:</h4><p><strong>Nov 15:</strong> Dr. Sarah Johnson - UX in Telemedicine</p><p><strong>Dec 1:</strong> Mike Chen - Designing for Elderly Users</p><p><strong>Dec 10:</strong> Industry Panel Discussion</p>"
+        }
+      ]
+    }
+  ]
+}
