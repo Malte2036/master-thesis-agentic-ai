@@ -1,0 +1,14 @@
+{
+  "testEntries": [
+    {
+      "input": "What are your capabilities?",
+      "actual_output": "I can help with course management, assignment tracking, and user data in Moodle, as well as calendar events and scheduling through integrated tools. My key capabilities include:  \n- **Moodle**: Checking enrolled courses, tracking assignments, and retrieving user information.  \n- **Calendar**: Creating, updating, or searching events via Google Calendar.  \n\nI use structured reasoning to handle your requests efficiently. Let me know what you need!",
+      "expected_output": "I can access Moodle course content, track assignments, and manage calendar events."
+    },
+    {
+      "input": "Can you help me get my user information?",
+      "actual_output": "• Your user information is as follows:  \n- **User ID**: `3`  \n- **Username**: `student`  \n- **First Name**: `Sabrina`  \n- **Last Name**: `Studentin`  \n\nThe data was retrieved successfully via the Moodle API and is fully validated. Let me know if you need further assistance!",
+      "expected_output": "Here is your user information: Name: Sabrina Student, Username: student"
+    }
+  ]
+}
