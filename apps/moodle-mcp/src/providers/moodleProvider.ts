@@ -184,11 +184,15 @@ export class MoodleProvider {
     return this.verifyData(data, CourseContentsResponseSchema);
   }
 
-  public async getAssignments(token: string): Promise<AssignmentsResponse> {
+  public async getAssignments(
+    token: string,
+    courseIds?: number[],
+  ): Promise<AssignmentsResponse> {
     const data = await this.callMoodleFunction<unknown>(
       this.moodleBaseUrl,
       token,
       'mod_assign_get_assignments',
+      { courseids: courseIds },
     );
 
     return this.verifyData(data, AssignmentsResponseSchema);
@@ -198,7 +202,7 @@ export class MoodleProvider {
     token: string,
     courseid: number,
   ): Promise<MinimalCourse | undefined> {
-    const assignments = await this.getAssignments(token);
-    return assignments.courses.find((course) => course.id === courseid);
+    const response = await this.getAssignments(token, [courseid]);
+    return response.courses[0];
   }
 }

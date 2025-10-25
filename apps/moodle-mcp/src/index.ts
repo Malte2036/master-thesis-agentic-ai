@@ -294,7 +294,6 @@ mcpServer.tool(
             'requireallteammemberssubmit',
             'teamsubmissiongroupingid',
             'maxattempts',
-            'intro',
             'timelimit',
           ],
           maxLengths: {
@@ -378,7 +377,6 @@ mcpServer.tool(
             'requireallteammemberssubmit',
             'teamsubmissiongroupingid',
             'maxattempts',
-            'intro',
             'timelimit',
           ],
           maxLengths: {

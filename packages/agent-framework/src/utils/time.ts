@@ -5,9 +5,19 @@ function isUnixTimestamp(value: string | number): boolean {
 }
 
 export function parseTimestamp(value: string | number): Date {
-  return typeof value === 'string' && !isUnixTimestamp(value)
-    ? parseISO(value)
-    : fromUnixTime(Number(value));
+  if (typeof value === 'string' && !isUnixTimestamp(value)) {
+    // Check for format: "YYYY-MM-DD HH:MM:SS UTC"
+    const utcFormatMatch = value.match(
+      /^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\s+UTC$/,
+    );
+    if (utcFormatMatch) {
+      // Parse as UTC by replacing space with 'T' and adding 'Z' for ISO format
+      const isoString = utcFormatMatch[1].replace(' ', 'T') + 'Z';
+      return new Date(isoString);
+    }
+    return parseISO(value);
+  }
+  return fromUnixTime(Number(value));
 }
 
 export function parseTimestampToISOString(value: string | number): string {
