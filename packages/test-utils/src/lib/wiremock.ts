@@ -1,4 +1,4 @@
-const WIREMOCK_URL = 'http://localhost:8081/__admin';
+const WIREMOCK_URL = 'http://localhost:8082/__admin';
 const MOODLE_WEBSERVICE_PATH = '/webservice/rest/server.php';
 
 type CalendarPath = `/${string}`;
