@@ -10,8 +10,9 @@ import {
 import { RouterProcess, RouterResponse } from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
 import cors from 'cors';
+import { randomUUID } from 'crypto';
 import express from 'express';
-import { uuidv4, z } from 'zod/v4';
+import { z } from 'zod/v4';
 import { handleToolCalls } from './handle-tool-calls';
 
 const logger = new Logger({ agentName: 'routing-agent' });
@@ -148,7 +149,9 @@ expressApp.post('/ask', async (req, res) => {
   logger.log(chalk.cyan('Using max iterations:'), body.max_iterations);
   logger.log(chalk.cyan('--------------------------------'));
 
-  const id = uuidv4().toString();
+  const id = randomUUID();
+  logger.debug('Session ID:', String(id));
+
   res.json({
     id,
     status: 'processing',

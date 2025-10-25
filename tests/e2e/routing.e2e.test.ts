@@ -27,7 +27,7 @@ describe('E2E Routing Agent Test', () => {
     );
 
     // All services are ready
-  }, 60_000);
+  }, 30_000);
 
   it('should tell his capabilities', async () => {
     const testPrompt = 'What are your capabilities?';
@@ -42,7 +42,7 @@ describe('E2E Routing Agent Test', () => {
     expect(finalResponse.toLowerCase()).toContain('moodle');
     expect(finalResponse.toLowerCase()).toContain('course');
     expect(finalResponse.toLowerCase()).toContain('calendar');
-  }, 60_000);
+  }, 30_000);
 
   it('should get a response to a question by using the moodle-agent', async () => {
     await Wiremock.addMoodleMapping(
@@ -65,9 +65,7 @@ describe('E2E Routing Agent Test', () => {
     expect(
       await Wiremock.countMoodleRequests('core_webservice_get_site_info'),
     ).toBe(1);
-
-    // Test completed successfully
-  }, 60_000);
+  }, 30_000);
 
   it('should create a calendar event', async () => {
     const requestBody = {
@@ -118,7 +116,7 @@ describe('E2E Routing Agent Test', () => {
         requestBody,
       ),
     ).toBe(1);
-  }, 60_000);
+  }, 30_000);
 
   it('should combine the moodle-agent and the calendar-agent', async () => {
     await Wiremock.addMoodleMapping(
@@ -187,7 +185,7 @@ describe('E2E Routing Agent Test', () => {
         undefined,
       ),
     ).toBe(1);
-  }, 120_000);
+  }, 60_000);
 
   it('should handle German request for all assignments and create calendar entries', async () => {
     await Wiremock.addMoodleMapping(
@@ -241,5 +239,5 @@ describe('E2E Routing Agent Test', () => {
     // expect(await Wiremock.countCalendarRequests('/create_calendar_event')).toBe(
     //   3, // Based on mockAssignments, there are 3 assignments total
     // );
-  }, 120_000);
+  }, 60_000);
 });

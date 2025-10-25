@@ -61,6 +61,7 @@ export class RoutingAgentClient {
   ): Promise<string> {
     console.log('request', request);
     const { id } = await this.ask(request);
+    console.log('Connection to stream:', `${this.baseUrl}/stream/${id}`);
 
     return new Promise((resolve, reject) => {
       const eventSource = new EventSource(`${this.baseUrl}/stream/${id}`);
