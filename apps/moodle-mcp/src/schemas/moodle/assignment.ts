@@ -27,7 +27,6 @@ export const AssignmentSchema = z.object({
   maxattempts: z.number().describe('Max Attempts').optional(),
   intro: z.string().describe('Introduction').optional(),
   timelimit: z.number().describe('Time Limit').optional(),
-  url: z.string().nullable(),
 });
 
 export const AssignmentsResponseSchema = z.object({

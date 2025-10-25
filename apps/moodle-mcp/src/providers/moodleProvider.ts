@@ -83,7 +83,13 @@ export class MoodleProvider {
     // Add any additional arguments
     Object.entries(args).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        params.append(key, value.toString());
+        if (value instanceof Array) {
+          value.forEach((item, i) => {
+            params.append(`${key}[${i}]`, String(item));
+          });
+        } else {
+          params.append(key, value.toString());
+        }
       }
     });
 
