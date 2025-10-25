@@ -324,7 +324,7 @@ async def set_starters():
             ),
             cl.Starter(
                 label="Get Assignments for all courses",
-                message="Can you get me all my assignments for all courses?",
+                message="Finde alle meine abgaben und stellle die in einer tabelle dar? Schreibe mir eine kurze zusammenfassung der Abgaben.",
                 # icon="/public/idea.svg",
             ),
             cl.Starter(

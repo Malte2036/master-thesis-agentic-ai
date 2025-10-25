@@ -20,14 +20,14 @@ dotenv.config();
 
 const logger = new Logger({ agentName: 'moodle-mcp' });
 
-const moodleBaseUrl = process.env.MOODLE_BASE_URL;
+export const MOODLE_BASE_URL = process.env.MOODLE_BASE_URL;
 
-if (!moodleBaseUrl) {
+if (!MOODLE_BASE_URL) {
   throw new Error('MOODLE_BASE_URL is not set');
 }
-logger.debug('MOODLE_BASE_URL:', moodleBaseUrl);
+logger.debug('MOODLE_BASE_URL:', MOODLE_BASE_URL);
 
-const moodleProvider = new MoodleProvider(logger, moodleBaseUrl);
+const moodleProvider = new MoodleProvider(logger, MOODLE_BASE_URL);
 
 const MOODLE_USERNAME = process.env.MOODLE_USERNAME;
 const MOODLE_PASSWORD = process.env.MOODLE_PASSWORD;
@@ -285,6 +285,7 @@ mcpServer.tool(
       {
         columns: generateColumnsFromZod(AssignmentSchema, {
           exclude: [
+            'maxgrade',
             'nosubmissions',
             'submissiondrafts',
             'timemodified',
@@ -368,6 +369,7 @@ mcpServer.tool(
         columns: generateColumnsFromZod(AssignmentSchema, {
           exclude: [
             'course',
+            'maxgrade',
             'nosubmissions',
             'submissiondrafts',
             'timemodified',

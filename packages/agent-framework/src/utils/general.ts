@@ -191,7 +191,7 @@ const defaultHeaderMap: Record<string, string> = {
   enddate: 'End Date',
   duedate: 'Due Date',
   allowsubmissionsfromdate: 'Open From',
-  grade: 'Max Grade',
+  grade: 'Grade',
   completionsubmit: 'Submit to Complete',
   visible: 'Visible',
   completed: 'Completed',

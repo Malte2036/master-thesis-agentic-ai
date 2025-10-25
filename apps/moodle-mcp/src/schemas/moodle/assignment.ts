@@ -10,7 +10,7 @@ export const AssignmentSchema = z.object({
   submissiondrafts: z.number().describe('Submission Drafts').optional(),
   duedate: z.number().describe('Due Date'),
   allowsubmissionsfromdate: z.number().describe('Open From Date').optional(),
-  grade: z.number().describe('Max Grade').optional(),
+  grade: z.number().describe('Grade').optional(),
   timemodified: z.number().describe('Time Modified').optional(),
   completionsubmit: z.number().describe('Submit to Complete').optional(),
   cutoffdate: z.number().describe('Cutoff Date').optional(),
@@ -27,6 +27,7 @@ export const AssignmentSchema = z.object({
   maxattempts: z.number().describe('Max Attempts').optional(),
   intro: z.string().describe('Introduction').optional(),
   timelimit: z.number().describe('Time Limit').optional(),
+  url: z.string().nullable(),
 });
 
 export const AssignmentsResponseSchema = z.object({
