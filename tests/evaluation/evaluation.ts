@@ -36,32 +36,73 @@ async function runEvaluationTests() {
     // eslint-disable-next-line no-console
     console.log('✅ All services are ready');
     // eslint-disable-next-line no-console
-    console.log('🔄 Running evaluation tests concurrently...');
+    console.log('🔄 Running evaluation tests in batches...');
 
-    // Run all tests concurrently
-    const testPromises = E2E_EVALUATION_TEST_DATA.map(
-      async (testData, index) => {
+    // Run tests in batches to prevent SSE timeout issues
+    const BATCH_SIZE = 1;
+    const BATCH_DELAY = 2000; // 2 seconds between batches
+    const results: Array<{
+      input: string;
+      actual_output: string;
+      expected_output: string;
+    }> = [];
+
+    for (let i = 0; i < E2E_EVALUATION_TEST_DATA.length; i += BATCH_SIZE) {
+      const batch = E2E_EVALUATION_TEST_DATA.slice(i, i + BATCH_SIZE);
+      const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
+      const totalBatches = Math.ceil(
+        E2E_EVALUATION_TEST_DATA.length / BATCH_SIZE,
+      );
+
+      // eslint-disable-next-line no-console
+      console.log(
+        `🔄 Running batch ${batchNumber}/${totalBatches} (${batch.length} tests)...`,
+      );
+
+      const batchPromises = batch.map(async (testData, batchIndex) => {
+        const globalIndex = i + batchIndex;
         // eslint-disable-next-line no-console
         console.log(
-          `📝 Running test ${index + 1}/${E2E_EVALUATION_TEST_DATA.length}: "${testData.input}"`,
+          `📝 Running test ${globalIndex + 1}/${E2E_EVALUATION_TEST_DATA.length}: "${testData.input}"`,
         );
 
-        const finalResponse = await routingAgent.askAndWaitForResponse({
-          prompt: testData.input,
-        });
+        try {
+          const finalResponse = await routingAgent.askAndWaitForResponse(
+            {
+              prompt: testData.input,
+            },
+            180000,
+          ); // 3 minutes timeout
 
+          // eslint-disable-next-line no-console
+          console.log(`✅ Test ${globalIndex + 1} completed`);
+
+          return {
+            input: testData.input,
+            actual_output: finalResponse,
+            expected_output: testData.expected_output,
+          };
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error(`❌ Test ${globalIndex + 1} failed:`, error);
+          return {
+            input: testData.input,
+            actual_output: `ERROR: ${error}`,
+            expected_output: testData.expected_output,
+          };
+        }
+      });
+
+      const batchResults = await Promise.all(batchPromises);
+      results.push(...batchResults);
+
+      // Add delay between batches (except for the last batch)
+      if (i + BATCH_SIZE < E2E_EVALUATION_TEST_DATA.length) {
         // eslint-disable-next-line no-console
-        console.log(`✅ Test ${index + 1} completed`);
-
-        return {
-          input: testData.input,
-          actual_output: finalResponse,
-          expected_output: testData.expected_output,
-        };
-      },
-    );
-
-    const results = await Promise.all(testPromises);
+        console.log(`⏳ Waiting ${BATCH_DELAY}ms before next batch...`);
+        await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY));
+      }
+    }
     report.testEntries.push(...results);
 
     // eslint-disable-next-line no-console

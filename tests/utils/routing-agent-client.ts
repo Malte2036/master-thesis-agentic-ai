@@ -53,50 +53,78 @@ export class RoutingAgentClient {
    */
   async askAndWaitForResponse(
     request: RoutingAgentRequest,
-    timeout = 120000,
+    timeout = 180000,
+    maxRetries = 2,
   ): Promise<string> {
-    console.log('request', request);
-    const { id } = await this.ask(request);
-    console.log('Connection to stream:', `${this.baseUrl}/stream/${id}`);
+    let lastError: Error | null = null;
 
-    return new Promise((resolve, reject) => {
-      const eventSource = new EventSource(`${this.baseUrl}/stream/${id}`);
-      const timeoutId: NodeJS.Timeout = setTimeout(() => {
-        cleanup();
-        reject(new Error('SSE stream timeout - no final response received'));
-      }, timeout);
-
-      const cleanup = () => {
-        eventSource.close();
-        if (timeoutId) clearTimeout(timeoutId);
-      };
-
-      eventSource.onmessage = (event) => {
-        try {
-          const data: SSEMessage = JSON.parse(event.data);
-
-          if (data.type === 'final_response') {
-            cleanup();
-            console.log(data.data.finalResponse);
-            resolve(data.data.finalResponse || '');
-          } else if (data.type === 'error') {
-            cleanup();
-            reject(new Error(`SSE Error: ${data.data}`));
-          }
-        } catch {
-          // Error parsing SSE data
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        if (attempt > 0) {
+          console.log(
+            `🔄 Retry attempt ${attempt}/${maxRetries} for request: ${request.prompt.substring(0, 50)}...`,
+          );
+          // Wait before retry
+          await new Promise((resolve) => setTimeout(resolve, 2000 * attempt));
         }
-      };
 
-      eventSource.onerror = () => {
-        cleanup();
-        reject(new Error('SSE connection failed'));
-      };
+        console.log('request', request);
+        const { id } = await this.ask(request);
+        console.log('Connection to stream:', `${this.baseUrl}/stream/${id}`);
 
-      eventSource.onopen = () => {
-        // SSE connection opened
-      };
-    });
+        return new Promise((resolve, reject) => {
+          const eventSource = new EventSource(`${this.baseUrl}/stream/${id}`);
+          const timeoutId: NodeJS.Timeout = setTimeout(() => {
+            cleanup();
+            reject(
+              new Error(
+                `SSE stream timeout after ${timeout}ms - no final response received`,
+              ),
+            );
+          }, timeout);
+
+          const cleanup = () => {
+            eventSource.close();
+            if (timeoutId) clearTimeout(timeoutId);
+          };
+
+          eventSource.onmessage = (event) => {
+            try {
+              const data: SSEMessage = JSON.parse(event.data);
+
+              if (data.type === 'final_response') {
+                cleanup();
+                console.log('✅ Received final response');
+                resolve(data.data.finalResponse || '');
+              } else if (data.type === 'error') {
+                cleanup();
+                reject(new Error(`SSE Error: ${data.data}`));
+              }
+            } catch (parseError) {
+              console.warn('⚠️ Failed to parse SSE message:', parseError);
+            }
+          };
+
+          eventSource.onerror = (error) => {
+            cleanup();
+            reject(new Error(`SSE connection failed: ${error}`));
+          };
+
+          eventSource.onopen = () => {
+            console.log('🔗 SSE connection opened');
+          };
+        });
+      } catch (error) {
+        lastError = error as Error;
+        console.warn(`⚠️ Attempt ${attempt + 1} failed:`, error);
+
+        if (attempt === maxRetries) {
+          throw lastError;
+        }
+      }
+    }
+
+    throw lastError || new Error('Max retries exceeded');
   }
 
   /**

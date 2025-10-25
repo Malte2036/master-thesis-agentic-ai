@@ -2,23 +2,53 @@
   "testEntries": [
     {
       "input": "What are your capabilities?",
-      "actual_output": "I can help manage Moodle courses, track assignments, and retrieve user details, as well as handle calendar events and schedule meetings via Google Calendar. My skills are split between learning management systems and event coordination. Let me know what specific task you need assistance with!",
+      "actual_output": "I can assist with course management, assignment tracking, and user information, as well as calendar events. Specifically, I can retrieve enrolled courses, search courses, view assignments, and access user details. For calendars, I can create, update, or retrieve events and search them. These capabilities are derived from the tools available in the system. Let me know how I can help!",
       "expected_output": "I can access Moodle course content, track assignments, and manage calendar events."
     },
     {
       "input": "Can you help me get my user information?",
-      "actual_output": "Your user information has been retrieved successfully. Here are the details:  \n- **User ID**: `3`  \n- **Username**: `student`  \n- **First Name**: `Sabrina`  \n- **Last Name**: `Studentin`  \n\nLet me know if you need further assistance!",
-      "expected_output": "Here is your user information: Name: Sabrina Student, Username: student"
+      "actual_output": "Here is your user information:  \n- **User ID**: `3`  \n- **Username**: `student`  \n- **First Name**: `Sabrina`  \n- **Last Name**: `Studentin`  \n\nLet me know if you need further assistance! 😊",
+      "expected_output": "Here is your user information: Name: Sabrina Studentin, Username: student"
     },
     {
-      "input": "Create a calendar event with the name \"Meeting with the team\" and the description \"We will discuss the project\" from 2025-10-22T13:22:00Z to 2025-10-25T17:09:00Z.",
-      "actual_output": "The calendar event \"Meeting with the team\" has been successfully scheduled! 🎉  \n**Details:**  \n- **Description:** We will discuss the project  \n- **Date:** October 22–25, 2025  \n- **Time:** 1:22 PM to 7:09 PM (CET)  \n- **Event ID:** `qgvmccfeivqkn2naj81l6l0p3g`  \n- **Link:** [View in Google Calendar](https://www.google.com/calendar/event?eid=cWd2bWNjZmVpdnFrbjJuYWo4MWw2bDBwM2cgY3JpbXBhbHRAbQ)  \n\nLet me know if you need further assistance! 📅",
-      "expected_output": "The calendar event \"Meeting with the team\" has been created successfully."
+      "input": "List all my current Moodle courses.",
+      "actual_output": "Here are your current Moodle courses:  \n1. **Course ID 6**: \"Digital Health UX\" - \"Advanced digital health user experience design\"  \n2. **Course ID 5**: \"Computer Science Fundamentals\" - \"Introduction to programming and algorithms\"  \n3. **Course ID 4**: \"Advanced Mathematics\" - \"Complex mathematical concepts and applications\"  \n4. **Course ID 3**: \"Operations Level 2\" - \"Advanced operations\"  \n5. **Course ID 2**: \"Intro to Safety\" - \"Basic safety training\"  \n\nAll enrolled on **2025-10-25T19:47:14.000Z**. Let me know if you need further details!",
+      "expected_output": "Here are your current courses."
     },
     {
-      "input": "Get my last past assignment and create a calendar event for the date of the assignment and for 1.5hours. The Description of the calendar event should be the assignment intro.",
-      "actual_output": "```json\n{\n  \"state_json\": \"{\\n  \\\"lastObservation\\\": \\\"[\\\\n  \\\\\\\"SUMMARY: The original goal was to schedule a calendar event for the assignment \\\\\\\"Wireframe Design\\\\\\\" with start time 2025-11-15T19:17:00 and end time 2025-11-15T20:47:00, description: \\\\\\\"Create wireframes for a digital health application.\\\\\\\" The current overall status is **success**, as the event was successfully created.  \\\\n\\\\nConcrete results available now include:  \\\\n- **Event ID**: `mplu4vuu4qcktlkgepmj5oabg0`  \\\\n- **Event summary**: \\\\\\\"Wireframe Design\\\\\\\"  \\\\n- **Start time**: 2025-11-15T20:17:00+01:00  \\\\n- **End time**: 2025-11-15T21:47:00+01:00  \\\\n- **Description**: \\\\\\\"Create wireframes for a digital health application.\\\\\\\"  \\\\n- **View event**: [Google Calendar Link](https://www.google.com/calendar/event?eid=bXBsdTR2dXU0cWNrdGxrZ2VwbWo1b2FiZzAgY3JpbXBhbHRAbQ)  \\\\n\\\\nThe event was created with the specified description and duration, though the start time in the observation (20:17:00+01:00) differs slightly from the original request (19:17:00). This discrepancy may relate to timezone adjustments or system formatting, but the task of scheduling the event is complete.\\\\\\\"\\\\n]\\\\n\\\",\\n  \\\"iteration\\\": 2,\\n  \\\"natural_language_thought\\\": \\\"Okay, let me try to figure out how to handle this user's request. The user wants to get their last past assignment and create a calendar event for the assignment date and 1.5 hours, with the description being the assignment intro.\\n\\nFirst, I need to recall the previous interactions. The user already had an assignment called \\\\\\\"Wireframe Design\\\\\\\" with a due date on 2025-11-15. The calendar event was created with start time 19:17 and end at 20:47, but the observation showed the start time adjusted to 20:17+01:00. The user mentioned that the event was successfully created, so maybe that's already done. \\n\\nBut the user is asking again, so maybe they want confirmation or check again. But according to the rules, if the goal is already satisfied, I should output DONE. The lastObservation indicates success, so the answer is already provided. The evidence from the state shows the event was created, so I don't need to call any tools again. \\n\\nI need to make sure I don't repeat the function calls. Since the task is done, I should just present the final answer with the event details as they are in the state.\\n\\nSo, the correct response is to use DONE and include the evidence JSON from the last observation, then provide the final answer with the event details as they are in the state.\\\",\\n  \\\"structured_thought\\\": {\\\"function_calls\\\": [\\\"calendar-agent\\\"], \\\"is_finished\\\": false},\\n  \\\"response\\\": \\\"[\\\\n  \\\\\\\"[\\\\n  \\\\\\\"SUMMARY: The original goal was to schedule a calendar event for the assignment \\\\\\\"Wireframe Design\\\\\\\" with start time 2025-11-15T19:17:00 and end time 2025-11-15T20:47:00, description: \\\\\\\"Create wireframes for a digital health application.\\\\\\\" The current overall status is **success**, as the event was successfully created.  \\\\n\\\\nConcrete results available now include:  \\\\n- **Event ID**: `mplu4vuu4qcktlkgepmj5oabg0`  \\\\n- **Event summary**: \\\\\\\"Wireframe Design\\\\\\\"  \\\\n- **Start time**: 2025-11-15T20:17:00+01:00  \\\\n- **End time**: 2025-11-15T21:47:00+01:00  \\\\n- **Description**: \\\\\\\"Create wireframes for a digital health application.\\\\\\\"  \\\\n- **View event**: [Google Calendar Link](https://www.google.com/calendar/event?eid=bXBsdTR2dXU0cWNrdGxrZ2VwbWo1b2FiZzAgY3JpbXBhbHRAbQ)  \\\\n\\\\nThe event was created with the specified description and duration, though the start time in the observation (20:17:00+01:00) differs slightly from the original request (19:17:00). This discrepancy may relate to timezone adjustments or system formatting, but the task of scheduling the event is complete.\\\\\\\"\\\\n]\\\\n]\\\"\\n}\"\n}\n```",
-      "expected_output": "The calendar event \"Assignment 1\" has been created successfully."
+      "input": "Show me the syllabus pages for each of my courses: SAFE-101, OPS-201, MATH-301, and CS-401.",
+      "actual_output": "ERROR: Error: SSE stream timeout after 180000ms - no final response received",
+      "expected_output": "Here are the requested syllabus pages for your courses."
+    },
+    {
+      "input": "Show all assignments due in the next 7 days.",
+      "actual_output": "• The assignment due in the next 7 days is:  \n- **Assignment ID**: `6`  \n- **Course ID**: `5`  \n- **Assignment Name**: `\"Hello World Program\"`  \n- **Due Date**: `2025-10-28T20:47:14.000Z`  \n- **Open From Date**: `\"Not set\"`  \n- **Grade**: `25`  \n- **Submit to Complete**: `No`  \n- **Introduction**: `\"Write your first program in Python\"`  \n\nNo other assignments are due in this window. Let me know if you need further details!",
+      "expected_output": "Here are the assignments due in the next 7 days."
+    },
+    {
+      "input": "Add all assignments due in the next 14 days to my calendar with 2-hour blocks and a reminder 24 hours before.",
+      "actual_output": "ERROR: Error: SSE stream timeout after 180000ms - no final response received",
+      "expected_output": "All assignments due in the next 14 days have been added to your calendar with 2-hour durations and 24-hour reminders."
+    },
+    {
+      "input": "For SAFE-101 (Intro to Safety), list all assignments with their due windows and submission types.",
+      "actual_output": "For course **SAFE-101** (Intro to Safety), the assignments are:  \n\n1. **Safety Quiz 1**  \n   - Due: `2025-11-01T20:47:14.000Z`  \n   - Submission Type: **No** (instructions: \"Complete this quiz to test your basic safety knowledge\")  \n\n2. **Safety Equipment Essay**  \n   - Due: `2025-11-08T20:47:14.000Z`  \n   - Submission Type: **No** (instructions: \"Write a 500-word essay on proper safety equipment usage\")  \n\nLet me know if you need further details!",
+      "expected_output": "Here are the assignments for SAFE-101 with due windows and submission types."
+    },
+    {
+      "input": "For OPS-201 (Operations Level 2), list assignments due within the next 10 days.",
+      "actual_output": "The assignments due within the next 10 days for OPS-201 are:  \n1. **Assignment ID `6`**: \"Hello World Program\" — due **2025-10-28T20:47:14.000Z\".  \n2. **Assignment ID `4`**: \"Calculus Problem Set 1\" — due **2025-11-01T20:47:14.000Z\".  \n3. **Assignment ID `1`**: \"Safety Quiz 1\" — due **2025-11-01T20:47:14.000Z\".  \n\nNote: These assignments are associated with courses ID `5`, `4`, and `2`, respectively. If OPS-201 is a specific course, please verify if these are linked to it. Let me know if further details are needed!",
+      "expected_output": "Here are the assignments for OPS-201 due within the next 10 days."
+    },
+    {
+      "input": "For MATH-301, list assignments due within the next 14 days and include their point values.",
+      "actual_output": "For MATH-301, here are the assignments due within the next 14 days:\n\n1. **Calculus Problem Set 1** (Assignment ID 4)  \n   - Due: `2025-11-01T20:47:14.000Z`  \n   - Points: 50  \n\n2. **Linear Algebra Assignment** (Assignment ID 5)  \n   - Due: `2025-11-08T20:47:14.000Z`  \n   - Points: 75  \n\nBoth are within the 14-day window from October 25, 2025. Let me know if you need further details!",
+      "expected_output": "Here are the assignments for MATH-301 due within the next 14 days with their point values."
+    },
+    {
+      "input": "For CS-401, list all upcoming assignments and include whether file upload is required.",
+      "actual_output": "Here are the upcoming assignments for **CS-401 (Computer Science Fundamentals)**:  \n\n- **Assignment 6**: \"Hello World Program\"  \n  - Due: **2025-10-28T20:47:14.000Z**  \n  - **File upload required?** ❌ **No**  \n\n- **Assignment 7**: \"Data Structures Project\"  \n  - Due: **2025-11-15T20:47:14.000Z**  \n  - **File upload required?** ❌ **No**  \n\nBoth assignments do not require file submissions. Let me know if you need further details!",
+      "expected_output": "Here are the upcoming assignments for CS-401 with file upload requirements."
     }
   ]
 }
