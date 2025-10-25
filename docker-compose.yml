@@ -76,10 +76,46 @@ services:
           echo "[init] config.php exists; skipping install."
         fi
 
-        # 4) Done; container exits (one-shot)
+        # 4) Create courses via CLI (if CSV exists)
+        if [ -f /tmp/courses.csv ]; then
+          echo "[init] Creating courses from CSV..."
+          # Use our custom course creation script
+          php /tmp/create_courses.php
+          echo "[init] Course creation process complete."
+        else
+          echo "[init] No courses.csv found; skipping course creation."
+        fi
+
+        # 5) Create users via CLI (if CSV exists)
+        if [ -f /tmp/users.csv ]; then
+          echo "[init] Creating users from CSV..."
+          # Use our custom user creation script
+          php /tmp/create_users.php
+          echo "[init] User creation process complete."
+        else
+          echo "[init] No users.csv found; skipping user creation."
+        fi
+
+        # 6) Enroll users in courses via CLI (if CSV exists)
+        if [ -f /tmp/enrollments.csv ]; then
+          echo "[init] Enrolling users in courses from CSV..."
+          # Use our custom enrollment script
+          php /tmp/enroll_users.php
+          echo "[init] Enrollment process complete."
+        else
+          echo "[init] No enrollments.csv found; skipping enrollment."
+        fi
+
+        # 7) Done; container exits (one-shot)
     volumes:
       - ./moodle:/var/www/html
       - ./docker_data/moodle/moodle_content_data:/var/www/moodledata
+      - ./moodle_setup/courses.csv:/tmp/courses.csv
+      - ./moodle_setup/create_courses.php:/tmp/create_courses.php
+      - ./moodle_setup/users.csv:/tmp/users.csv
+      - ./moodle_setup/create_users.php:/tmp/create_users.php
+      - ./moodle_setup/enrollments.csv:/tmp/enrollments.csv
+      - ./moodle_setup/enroll_users.php:/tmp/enroll_users.php
     # Needs git for first-time clone
     # Install minimal git if absent, but this image already has it.
     # If your host already has ./moodle with code, the clone step is skipped.
