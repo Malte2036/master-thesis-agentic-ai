@@ -45,6 +45,7 @@ async function runEvaluationTests() {
       input: string;
       actual_output: string;
       expected_output: string;
+      completion_time: number;
     }> = [];
 
     for (let i = 0; i < E2E_EVALUATION_TEST_DATA.length; i += BATCH_SIZE) {
@@ -66,6 +67,8 @@ async function runEvaluationTests() {
           `📝 Running test ${globalIndex + 1}/${E2E_EVALUATION_TEST_DATA.length}: "${testData.input}"`,
         );
 
+        const startTime = Date.now();
+
         try {
           const finalResponse = await routingAgent.askAndWaitForResponse(
             {
@@ -74,21 +77,34 @@ async function runEvaluationTests() {
             180000,
           ); // 3 minutes timeout
 
+          const endTime = Date.now();
+          const completionTime = (endTime - startTime) / 1000; // Convert to seconds
+
           // eslint-disable-next-line no-console
-          console.log(`✅ Test ${globalIndex + 1} completed`);
+          console.log(
+            `✅ Test ${globalIndex + 1} completed in ${completionTime.toFixed(2)}s`,
+          );
 
           return {
             input: testData.input,
             actual_output: finalResponse,
             expected_output: testData.expected_output,
+            completion_time: completionTime,
           };
         } catch (error) {
+          const endTime = Date.now();
+          const completionTime = (endTime - startTime) / 1000; // Convert to seconds
+
           // eslint-disable-next-line no-console
-          console.error(`❌ Test ${globalIndex + 1} failed:`, error);
+          console.error(
+            `❌ Test ${globalIndex + 1} failed after ${completionTime.toFixed(2)}s:`,
+            error,
+          );
           return {
             input: testData.input,
             actual_output: `ERROR: ${error}`,
             expected_output: testData.expected_output,
+            completion_time: completionTime,
           };
         }
       });

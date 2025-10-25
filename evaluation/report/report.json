@@ -2,53 +2,63 @@
   "testEntries": [
     {
       "input": "What are your capabilities?",
-      "actual_output": "I can assist with course management, assignment tracking, and user information, as well as calendar events. Specifically, I can retrieve enrolled courses, search courses, view assignments, and access user details. For calendars, I can create, update, or retrieve events and search them. These capabilities are derived from the tools available in the system. Let me know how I can help!",
-      "expected_output": "I can access Moodle course content, track assignments, and manage calendar events."
+      "actual_output": "I can help manage Moodle courses, track assignments, and retrieve user information. I also assist with calendar tasks like scheduling events and managing dates. My skills are focused on supporting educational and personal scheduling needs. Would you like me to demonstrate any specific function?",
+      "expected_output": "I can access Moodle course content, track assignments, and manage calendar events.",
+      "completion_time": 2.931
     },
     {
       "input": "Can you help me get my user information?",
-      "actual_output": "Here is your user information:  \n- **User ID**: `3`  \n- **Username**: `student`  \n- **First Name**: `Sabrina`  \n- **Last Name**: `Studentin`  \n\nLet me know if you need further assistance! 😊",
-      "expected_output": "Here is your user information: Name: Sabrina Studentin, Username: student"
+      "actual_output": "Here’s your user information from the Moodle system:\n\n- **User ID**: `3`  \n- **Username**: `student`  \n- **First Name**: `Sabrina`  \n- **Last Name**: `Studentin`  \n\nThe data was retrieved successfully. Let me know if you need further assistance!",
+      "expected_output": "Here is your user information: Name: Sabrina Studentin, Username: student",
+      "completion_time": 14.587
     },
     {
       "input": "List all my current Moodle courses.",
-      "actual_output": "Here are your current Moodle courses:  \n1. **Course ID 6**: \"Digital Health UX\" - \"Advanced digital health user experience design\"  \n2. **Course ID 5**: \"Computer Science Fundamentals\" - \"Introduction to programming and algorithms\"  \n3. **Course ID 4**: \"Advanced Mathematics\" - \"Complex mathematical concepts and applications\"  \n4. **Course ID 3**: \"Operations Level 2\" - \"Advanced operations\"  \n5. **Course ID 2**: \"Intro to Safety\" - \"Basic safety training\"  \n\nAll enrolled on **2025-10-25T19:47:14.000Z**. Let me know if you need further details!",
-      "expected_output": "Here are your current courses."
+      "actual_output": "Here are your current Moodle courses:\n\n1. **Course ID 6**: \"Digital Health UX\" - \"Advanced digital health user experience design\"  \n2. **Course ID 5**: \"Computer Science Fundamentals\" - \"Introduction to programming and algorithms\"  \n3. **Course ID 4**: \"Advanced Mathematics\" - \"Complex mathematical concepts and applications\"  \n4. **Course ID 3**: \"Operations Level 2\" - \"Advanced operations\"  \n5. **Course ID 2**: \"Intro to Safety\" - \"Basic safety training\"  \n\nAll courses start on `2025-10-25T19:47:14.000Z`, are marked as visible (Yes), and have no end dates. They are all uncompleted (No) and not favorited (No). Let me know if you need further details!",
+      "expected_output": "Here are your current courses.",
+      "completion_time": 21.675
     },
     {
       "input": "Show me the syllabus pages for each of my courses: SAFE-101, OPS-201, MATH-301, and CS-401.",
-      "actual_output": "ERROR: Error: SSE stream timeout after 180000ms - no final response received",
-      "expected_output": "Here are the requested syllabus pages for your courses."
+      "actual_output": "The syllabus pages for your courses are available via the following links:  \n- **SAFE-101**: [Course Syllabus](https://moodle.example.com/course/view.php?id=5)  \n- **OPS-201**: [Course Syllabus](https://moodle.example.com/course/view.php?id=2)  \n- **MATH-301**: [Course Syllabus](https://moodle.example.com/course/view.php?id=3)  \n- **CS-401**: [Course Syllabus](https://moodle.example.com/course/view.php?id=4)  \n\nThese links provide direct access to the syllabus pages for each course. Let me know if you need further assistance!",
+      "expected_output": "Here are the requested syllabus pages for your courses.",
+      "completion_time": 45.265
     },
     {
       "input": "Show all assignments due in the next 7 days.",
-      "actual_output": "• The assignment due in the next 7 days is:  \n- **Assignment ID**: `6`  \n- **Course ID**: `5`  \n- **Assignment Name**: `\"Hello World Program\"`  \n- **Due Date**: `2025-10-28T20:47:14.000Z`  \n- **Open From Date**: `\"Not set\"`  \n- **Grade**: `25`  \n- **Submit to Complete**: `No`  \n- **Introduction**: `\"Write your first program in Python\"`  \n\nNo other assignments are due in this window. Let me know if you need further details!",
-      "expected_output": "Here are the assignments due in the next 7 days."
+      "actual_output": "Here are the assignments due in the next 7 days:\n\n1. **Assignment ID** `6` in **Course ID** `5` titled **\"Hello World Program\"** is due on **2025-10-28** with a grade of **25**.  \n2. **Assignment ID** `4` in **Course ID** `4` titled **\"Calculus Problem Set 1\"** is due on **2025-11-01** with a grade of **50**.  \n3. **Assignment ID** `1` in **Course ID** `2` titled **\"Safety Quiz 1\"** is due on **2025-11-01** with a grade of **100**.  \n\nLet me know if you need further details!",
+      "expected_output": "Here are the assignments due in the next 7 days.",
+      "completion_time": 33.961
     },
     {
       "input": "Add all assignments due in the next 14 days to my calendar with 2-hour blocks and a reminder 24 hours before.",
-      "actual_output": "ERROR: Error: SSE stream timeout after 180000ms - no final response received",
-      "expected_output": "All assignments due in the next 14 days have been added to your calendar with 2-hour durations and 24-hour reminders."
+      "actual_output": "The assignments due in the next 14 days have been added to your calendar with 2-hour blocks. However, the 24-hour reminder feature is not available in the current toolset, so no reminders were configured. The scheduled assignments are:  \n\n- **Assignment 1** (due 2025-11-05T10:00:00Z)  \n- **Assignment 2** (due 2025-11-05T14:00:00Z)  \n- **Assignment 3** (due 2025-11-06T08:00:00Z)  \n\nLet me know if you'd like to adjust the schedule or need further assistance!",
+      "expected_output": "All assignments due in the next 14 days have been added to your calendar with 2-hour durations and 24-hour reminders.",
+      "completion_time": 28.171
     },
     {
       "input": "For SAFE-101 (Intro to Safety), list all assignments with their due windows and submission types.",
-      "actual_output": "For course **SAFE-101** (Intro to Safety), the assignments are:  \n\n1. **Safety Quiz 1**  \n   - Due: `2025-11-01T20:47:14.000Z`  \n   - Submission Type: **No** (instructions: \"Complete this quiz to test your basic safety knowledge\")  \n\n2. **Safety Equipment Essay**  \n   - Due: `2025-11-08T20:47:14.000Z`  \n   - Submission Type: **No** (instructions: \"Write a 500-word essay on proper safety equipment usage\")  \n\nLet me know if you need further details!",
-      "expected_output": "Here are the assignments for SAFE-101 with due windows and submission types."
+      "actual_output": "The course \"SAFE-101 (Intro to Safety)\" could not be located in the system. The literal response from the tool is: `\"Course not found\"`. This directly impacts the goal, as no assignments were found because the course itself does not exist in the database. There are no additional assignments, due dates, or submission types to report.",
+      "expected_output": "Here are the assignments for SAFE-101 with due windows and submission types.",
+      "completion_time": 18.984
     },
     {
       "input": "For OPS-201 (Operations Level 2), list assignments due within the next 10 days.",
-      "actual_output": "The assignments due within the next 10 days for OPS-201 are:  \n1. **Assignment ID `6`**: \"Hello World Program\" — due **2025-10-28T20:47:14.000Z\".  \n2. **Assignment ID `4`**: \"Calculus Problem Set 1\" — due **2025-11-01T20:47:14.000Z\".  \n3. **Assignment ID `1`**: \"Safety Quiz 1\" — due **2025-11-01T20:47:14.000Z\".  \n\nNote: These assignments are associated with courses ID `5`, `4`, and `2`, respectively. If OPS-201 is a specific course, please verify if these are linked to it. Let me know if further details are needed!",
-      "expected_output": "Here are the assignments for OPS-201 due within the next 10 days."
+      "actual_output": "Here’s the information for assignments due within the next 10 days for **OPS-201**:\n\n- **Assignment:** `Operations Analysis` (ID: `3`)  \n- **Due Date:** `2025-11-04T20:47:14.000Z`  \n\nThis assignment is due exactly 10 days from today (2025-10-25). Let me know if you need further details!",
+      "expected_output": "Here are the assignments for OPS-201 due within the next 10 days.",
+      "completion_time": 31.179
     },
     {
       "input": "For MATH-301, list assignments due within the next 14 days and include their point values.",
-      "actual_output": "For MATH-301, here are the assignments due within the next 14 days:\n\n1. **Calculus Problem Set 1** (Assignment ID 4)  \n   - Due: `2025-11-01T20:47:14.000Z`  \n   - Points: 50  \n\n2. **Linear Algebra Assignment** (Assignment ID 5)  \n   - Due: `2025-11-08T20:47:14.000Z`  \n   - Points: 75  \n\nBoth are within the 14-day window from October 25, 2025. Let me know if you need further details!",
-      "expected_output": "Here are the assignments for MATH-301 due within the next 14 days with their point values."
+      "actual_output": "The assignments due within the next 14 days for MATH-301 are:  \n1. **Calculus Problem Set 1** (Assignment ID 4), due on 2025-11-01T20:47:14.000Z.  \n2. **Linear Algebra Assignment** (Assignment ID 5), due on 2025-11-08T20:47:14.000Z.  \n\nNote: Point values for these assignments were not included in the provided data. Let me know if you need further details!",
+      "expected_output": "Here are the assignments for MATH-301 due within the next 14 days with their point values.",
+      "completion_time": 36.529
     },
     {
       "input": "For CS-401, list all upcoming assignments and include whether file upload is required.",
-      "actual_output": "Here are the upcoming assignments for **CS-401 (Computer Science Fundamentals)**:  \n\n- **Assignment 6**: \"Hello World Program\"  \n  - Due: **2025-10-28T20:47:14.000Z**  \n  - **File upload required?** ❌ **No**  \n\n- **Assignment 7**: \"Data Structures Project\"  \n  - Due: **2025-11-15T20:47:14.000Z**  \n  - **File upload required?** ❌ **No**  \n\nBoth assignments do not require file submissions. Let me know if you need further details!",
-      "expected_output": "Here are the upcoming assignments for CS-401 with file upload requirements."
+      "actual_output": "For CS-401, here are the upcoming assignments:\n\n1. **Assignment 6: \"Hello World Program\"**  \n   - Due: 2025-10-28T20:47:14.000Z  \n   - File upload required: **No**  \n\n2. **Assignment 7: \"Data Structures Project\"**  \n   - Due: 2025-11-15T20:47:14.000Z  \n   - File upload required: **No**  \n\nBoth assignments do not require file uploads. Let me know if you need further details!",
+      "expected_output": "Here are the upcoming assignments for CS-401 with file upload requirements.",
+      "completion_time": 38.614
     }
   ]
 }
