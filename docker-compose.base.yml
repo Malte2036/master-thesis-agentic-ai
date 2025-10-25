@@ -50,6 +50,7 @@ services:
     environment:
       - OLLAMA_BASE_URL=http://10.50.60.153:11434
       - HOSTNAME=moodle-agent
+      - AI_MODEL=qwen3:4b
     depends_on:
       - moodle-mcp
 
@@ -63,6 +64,7 @@ services:
     environment:
       - OLLAMA_BASE_URL=http://10.50.60.153:11434
       - HOSTNAME=calendar-agent
+      - AI_MODEL=qwen3:4b
     depends_on:
       - calendar-mcp
 
@@ -76,6 +78,7 @@ services:
     environment:
       - OLLAMA_BASE_URL=http://10.50.60.153:11434
       - AGENT_URLS=http://moodle-agent:1234,http://calendar-agent:1235
+      - AI_MODEL=qwen3:4b
     depends_on:
       - moodle-agent
       - calendar-agent

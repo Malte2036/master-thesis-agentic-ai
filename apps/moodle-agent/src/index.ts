@@ -5,6 +5,7 @@ import {
   ReActRouter,
   Router,
 } from '@master-thesis-agentic-ai/agent-framework';
+import chalk from 'chalk';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -12,7 +13,11 @@ const HOSTNAME = process.env.HOSTNAME || 'localhost';
 
 const logger = new Logger({ agentName: 'moodle-agent' });
 
-const MODEL = 'qwen3:4b';
+const AI_MODEL = process.env.AI_MODEL;
+if (!AI_MODEL) {
+  throw new Error('AI_MODEL is not set');
+}
+logger.log('Using AI model:', chalk.cyan(AI_MODEL));
 
 const getAIProvider = (model: string) => {
   return new OllamaProvider(logger, {
@@ -97,8 +102,8 @@ const agentFramework = createA2AFramework(
     version: '1.1.0',
     skills: [],
   },
-  () => getRouter(MODEL),
-  getAIProvider(MODEL),
+  () => getRouter(AI_MODEL),
+  getAIProvider(AI_MODEL),
 );
 
 agentFramework.listen().catch((error) => {

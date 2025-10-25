@@ -25,6 +25,12 @@ if (AGENT_URLS.length === 0) {
 // Store active SSE connections
 const activeConnections = new Map<string, express.Response>();
 
+const AI_MODEL = process.env['AI_MODEL'];
+if (!AI_MODEL) {
+  throw new Error('AI_MODEL is not set');
+}
+logger.log('Using AI model:', chalk.cyan(AI_MODEL));
+
 const getAIProvider = (model: string) => {
   return new OllamaProvider(logger, {
     model,
@@ -33,10 +39,9 @@ const getAIProvider = (model: string) => {
 
 const RequestBodySchema = z.object({
   prompt: z.string(),
-  router: z.enum(['legacy', 'react']).optional().default('react'),
   max_iterations: z.number().optional().default(5),
-  model: z.string().optional().default('qwen3:4b'),
 });
+
 type RequestBody = z.infer<typeof RequestBodySchema>;
 
 const expressApp = express();
@@ -144,8 +149,7 @@ expressApp.post('/ask', async (req, res) => {
 
   logger.log(chalk.cyan('--------------------------------'));
   logger.log(chalk.cyan('User question:'), body.prompt);
-  logger.log(chalk.cyan('Using model:'), body.model);
-  logger.log(chalk.cyan('Using router:'), body.router);
+  logger.log(chalk.cyan('Using model:'), AI_MODEL);
   logger.log(chalk.cyan('Using max iterations:'), body.max_iterations);
   logger.log(chalk.cyan('--------------------------------'));
 
@@ -159,7 +163,7 @@ expressApp.post('/ask', async (req, res) => {
   });
 
   try {
-    const aiProvider = getAIProvider(body.model);
+    const aiProvider = getAIProvider(AI_MODEL);
 
     logger.log(chalk.magenta('Finding out which agent to call first:'));
 
@@ -271,7 +275,7 @@ expressApp.post('/ask', async (req, res) => {
 
 expressApp.get('/models', async (req, res) => {
   try {
-    const aiProvider = getAIProvider('qwen3:4b');
+    const aiProvider = getAIProvider(AI_MODEL);
     const models = await aiProvider.getModels();
     res.json(models);
   } catch (error) {

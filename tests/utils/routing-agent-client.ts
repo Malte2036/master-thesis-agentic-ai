@@ -2,9 +2,7 @@ import EventSource from 'eventsource';
 
 export interface RoutingAgentRequest {
   prompt: string;
-  router?: 'legacy' | 'react';
   max_iterations?: number;
-  model?: string;
 }
 
 export interface RoutingAgentResponse {
@@ -38,9 +36,7 @@ export class RoutingAgentClient {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        router: 'react',
         max_iterations: 5,
-        model: 'qwen3:4b',
         ...request,
       }),
     });
