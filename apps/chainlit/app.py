@@ -322,6 +322,21 @@ async def set_starters():
                 message="Can you get me information about the module 'Digital Health'?",
                 # icon="/public/idea.svg",
             ),
+            cl.Starter(
+                label="Get Assignments for all courses",
+                message="Can you get me all my assignments for all courses?",
+                # icon="/public/idea.svg",
+            ),
+            cl.Starter(
+                label="Get Calendar Events",
+                message="Can you get me all my calendar events?",
+                # icon="/public/idea.svg",
+            ),
+            cl.Starter(
+                label="Create a calendar event",
+                message="Can you create a calendar event in 10 minutes with the name 'Meeting with the team'?",
+                # icon="/public/idea.svg",
+            ),
         ]
 
 @cl.on_settings_update
