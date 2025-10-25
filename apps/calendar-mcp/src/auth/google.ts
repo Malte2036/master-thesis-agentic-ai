@@ -43,7 +43,10 @@ export const googleAuthRoutes = (logger: Logger): AuthRoutes => ({
     const { tokens } = await oauth2Client.getToken(code);
     logger.log('Tokens acquired:', tokens);
     oauth2Client.setCredentials(tokens);
-    res.send('Authentication successful! You can close this tab.');
     logger.log('Logged in with Google. Tokens acquired:', tokens);
+    res.send(
+      'Authentication successful! You can close this tab. Your token is: ' +
+        tokens.access_token,
+    );
   },
 });

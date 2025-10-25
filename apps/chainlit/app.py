@@ -296,6 +296,28 @@ async def start():
             ),
         ]
     ).send()
+
+#     actions = [
+#         cl.Action(
+#             name="login_with_google_calendar",
+#             icon="mouse-pointer-click",
+#             payload={"url": "http://localhost:3004/auth"},
+#             label="Login with your Google Calendar!"
+#         )
+#     ]
+
+#     await cl.Message(content="Login with your Providers to get started!", actions=actions).send()
+
+
+# @cl.action_callback("login_with_google_calendar")
+# async def on_action(action: cl.Action):
+#     print(action.payload)
+#     await cl.Message(
+#         content=f"[Click here to log in]({action.payload['url']})"
+#     ).send()
+
+
+
     
     
 
