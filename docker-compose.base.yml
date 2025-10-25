@@ -21,6 +21,15 @@ services:
       - MOODLE_TOKEN=mock-token
       # - MOODLE_BASE_URL=http://moodle:8080
       # - MOODLE_TOKEN=$MOODLE_TOKEN
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget -qO- http://127.0.0.1:3003/health >/dev/null 2>&1 || exit 1',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   # Calendar MCP
   calendar-mcp:
@@ -38,6 +47,16 @@ services:
       - GOOGLE_PRIVATE_REFRESH_TOKEN=$GOOGLE_PRIVATE_REFRESH_TOKEN
       - CALENDAR_BASE_URL=http://localhost:3004
       - NODE_ENV=test
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget -qO- http://127.0.0.1:3004/health >/dev/null 2>&1 || exit 1',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   # ---- AGENTS ---- #
 
   # Moodle Agent
@@ -82,15 +101,3 @@ services:
     depends_on:
       - moodle-agent
       - calendar-agent
-
-  chainlit:
-    image: master-thesis-agentic-ai-chainlit
-    build:
-      context: apps/chainlit
-      dockerfile: Dockerfile
-    ports:
-      - '8000:8000'
-    environment:
-      - ROUTING_AGENT_URL=http://routing-agent:3000
-    depends_on:
-      - routing-agent

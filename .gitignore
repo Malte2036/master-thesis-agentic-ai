@@ -135,6 +135,7 @@ yarn-error.log*
 .devcontainer/
 
 docker_data
+docker_data.bak
 
 logs/
 vite.config.*.timestamp*

@@ -40,3 +40,5 @@ logs/
 tests
 docker*
 Docker*
+scripts
+!scripts/dev-session.js

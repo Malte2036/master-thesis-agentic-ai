@@ -12,7 +12,7 @@ COPY packages ./packages
 RUN pnpm install --frozen-lockfile
 
 # Copy source code after dependency installation for better caching
-COPY scripts ./scripts
+COPY scripts/dev-session.js ./scripts/dev-session.js
 COPY apps/ ./apps/
 
 # Install dependencies
