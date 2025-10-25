@@ -20,6 +20,7 @@
     "lint": "nx run-many -t lint",
     "test": "nx run-many -t test",
     "test:e2e": "pnpm vitest run --dir tests/e2e",
+    "test:evaluation": "npx ts-node tests/e2e/evaluation.e2e.test.ts",
     "test:moodle-agent": "pnpm vitest run --dir apps/moodle-agent",
     "test:moodle-agent:e2e": "pnpm vitest run --dir apps/moodle-agent index.spec.ts",
     "test:agent-framework": "pnpm vitest run --dir packages/agent-framework",
