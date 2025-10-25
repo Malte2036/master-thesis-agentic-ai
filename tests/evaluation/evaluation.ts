@@ -1,7 +1,7 @@
 import { RoutingAgentClient } from '../utils/routing-agent-client';
 import { waitForService } from '../utils/wait-for-service';
 import { EvaluationReport, writeEvaluationReport } from '../report/report';
-import { E2E_EVALUATION_TEST_DATA } from './evaluation.e2e.test.data';
+import { E2E_EVALUATION_TEST_DATA } from './evaluation.data';
 
 const ROUTING_AGENT_URL = 'http://localhost:3000';
 const MOODLE_AGENT_URL = 'http://localhost:1234';
