@@ -3,7 +3,6 @@ import {
   RouterProcess,
   RouterResponse,
 } from '@master-thesis-agentic-ai/types';
-import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Logger } from '../../../../logger';
 import { AIProvider } from '../../../../services';
@@ -62,6 +61,7 @@ describe('ReActRouter', () => {
         question: 'What is the weather in Tokyo?',
         maxIterations: 3,
         iterationHistory: [],
+        contextId: 'test-context-id',
       };
 
       const routerIterator = router.iterate(routerProcess);

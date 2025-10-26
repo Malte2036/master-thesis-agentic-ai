@@ -15,7 +15,11 @@ export const getRouterTestResponse = async (
   question: string,
   maxIterations: number,
 ): Promise<RouterResponse | undefined> => {
-  const routerIterator = agent.routeQuestion(question, maxIterations);
+  const routerIterator = agent.routeQuestion(
+    question,
+    maxIterations,
+    'test-id',
+  );
   let routerResponse: RouterResponse | undefined;
   while (true) {
     const { value, done } = await routerIterator.next();

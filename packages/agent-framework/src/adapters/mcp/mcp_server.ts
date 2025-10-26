@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { AgentConfig } from '../../config';
 import express, { Request, Response } from 'express';
+import { AgentConfig } from '../../config';
 import { Logger } from '../../logger';
 
 export type AuthRoutes = {

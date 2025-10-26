@@ -27,9 +27,9 @@ services:
           'CMD-SHELL',
           'wget -qO- http://127.0.0.1:3003/health >/dev/null 2>&1 || exit 1',
         ]
-      interval: 10s
+      interval: 3s
       timeout: 5s
-      retries: 3
+      retries: 5
 
   # Calendar MCP
   calendar-mcp:
@@ -52,9 +52,9 @@ services:
           'CMD-SHELL',
           'wget -qO- http://127.0.0.1:3004/health >/dev/null 2>&1 || exit 1',
         ]
-      interval: 10s
+      interval: 3s
       timeout: 5s
-      retries: 3
+      retries: 5
 
   # ---- AGENTS ---- #
 

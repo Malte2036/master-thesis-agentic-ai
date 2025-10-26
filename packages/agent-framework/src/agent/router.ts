@@ -4,5 +4,6 @@ export interface Router {
   routeQuestion(
     question: string,
     maxIterations: number,
+    contextId: string,
   ): AsyncGenerator<RouterProcess, RouterResponse, unknown>;
 }

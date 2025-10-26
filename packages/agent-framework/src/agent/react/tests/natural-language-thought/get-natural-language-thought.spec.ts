@@ -28,6 +28,7 @@ describe('getNaturalLanguageThought', () => {
           question: 'What is the weather in Tokyo?',
           maxIterations: 3,
           iterationHistory: [],
+          contextId: 'test-context-id',
         };
 
         const result = await getNaturalLanguageThought(

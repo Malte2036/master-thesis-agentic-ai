@@ -61,12 +61,12 @@ export class AgentClient {
     return await this.client.getAgentCard();
   }
 
-  async call(message: string): Promise<string> {
+  async call(message: string, contextId: string): Promise<string> {
     const messageId = randomUUID();
     let taskId: string | undefined;
 
     this.logger.debug(
-      `[AgentClient] Calling ${this.name} with messageId: ${messageId}`,
+      `[AgentClient] Calling ${this.name} with messageId: ${messageId} and contextId: ${contextId}`,
     );
 
     try {
@@ -76,6 +76,7 @@ export class AgentClient {
           role: 'user',
           parts: [{ kind: 'text', text: message }],
           kind: 'message',
+          contextId,
         },
       };
 

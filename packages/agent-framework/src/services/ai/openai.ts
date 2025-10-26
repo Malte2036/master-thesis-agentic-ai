@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import { z } from 'zod/v4';
 import { AIProvider, AIGenerateTextOptions } from './types';
 import { Logger } from '../../logger';
+import chalk from 'chalk';
 
 // Use SDK's message param type for compatibility with .create()
 type ChatMessage = OpenAI.ChatCompletionMessageParam;
@@ -42,13 +43,15 @@ export class OpenAIProvider implements AIProvider {
     private readonly logger: Logger,
     options?: { model?: string },
   ) {
-    // Accept OLLAMA_BASE_URL as a drop-in, or OPENAI_BASE_URL
-    const baseURL =
-      process.env['OPENAI_BASE_URL'] || process.env['OLLAMA_BASE_URL']; // e.g. http://localhost:8000/v1 (vLLM)
+    this.logger.log(
+      chalk.cyan('Creating OpenAIProvider with model:'),
+      options?.model,
+    );
+    const baseURL = process.env['OPENAI_BASE_URL']; // e.g. http://localhost:8000/v1 (vLLM)
 
     if (!baseURL) {
       throw new Error(
-        'OPENAI_BASE_URL (or OLLAMA_BASE_URL) is not set, e.g. http://localhost:8000/v1',
+        'OPENAI_BASE_URL is not set, e.g. http://localhost:8000/v1',
       );
     }
 

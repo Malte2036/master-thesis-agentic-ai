@@ -135,9 +135,20 @@ expressApp.post('/ask', async (req, res) => {
     return;
   }
 
+  logger.log('Request headers:', req.headers);
+  let contextId: string = randomUUID();
+  if (
+    req.headers['x-test-id'] &&
+    typeof req.headers['x-test-id'] === 'string' &&
+    req.headers['x-test-id'].length > 0
+  ) {
+    contextId = req.headers['x-test-id'] as string;
+  }
+
   logger.log(chalk.cyan('--------------------------------'));
   logger.log(chalk.cyan('User question:'), body.prompt);
   logger.log(chalk.cyan('Using max iterations:'), body.max_iterations);
+  logger.log(chalk.cyan('Context ID:'), contextId);
   logger.log(chalk.cyan('--------------------------------'));
 
   const id = randomUUID();
@@ -194,7 +205,7 @@ expressApp.post('/ask', async (req, res) => {
       `,
       ``,
       (logger, functionCalls) =>
-        handleToolCalls(logger, functionCalls, availableAgents),
+        handleToolCalls(logger, functionCalls, availableAgents, contextId),
       async () => {
         logger.log('Disconnecting from Client');
       },
@@ -203,6 +214,7 @@ expressApp.post('/ask', async (req, res) => {
     const generator = agentRouter.routeQuestion(
       body.prompt,
       body.max_iterations,
+      contextId,
     );
     let results: RouterResponse;
     while (true) {

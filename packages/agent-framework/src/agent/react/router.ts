@@ -31,6 +31,7 @@ export class ReActRouter implements Router {
       logger: Logger,
       functionCalls: FunctionCall[],
       remainingCalls: number,
+      contextId: string,
     ) => Promise<string[]>,
     private readonly disconnectClient?: () => Promise<void>,
   ) {}
@@ -54,8 +55,15 @@ export class ReActRouter implements Router {
       logger: Logger,
       functionCalls: FunctionCall[],
       remainingCalls: number,
+      contextId: string,
     ) =>
-      callMcpClientInParallel(logger, mcpClient, functionCalls, remainingCalls);
+      callMcpClientInParallel(
+        logger,
+        mcpClient,
+        functionCalls,
+        remainingCalls,
+        contextId,
+      );
 
     return new ReActRouter(
       aiProvider,
@@ -72,8 +80,10 @@ export class ReActRouter implements Router {
   async *routeQuestion(
     question: string,
     maxIterations: number,
+    contextId: string,
   ): AsyncGenerator<RouterProcess, RouterResponse, unknown> {
     const routerProcess: RouterProcess = {
+      contextId,
       question,
       maxIterations,
       iterationHistory: [],
@@ -179,6 +189,7 @@ export class ReActRouter implements Router {
         this.logger,
         structuredThought.functionCalls,
         maxIterations - currentIteration - 1,
+        routerProcess.contextId,
       );
 
       this.logger.debug(

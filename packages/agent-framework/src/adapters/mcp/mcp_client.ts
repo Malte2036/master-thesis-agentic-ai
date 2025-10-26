@@ -120,12 +120,16 @@ export class MCPClient {
   async callTool(
     name: string,
     args: Record<string, unknown>,
+    contextId: string,
   ): Promise<CallToolResult> {
     const request: CallToolRequest = {
       method: 'tools/call',
       params: {
         name,
         arguments: args,
+        _meta: {
+          contextId,
+        },
       },
     };
 

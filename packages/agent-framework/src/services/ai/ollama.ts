@@ -2,6 +2,7 @@ import { z } from 'zod/v4';
 import { AIProvider, AIGenerateTextOptions } from './types';
 import { Ollama } from 'ollama';
 import { Logger } from '../../logger';
+import chalk from 'chalk';
 
 export class OllamaProvider implements AIProvider {
   private readonly client: Ollama;
@@ -11,6 +12,10 @@ export class OllamaProvider implements AIProvider {
     private readonly logger: Logger,
     options?: { model?: string },
   ) {
+    this.logger.log(
+      chalk.cyan('Creating OllamaProvider with model:'),
+      options?.model,
+    );
     const host = process.env['OLLAMA_BASE_URL'];
     if (!host) {
       throw new Error('OLLAMA_BASE_URL is not set');

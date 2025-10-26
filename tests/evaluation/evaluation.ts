@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { RoutingAgentClient } from '../utils/routing-agent-client';
 import { waitForService } from '../utils/wait-for-service';
 import {
@@ -16,14 +17,12 @@ const report: EvaluationReport = {
 };
 
 async function runEvaluationTests() {
-  // eslint-disable-next-line no-console
   console.log('🚀 Starting E2E Evaluation Tests...');
 
   try {
     // Initialize routing agent
     const routingAgent = new RoutingAgentClient(ROUTING_AGENT_URL);
 
-    // eslint-disable-next-line no-console
     console.log('⏳ Waiting for services to be ready...');
 
     // Wait for services to be ready
@@ -37,9 +36,8 @@ async function runEvaluationTests() {
       'Calendar Agent',
     );
 
-    // eslint-disable-next-line no-console
     console.log('✅ All services are ready');
-    // eslint-disable-next-line no-console
+
     console.log('🔄 Running evaluation tests in batches...');
 
     // Run tests in batches to prevent SSE timeout issues
@@ -54,14 +52,12 @@ async function runEvaluationTests() {
         E2E_EVALUATION_TEST_DATA.length / BATCH_SIZE,
       );
 
-      // eslint-disable-next-line no-console
       console.log(
         `🔄 Running batch ${batchNumber}/${totalBatches} (${batch.length} tests)...`,
       );
 
       const batchPromises = batch.map(async (testData, batchIndex) => {
         const globalIndex = i + batchIndex;
-        // eslint-disable-next-line no-console
         console.log(
           `📝 Running test ${globalIndex + 1}/${E2E_EVALUATION_TEST_DATA.length}: "${testData.input}"`,
         );
@@ -73,13 +69,13 @@ async function runEvaluationTests() {
             {
               prompt: testData.input,
             },
+            undefined,
             180000,
           ); // 3 minutes timeout
 
           const endTime = Date.now();
           const completionTime = (endTime - startTime) / 1000; // Convert to seconds
 
-          // eslint-disable-next-line no-console
           console.log(
             `✅ Test ${globalIndex + 1} completed in ${completionTime.toFixed(2)}s`,
           );
@@ -95,7 +91,6 @@ async function runEvaluationTests() {
           const endTime = Date.now();
           const completionTime = (endTime - startTime) / 1000; // Convert to seconds
 
-          // eslint-disable-next-line no-console
           console.error(
             `❌ Test ${globalIndex + 1} failed after ${completionTime.toFixed(2)}s:`,
             error,
@@ -116,23 +111,19 @@ async function runEvaluationTests() {
 
       // Add delay between batches (except for the last batch)
       if (i + BATCH_SIZE < E2E_EVALUATION_TEST_DATA.length) {
-        // eslint-disable-next-line no-console
         console.log(`⏳ Waiting ${BATCH_DELAY}ms before next batch...`);
         await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY));
       }
     }
     report.testEntries.push(...results);
 
-    // eslint-disable-next-line no-console
     console.log('📊 Writing evaluation report...');
     writeEvaluationReport(report);
 
-    // eslint-disable-next-line no-console
     console.log('🎉 All evaluation tests completed successfully!');
-    // eslint-disable-next-line no-console
+
     console.log(`📈 Total tests run: ${results.length}`);
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error('❌ Evaluation tests failed:', error);
     process.exit(1);
   }

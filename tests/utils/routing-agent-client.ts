@@ -1,8 +1,10 @@
+/* eslint-disable no-console */
 import EventSource from 'eventsource';
 
 export interface RoutingAgentRequest {
   prompt: string;
   max_iterations?: number;
+  testId?: string;
 }
 
 export interface RoutingAgentResponse {
@@ -29,11 +31,15 @@ export class RoutingAgentClient {
   /**
    * Send a request to the routing agent and get the immediate response
    */
-  async ask(request: RoutingAgentRequest): Promise<RoutingAgentResponse> {
+  async ask(
+    request: RoutingAgentRequest,
+    testId?: string,
+  ): Promise<RoutingAgentResponse> {
     const response = await fetch(`${this.baseUrl}/ask`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-test-id': testId,
       },
       body: JSON.stringify({
         max_iterations: 5,
@@ -53,6 +59,7 @@ export class RoutingAgentClient {
    */
   async askAndWaitForResponse(
     request: RoutingAgentRequest,
+    testId: string | undefined,
     timeout = 180000,
     maxRetries = 2,
   ): Promise<string> {
@@ -69,7 +76,7 @@ export class RoutingAgentClient {
         }
 
         console.log('request', request);
-        const { id } = await this.ask(request);
+        const { id } = await this.ask(request, testId);
         console.log('Connection to stream:', `${this.baseUrl}/stream/${id}`);
 
         return new Promise((resolve, reject) => {
@@ -176,28 +183,4 @@ export class RoutingAgentClient {
 
     throw new Error(`❌ Routing Agent not ready after ${timeout}ms`);
   }
-}
-
-/**
- * Convenience function to quickly ask the routing agent and get the final response
- */
-export async function askRoutingAgent(
-  prompt: string,
-  options: Partial<RoutingAgentRequest> = {},
-  baseUrl = 'http://localhost:3000',
-): Promise<string> {
-  const client = new RoutingAgentClient(baseUrl);
-  return client.askAndWaitForResponse({ prompt, ...options });
-}
-
-/**
- * Convenience function to just send a request without waiting for response
- */
-export async function sendToRoutingAgent(
-  prompt: string,
-  options: Partial<RoutingAgentRequest> = {},
-  baseUrl = 'http://localhost:3000',
-): Promise<RoutingAgentResponse> {
-  const client = new RoutingAgentClient(baseUrl);
-  return client.ask({ prompt, ...options });
 }

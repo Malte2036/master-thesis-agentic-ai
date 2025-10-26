@@ -39,6 +39,14 @@ export class MyAgentExecutor implements AgentExecutor {
     // Determine IDs for the task and context, from requestContext.
     const taskId = requestContext.taskId;
     const contextId = requestContext.contextId;
+    if (!contextId) {
+      this.logger.error(
+        'Context ID is required',
+        JSON.stringify(requestContext, null, 2),
+      );
+      eventBus.finished();
+      throw new Error('Context ID is required');
+    }
 
     const userMessageText = userMessage.parts
       .filter((part) => part.kind === 'text')
@@ -92,7 +100,7 @@ export class MyAgentExecutor implements AgentExecutor {
     eventBus.publish(workingStatusUpdate);
 
     const router = await this.getRouter();
-    const generator = router.routeQuestion(userMessageText, 5);
+    const generator = router.routeQuestion(userMessageText, 5, contextId);
     let results: RouterResponse;
     while (true) {
       const { done, value } = await generator.next();

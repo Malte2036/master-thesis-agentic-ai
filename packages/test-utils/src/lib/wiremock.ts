@@ -1,3 +1,5 @@
+import { randomUUID } from 'crypto';
+
 const WIREMOCK_URL = 'http://localhost:8082/__admin';
 const MOODLE_WEBSERVICE_PATH = '/webservice/rest/server.php';
 
@@ -5,11 +7,28 @@ type CalendarPath = `/${string}`;
 
 type BodyPattern = { contains?: string; equalToJson?: Record<string, any> };
 
+type HeaderPattern = {
+  [headerName: string]: {
+    equalTo?: string;
+    matches?: string;
+    doesNotMatch?: string;
+    contains?: string;
+  };
+};
+
+type RequestBody = {
+  method: string;
+  urlPattern: string;
+  headers: HeaderPattern;
+  bodyPatterns?: BodyPattern[];
+};
+
 type Mapping = {
   request: {
     method: string;
     url: string;
     bodyPatterns?: BodyPattern[];
+    headers?: HeaderPattern;
   };
   response: {
     status: number;
@@ -19,6 +38,10 @@ type Mapping = {
 };
 
 export class Wiremock {
+  public static generateTestId(): string {
+    return `test-${randomUUID()}`;
+  }
+
   /**
    * Reset all mappings and requests in Wiremock
    */
@@ -39,25 +62,20 @@ export class Wiremock {
   }
 
   /**
-   * Get all requests made to Wiremock
-   */
-  private static async getRequests(): Promise<any> {
-    const res = await fetch(`${WIREMOCK_URL}/requests`);
-    return res.json();
-  }
-
-  /**
    * Count requests with the given method & URL pattern (and optional body patterns)
    */
   static async count(
+    testId: string,
     method: string,
     urlPattern: string,
     bodyPatterns?: BodyPattern[],
   ): Promise<number> {
-    const requestBody: any = { method, urlPattern };
-    if (bodyPatterns) {
-      requestBody.bodyPatterns = bodyPatterns;
-    }
+    const requestBody: RequestBody = {
+      method,
+      urlPattern,
+      bodyPatterns,
+      headers: { 'X-Context-Id': { equalTo: testId } },
+    };
 
     const res = await fetch(`${WIREMOCK_URL}/requests/count`, {
       method: 'POST',
@@ -71,6 +89,7 @@ export class Wiremock {
 
   // Moodle Wiremock helper methods
   static async addMoodleMapping<T>(
+    testId: string,
     wsfunction: string,
     responseBody: T,
     args?: Record<string, string>,
@@ -98,6 +117,11 @@ export class Wiremock {
         method: 'POST',
         url: MOODLE_WEBSERVICE_PATH,
         bodyPatterns,
+        headers: {
+          'X-Context-Id': {
+            equalTo: testId,
+          },
+        },
       },
       response: {
         status: 200,
@@ -109,12 +133,21 @@ export class Wiremock {
     });
   }
 
-  static async addMoodleLoginMapping(token: string): Promise<void> {
+  public static async addMoodleLoginMapping(
+    testId: string,
+    token: string,
+  ): Promise<void> {
     await Wiremock.addMapping({
       request: {
         method: 'POST',
         url: '/login/token.php',
+        headers: {
+          'X-Context-Id': {
+            equalTo: testId,
+          },
+        },
       },
+
       response: {
         status: 200,
         jsonBody: { token },
@@ -129,6 +162,7 @@ export class Wiremock {
    * Count Moodle webservice requests with the given function and optional arguments
    */
   static async countMoodleRequests(
+    testId: string,
     wsfunction: string,
     args?: Record<string, string>,
   ): Promise<number> {
@@ -150,7 +184,12 @@ export class Wiremock {
       contains: `moodlewsrestformat=json`,
     });
 
-    return await Wiremock.count('POST', MOODLE_WEBSERVICE_PATH, bodyPatterns);
+    return await Wiremock.count(
+      testId,
+      'POST',
+      MOODLE_WEBSERVICE_PATH,
+      bodyPatterns,
+    );
   }
 
   // calendar Wiremock helper methods
@@ -178,6 +217,7 @@ export class Wiremock {
     requestBody: any,
   ): Promise<number> {
     return await Wiremock.count(
+      'todo',
       'POST',
       url,
       requestBody

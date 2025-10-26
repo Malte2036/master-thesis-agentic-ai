@@ -16,6 +16,7 @@ export type StructuredThoughtResponse = z.infer<
 >;
 
 export const RouterProcessSchema = z.object({
+  contextId: z.string(),
   question: z.string(),
   maxIterations: z.number(),
   response: z.string().optional(),

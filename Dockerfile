@@ -6,17 +6,24 @@ RUN corepack enable
 
 # Copy root package files first
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
-COPY packages ./packages
 
-# Install dependencies
+COPY packages/agent-framework/package.json ./packages/agent-framework/  
+COPY packages/types/package.json ./packages/types/
+COPY apps/calendar-agent/package.json ./apps/calendar-agent/
+COPY apps/calendar-mcp/package.json ./apps/calendar-mcp/
+COPY apps/moodle-agent/package.json ./apps/moodle-agent/
+COPY apps/moodle-mcp/package.json ./apps/moodle-mcp/
+COPY apps/routing-agent/package.json ./apps/routing-agent/
+
+
 RUN pnpm install --frozen-lockfile
+
 
 # Copy source code after dependency installation for better caching
 COPY scripts/dev-session.js ./scripts/dev-session.js
-COPY apps/ ./apps/
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+COPY packages ./packages
+COPY apps/ ./apps/
 
 # Build the project
 RUN pnpm run build:types

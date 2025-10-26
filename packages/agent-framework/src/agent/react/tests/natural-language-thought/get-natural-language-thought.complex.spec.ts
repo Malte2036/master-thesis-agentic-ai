@@ -112,6 +112,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
         for (const c of cases) {
           it(`should hint correct tool(s) and entities: ${c.name}`, async () => {
             const routerProcess: RouterProcess = {
+              contextId: 'test-context-id',
               question: c.question,
               maxIterations: 3,
               iterationHistory: [],
@@ -148,6 +149,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
 
       it('should not repeat the same function call twice with the same parameters with real moodle example', async () => {
         const routerProcess: RouterProcess = {
+          contextId: 'test-context-id',
           question: 'get user info',
           maxIterations: 3,
           iterationHistory: [
@@ -201,6 +203,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
 
       it('should not repeat calendar creation call if already created in previous iteration', async () => {
         const routerProcess: RouterProcess = {
+          contextId: 'test-context-id',
           question: 'Create a calendar entry for today',
           maxIterations: 5,
           iterationHistory: [

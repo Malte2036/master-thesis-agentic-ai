@@ -8,6 +8,7 @@ export async function callMcpClientInParallel(
   mcpClient: MCPClient,
   functionCalls: FunctionCall[],
   remainingCalls: number,
+  contextId: string,
 ): Promise<string[]> {
   if (remainingCalls < 0) {
     throw new Error(
@@ -29,6 +30,7 @@ export async function callMcpClientInParallel(
         const result = await mcpClient.callTool(
           functionCall.function,
           functionCall.args,
+          contextId,
         );
 
         if (result.content[0].type !== 'text') {

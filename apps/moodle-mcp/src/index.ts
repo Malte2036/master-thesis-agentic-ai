@@ -1,6 +1,7 @@
 import {
   compareTimes,
   createMCPServerFramework,
+  getContextIdFromMcpServerRequestHandlerExtra,
   Logger,
 } from '@master-thesis-agentic-ai/agent-framework';
 import { createResponseError } from '@master-thesis-agentic-ai/types';
@@ -43,17 +44,20 @@ mcpServer.tool(
   'get_all_courses',
   'Get all courses that the user is enrolled in. Prefer "search_courses_by_name" if you need to get courses by name.',
   {},
-  async () => {
+  async (_, extra) => {
+    const contextId = getContextIdFromMcpServerRequestHandlerExtra(extra);
     const moodleToken = await moodleProvider.getToken(
+      contextId,
       MOODLE_USERNAME,
       MOODLE_PASSWORD,
     );
-    const userInfo = await moodleProvider.getUserInfo(moodleToken);
+    const userInfo = await moodleProvider.getUserInfo(contextId, moodleToken);
     if (!userInfo) {
       throw createResponseError('User info not found', 400);
     }
 
     const courses = await moodleProvider.getEnrolledCourses(
+      contextId,
       moodleToken,
       userInfo.userid,
     );
@@ -94,7 +98,8 @@ mcpServer.tool(
   {
     course_name: z.string().describe('Name of the course to search for'),
   },
-  async ({ course_name }) => {
+  async ({ course_name }, extra) => {
+    const contextId = getContextIdFromMcpServerRequestHandlerExtra(extra);
     logger.log(
       `search_courses_by_name: ${JSON.stringify({ course_name }, null, 2)}`,
     );
@@ -104,19 +109,24 @@ mcpServer.tool(
     }
 
     const moodleToken = await moodleProvider.getToken(
+      contextId,
       MOODLE_USERNAME,
       MOODLE_PASSWORD,
     );
 
     const [searchResponse, enrolledCourses] = await Promise.all([
-      moodleProvider.findCoursesByName(moodleToken, course_name),
+      moodleProvider.findCoursesByName(contextId, moodleToken, course_name),
       (async () => {
-        const userInfo = await moodleProvider.getUserInfo(moodleToken);
+        const userInfo = await moodleProvider.getUserInfo(
+          contextId,
+          moodleToken,
+        );
         if (!userInfo) {
           throw createResponseError('User info not found', 400);
         }
 
         return await moodleProvider.getEnrolledCourses(
+          contextId,
           moodleToken,
           userInfo.userid,
         );
@@ -181,17 +191,20 @@ mcpServer.tool(
   {
     course_id: z.number().describe('ID of the course to get contents for'),
   },
-  async ({ course_id }) => {
+  async ({ course_id }, extra) => {
+    const contextId = getContextIdFromMcpServerRequestHandlerExtra(extra);
     if (!course_id) {
       throw createResponseError('Course ID is required', 400);
     }
 
     const moodleToken = await moodleProvider.getToken(
+      contextId,
       MOODLE_USERNAME,
       MOODLE_PASSWORD,
     );
 
     const courseContents = await moodleProvider.getCourseContents(
+      contextId,
       moodleToken,
       course_id,
     );
@@ -246,14 +259,18 @@ mcpServer.tool(
         'Get assignments due before this date. It can be a date string or a timestamp. For date strings include the timezone in the format "YYYY-MM-DD HH:MM:SS TZ" (e.g. "2025-01-01 00:00:00 UTC")',
       ),
   },
-  async ({ due_after, due_before }) => {
+  async ({ due_after, due_before }, extra) => {
+    const contextId = getContextIdFromMcpServerRequestHandlerExtra(extra);
     const moodleToken = await moodleProvider.getToken(
+      contextId,
       MOODLE_USERNAME,
       MOODLE_PASSWORD,
     );
 
-    const assignmentsResponse =
-      await moodleProvider.getAssignments(moodleToken);
+    const assignmentsResponse = await moodleProvider.getAssignments(
+      contextId,
+      moodleToken,
+    );
     let allAssignments = assignmentsResponse.courses.flatMap(
       (course) => course.assignments ?? [],
     );
@@ -328,7 +345,8 @@ mcpServer.tool(
   {
     course_id: z.number().describe('ID of the course to get assignments for'),
   },
-  async ({ course_id }) => {
+  async ({ course_id }, extra) => {
+    const contextId = getContextIdFromMcpServerRequestHandlerExtra(extra);
     logger.log(
       `get_assignments_for_course: ${JSON.stringify({ course_id }, null, 2)}`,
     );
@@ -338,11 +356,13 @@ mcpServer.tool(
     }
 
     const moodleToken = await moodleProvider.getToken(
+      contextId,
       MOODLE_USERNAME,
       MOODLE_PASSWORD,
     );
 
     const course = await moodleProvider.getAssignmentsForCourse(
+      contextId,
       moodleToken,
       course_id,
     );
@@ -409,13 +429,17 @@ mcpServer.tool(
   'get_user_info',
   'Get personal information about the user who asked the question. This function cannot get information about other users.',
   {},
-  async () => {
+
+  async (_, extra) => {
+    const contextId = getContextIdFromMcpServerRequestHandlerExtra(extra);
+
     const moodleToken = await moodleProvider.getToken(
+      contextId,
       MOODLE_USERNAME,
       MOODLE_PASSWORD,
     );
 
-    const userInfo = await moodleProvider.getUserInfo(moodleToken);
+    const userInfo = await moodleProvider.getUserInfo(contextId, moodleToken);
     if (!userInfo) {
       throw createResponseError('User info not found', 400);
     }

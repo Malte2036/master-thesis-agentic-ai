@@ -13,7 +13,7 @@ export const getAIProvider = (logger: Logger) => {
   if (!model) {
     throw new Error('AI_MODEL is not set');
   }
-  logger.log(chalk.cyan('Using model:'), model);
-  return new OllamaProvider(logger, { model });
-  // return new OpenAIProvider(logger, { model });
+
+  // return new OllamaProvider(logger, { model });
+  return new OpenAIProvider(logger, { model });
 };

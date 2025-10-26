@@ -11,6 +11,7 @@ describe('E2E Routing Agent Test', () => {
   let routingAgent: RoutingAgentClient;
 
   beforeAll(async () => {
+    await Wiremock.reset();
     routingAgent = new RoutingAgentClient(ROUTING_AGENT_URL);
 
     // Wait for services to be ready
@@ -27,17 +28,17 @@ describe('E2E Routing Agent Test', () => {
     // All services are ready
   }, 30_000);
 
-  beforeEach(async () => {
-    await Wiremock.reset();
-    await Wiremock.addMoodleLoginMapping('mock-token');
-  });
-
   it('should tell his capabilities', async () => {
+    const testId = Wiremock.generateTestId();
+
     const testPrompt = 'What are your capabilities?';
 
-    const finalResponse = await routingAgent.askAndWaitForResponse({
-      prompt: testPrompt,
-    });
+    const finalResponse = await routingAgent.askAndWaitForResponse(
+      {
+        prompt: testPrompt,
+      },
+      testId,
+    );
 
     expect(finalResponse).toBeDefined();
     expect(finalResponse.length).toBeGreaterThan(0);
@@ -48,16 +49,23 @@ describe('E2E Routing Agent Test', () => {
   }, 30_000);
 
   it('should get a response to a question by using the moodle-agent', async () => {
+    const testId = Wiremock.generateTestId();
+    await Wiremock.addMoodleLoginMapping(testId, 'mock-token');
+
     await Wiremock.addMoodleMapping(
+      testId,
       'core_webservice_get_site_info',
       mockUserInfo,
     );
 
     const testPrompt = 'Can you help me get my user information?';
 
-    const finalResponse = await routingAgent.askAndWaitForResponse({
-      prompt: testPrompt,
-    });
+    const finalResponse = await routingAgent.askAndWaitForResponse(
+      {
+        prompt: testPrompt,
+      },
+      testId,
+    );
 
     expect(finalResponse).toBeDefined();
     expect(finalResponse.length).toBeGreaterThan(0);
@@ -66,7 +74,10 @@ describe('E2E Routing Agent Test', () => {
     expect(finalResponse).toContain('Schmidt');
 
     expect(
-      await Wiremock.countMoodleRequests('core_webservice_get_site_info'),
+      await Wiremock.countMoodleRequests(
+        testId,
+        'core_webservice_get_site_info',
+      ),
     ).toBe(1);
   }, 30_000);
 
@@ -76,9 +87,11 @@ describe('E2E Routing Agent Test', () => {
       description: 'We will discuss the project',
       start: {
         dateTime: '2025-10-22T13:22:00Z',
+        timeZone: 'UTC',
       },
       end: {
         dateTime: '2025-10-25T17:09:00Z',
+        timeZone: 'UTC',
       },
     };
 
@@ -96,6 +109,7 @@ describe('E2E Routing Agent Test', () => {
       },
     };
 
+    const testId = Wiremock.generateTestId();
     await Wiremock.addCalendarMapping(
       '/calendar/v3/calendars/primary/events',
       requestBody,
@@ -103,9 +117,12 @@ describe('E2E Routing Agent Test', () => {
     );
 
     const testPrompt = `Create a calendar event with the name "${requestBody.summary}" and the description "${requestBody.description}" from ${new Date(requestBody.start.dateTime).toUTCString()} to ${new Date(requestBody.end.dateTime).toUTCString()}.`;
-    const finalResponse = await routingAgent.askAndWaitForResponse({
-      prompt: testPrompt,
-    });
+    const finalResponse = await routingAgent.askAndWaitForResponse(
+      {
+        prompt: testPrompt,
+      },
+      testId,
+    );
 
     expect(finalResponse).toBeDefined();
     expect(finalResponse.length).toBeGreaterThan(0);
@@ -133,7 +150,7 @@ describe('E2E Routing Agent Test', () => {
         dateTime: '2017-10-23T09:30:00Z',
         timeZone: 'UTC',
       },
-      recurrence: ['FREQ=WEEKLY;BYDAY=MO'],
+      recurrence: ['RRULE:FREQ=WEEKLY;BYDAY=MO'],
     };
 
     const responseBody = {
@@ -151,6 +168,7 @@ describe('E2E Routing Agent Test', () => {
       recurrence: requestBody.recurrence,
     };
 
+    const testId = Wiremock.generateTestId();
     await Wiremock.addCalendarMapping(
       '/calendar/v3/calendars/primary/events',
       requestBody,
@@ -158,9 +176,12 @@ describe('E2E Routing Agent Test', () => {
     );
 
     const testPrompt = `Create a recurring calendar event with the name "${requestBody.summary}" and the description "${requestBody.description}" every Monday at 9:00 AM UTC for 30 minutes beginning on ${requestBody.start.dateTime}.`;
-    const finalResponse = await routingAgent.askAndWaitForResponse({
-      prompt: testPrompt,
-    });
+    const finalResponse = await routingAgent.askAndWaitForResponse(
+      {
+        prompt: testPrompt,
+      },
+      testId,
+    );
 
     expect(finalResponse).toBeDefined();
     expect(finalResponse.length).toBeGreaterThan(0);
@@ -188,7 +209,7 @@ describe('E2E Routing Agent Test', () => {
         dateTime: '2025-01-15T10:15:00Z',
         timeZone: 'UTC',
       },
-      recurrence: ['FREQ=DAILY;COUNT=10'],
+      recurrence: ['RRULE:FREQ=DAILY;COUNT=10'],
     };
 
     const responseBody = {
@@ -206,6 +227,7 @@ describe('E2E Routing Agent Test', () => {
       recurrence: requestBody.recurrence,
     };
 
+    const testId = Wiremock.generateTestId();
     await Wiremock.addCalendarMapping(
       '/calendar/v3/calendars/primary/events',
       requestBody,
@@ -213,9 +235,12 @@ describe('E2E Routing Agent Test', () => {
     );
 
     const testPrompt = `Create a daily recurring calendar event with the name "${requestBody.summary}" and the description "${requestBody.description}" every day at 10:00 AM UTC for 15 minutes, repeating 10 times. Beginning on ${requestBody.start.dateTime}.`;
-    const finalResponse = await routingAgent.askAndWaitForResponse({
-      prompt: testPrompt,
-    });
+    const finalResponse = await routingAgent.askAndWaitForResponse(
+      {
+        prompt: testPrompt,
+      },
+      testId,
+    );
 
     expect(finalResponse).toBeDefined();
     expect(finalResponse.length).toBeGreaterThan(0);
@@ -234,12 +259,17 @@ describe('E2E Routing Agent Test', () => {
   }, 60_000);
 
   it('should combine the moodle-agent and the calendar-agent', async () => {
+    const testId = Wiremock.generateTestId();
+    await Wiremock.addMoodleLoginMapping(testId, 'mock-token');
+
     await Wiremock.addMoodleMapping(
+      testId,
       'core_webservice_get_site_info',
       mockUserInfo,
     );
 
     await Wiremock.addMoodleMapping(
+      testId,
       'mod_assign_get_assignments',
       mockAssignments,
     );
@@ -283,9 +313,12 @@ describe('E2E Routing Agent Test', () => {
     const testPrompt =
       'Get my last past assignment and create a calendar event for the date of the assignment and for 1.5hours. The Description of the calendar event should be the assignment intro.';
 
-    const finalResponse = await routingAgent.askAndWaitForResponse({
-      prompt: testPrompt,
-    });
+    const finalResponse = await routingAgent.askAndWaitForResponse(
+      {
+        prompt: testPrompt,
+      },
+      testId,
+    );
 
     expect(finalResponse).toBeDefined();
     expect(finalResponse.length).toBeGreaterThan(0);
@@ -303,12 +336,17 @@ describe('E2E Routing Agent Test', () => {
   }, 60_000);
 
   it('should handle German request for all assignments and create calendar entries', async () => {
+    const testId = Wiremock.generateTestId();
+    await Wiremock.addMoodleLoginMapping(testId, 'mock-token');
+
     await Wiremock.addMoodleMapping(
+      testId,
       'core_webservice_get_site_info',
       mockUserInfo,
     );
 
     await Wiremock.addMoodleMapping(
+      testId,
       'mod_assign_get_assignments',
       mockAssignments,
     );
@@ -318,9 +356,12 @@ describe('E2E Routing Agent Test', () => {
     const testPrompt =
       'Hole mir alle Abgaben und erstelle je einen Kalendareintrag pro assignment';
 
-    const finalResponse = await routingAgent.askAndWaitForResponse({
-      prompt: testPrompt,
-    });
+    const finalResponse = await routingAgent.askAndWaitForResponse(
+      {
+        prompt: testPrompt,
+      },
+      testId,
+    );
 
     expect(finalResponse).toBeDefined();
     expect(finalResponse.length).toBeGreaterThan(0);
@@ -347,7 +388,7 @@ describe('E2E Routing Agent Test', () => {
 
     // Verify that the moodle agent was called to get assignments
     expect(
-      await Wiremock.countMoodleRequests('mod_assign_get_assignments'),
+      await Wiremock.countMoodleRequests(testId, 'mod_assign_get_assignments'),
     ).toBe(1);
 
     // // Verify that calendar events were created (one per assignment)

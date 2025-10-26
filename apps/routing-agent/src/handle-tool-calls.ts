@@ -4,6 +4,7 @@ export const handleToolCalls = async (
   logger: Logger,
   functionCalls: any[],
   agents: AgentClient[],
+  contextId: string,
 ): Promise<string[]> => {
   functionCalls = functionCalls.map((call) => ({
     ...call,
@@ -40,6 +41,7 @@ export const handleToolCalls = async (
     try {
       agentResponse = await agentClient.call(
         `${parsedDecision.args['prompt']}; We want to call the agent because: ${parsedDecision.args['reason']}`,
+        contextId,
       );
       logger.log(
         `Result from agent ${parsedDecision.function}:`,
