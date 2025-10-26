@@ -26,7 +26,7 @@ describe('Moodle Agent Tests', () => {
       mockUserInfo,
     );
 
-    const agent = await getRouter(AI_MODEL);
+    const agent = await getRouter();
 
     const routerResponse = await getRouterTestResponse(
       agent,
@@ -70,7 +70,7 @@ describe('Moodle Agent Tests', () => {
       },
     );
 
-    const agent = await getRouter(AI_MODEL);
+    const agent = await getRouter();
 
     const routerResponse = await getRouterTestResponse(
       agent,
@@ -133,7 +133,7 @@ describe('Moodle Agent Tests', () => {
       mockAssignments,
     );
 
-    const agent = await getRouter(AI_MODEL);
+    const agent = await getRouter();
 
     const routerResponse = await getRouterTestResponse(
       agent,
@@ -224,7 +224,7 @@ describe('Moodle Agent Tests', () => {
       mockAssignments,
     );
 
-    const agent = await getRouter(AI_MODEL);
+    const agent = await getRouter();
 
     const routerResponse = await getRouterTestResponse(
       agent,
@@ -347,7 +347,7 @@ describe('Moodle Agent Tests', () => {
       customAssignmentsPayload,
     );
 
-    const agent = await getRouter(AI_MODEL);
+    const agent = await getRouter();
 
     // Ask for a 7-day window and a compact table with selected fields
     const routerResponse = await getRouterTestResponse(

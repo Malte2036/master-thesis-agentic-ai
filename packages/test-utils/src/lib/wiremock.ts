@@ -30,7 +30,7 @@ export class Wiremock {
   /**
    * Add a new mapping to Wiremock
    */
-  private static async addMapping(mapping: Mapping): Promise<void> {
+  public static async addMapping(mapping: Mapping): Promise<void> {
     await fetch(`${WIREMOCK_URL}/mappings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -102,6 +102,22 @@ export class Wiremock {
       response: {
         status: 200,
         jsonBody: responseBody,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    });
+  }
+
+  static async addMoodleLoginMapping(token: string): Promise<void> {
+    await Wiremock.addMapping({
+      request: {
+        method: 'POST',
+        url: '/login/token.php',
+      },
+      response: {
+        status: 200,
+        jsonBody: { token },
         headers: {
           'Content-Type': 'application/json',
         },

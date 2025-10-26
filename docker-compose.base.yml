@@ -17,8 +17,8 @@ services:
     env_file:
       - .env
     environment:
-      # - MOODLE_BASE_URL=http://wiremock:8080
-      - MOODLE_BASE_URL=http://moodle:80
+      - MOODLE_BASE_URL=http://wiremock:8080
+      # - MOODLE_BASE_URL=http://moodle:80
       - MOODLE_USERNAME=$MOODLE_USERNAME
       - MOODLE_PASSWORD=$MOODLE_PASSWORD
     healthcheck:
@@ -45,7 +45,7 @@ services:
       - GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
       - GOOGLE_REDIRECT_URI=$GOOGLE_REDIRECT_URI
       - GOOGLE_PRIVATE_REFRESH_TOKEN=$GOOGLE_PRIVATE_REFRESH_TOKEN
-      # - NODE_ENV=test
+      - NODE_ENV=test
     healthcheck:
       test:
         [
@@ -67,8 +67,10 @@ services:
     entrypoint: ['sh', '-c', 'pnpm run dev:moodle-agent']
     environment:
       - OLLAMA_BASE_URL=http://10.50.60.153:11434
+      - OPENAI_BASE_URL=http://10.50.60.153:8000/v1
       - HOSTNAME=moodle-agent
-      - AI_MODEL=qwen3:4b
+      # - AI_MODEL=qwen3:4b
+      - AI_MODEL=Qwen/Qwen3-4B
     depends_on:
       - moodle-mcp
 
@@ -81,8 +83,10 @@ services:
     entrypoint: ['sh', '-c', 'pnpm run dev:calendar-agent']
     environment:
       - OLLAMA_BASE_URL=http://10.50.60.153:11434
+      - OPENAI_BASE_URL=http://10.50.60.153:8000/v1
       - HOSTNAME=calendar-agent
-      - AI_MODEL=qwen3:4b
+      # - AI_MODEL=qwen3:4b
+      - AI_MODEL=Qwen/Qwen3-4B
     depends_on:
       - calendar-mcp
 
@@ -95,8 +99,10 @@ services:
     entrypoint: ['sh', '-c', 'pnpm run dev:routing-agent']
     environment:
       - OLLAMA_BASE_URL=http://10.50.60.153:11434
+      - OPENAI_BASE_URL=http://10.50.60.153:8000/v1
       - AGENT_URLS=http://moodle-agent:1234,http://calendar-agent:1235
-      - AI_MODEL=qwen3:4b
+      # - AI_MODEL=qwen3:4b
+      - AI_MODEL=Qwen/Qwen3-4B
     depends_on:
       - moodle-agent
       - calendar-agent

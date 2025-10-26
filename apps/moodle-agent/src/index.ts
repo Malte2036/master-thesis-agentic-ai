@@ -1,11 +1,10 @@
 import {
   createA2AFramework,
+  getAIProvider,
   Logger,
-  OllamaProvider,
   ReActRouter,
   Router,
 } from '@master-thesis-agentic-ai/agent-framework';
-import chalk from 'chalk';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -13,20 +12,8 @@ const HOSTNAME = process.env.HOSTNAME || 'localhost';
 
 const logger = new Logger({ agentName: 'moodle-agent' });
 
-const AI_MODEL = process.env.AI_MODEL;
-if (!AI_MODEL) {
-  throw new Error('AI_MODEL is not set');
-}
-logger.log('Using AI model:', chalk.cyan(AI_MODEL));
-
-const getAIProvider = (model: string) => {
-  return new OllamaProvider(logger, {
-    model,
-  });
-};
-
-export async function getRouter(model: string): Promise<Router> {
-  const aiProvider = getAIProvider(model);
+export async function getRouter(): Promise<Router> {
+  const aiProvider = getAIProvider(logger);
   const structuredAiProvider = aiProvider;
   return await ReActRouter.createWithMCP(
     aiProvider,
@@ -102,8 +89,8 @@ const agentFramework = createA2AFramework(
     version: '1.1.0',
     skills: [],
   },
-  () => getRouter(AI_MODEL),
-  getAIProvider(AI_MODEL),
+  () => getRouter(),
+  getAIProvider(logger),
 );
 
 agentFramework.listen().catch((error) => {

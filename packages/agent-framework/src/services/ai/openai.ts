@@ -1,8 +1,38 @@
+// packages/agent-framework/src/services/ai/openai.ts
+import OpenAI from 'openai';
 import { z } from 'zod/v4';
 import { AIProvider, AIGenerateTextOptions } from './types';
-import OpenAI from 'openai';
 import { Logger } from '../../logger';
-import chalk from 'chalk';
+
+// Use SDK's message param type for compatibility with .create()
+type ChatMessage = OpenAI.ChatCompletionMessageParam;
+
+// Local union for response_format compatible with OpenAI v6
+type ResponseFormat =
+  | { type: 'text' }
+  | { type: 'json_object' }
+  | {
+      type: 'json_schema';
+      json_schema: {
+        name: string;
+        schema: Record<string, unknown>;
+        strict?: boolean;
+      };
+    };
+
+function deepStripKeys(
+  obj: any,
+  keysToStrip = new Set<string>(['propertyNames']),
+): any {
+  if (obj == null || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map((v) => deepStripKeys(v, keysToStrip));
+  const out: Record<string, any> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (keysToStrip.has(k)) continue;
+    out[k] = deepStripKeys(v, keysToStrip);
+  }
+  return out;
+}
 
 export class OpenAIProvider implements AIProvider {
   private readonly client: OpenAI;
@@ -10,18 +40,28 @@ export class OpenAIProvider implements AIProvider {
 
   constructor(
     private readonly logger: Logger,
-    options?: { apiKey?: string; model?: string; baseURL?: string },
+    options?: { model?: string },
   ) {
-    this.client = new OpenAI({
-      apiKey: options?.apiKey || process.env['OPENAI_API_KEY'],
-      baseURL: options?.baseURL,
-    });
-    this.model = options?.model || 'gpt-4o-mini';
+    // Accept OLLAMA_BASE_URL as a drop-in, or OPENAI_BASE_URL
+    const baseURL =
+      process.env['OPENAI_BASE_URL'] || process.env['OLLAMA_BASE_URL']; // e.g. http://localhost:8000/v1 (vLLM)
 
-    this.healthCheck().then((isAvailable) => {
-      if (!isAvailable) {
-        throw new Error(`Model ${this.model} is not available`);
-      }
+    if (!baseURL) {
+      throw new Error(
+        'OPENAI_BASE_URL (or OLLAMA_BASE_URL) is not set, e.g. http://localhost:8000/v1',
+      );
+    }
+
+    // vLLM accepts any token
+    const apiKey = process.env['OPENAI_API_KEY'] || 'test';
+
+    this.client = new OpenAI({ apiKey, baseURL });
+    this.model = options?.model || 'Qwen/Qwen3-4B-Instruct';
+
+    // Fire-and-forget health check
+    this.healthCheck().then((ok) => {
+      if (!ok)
+        throw new Error(`Model ${this.model} is not available on ${baseURL}`);
       this.logger.log(`Model ${this.model} is available`);
     });
   }
@@ -32,21 +72,25 @@ export class OpenAIProvider implements AIProvider {
 
   private async isModelAvailable(model: string): Promise<boolean> {
     try {
-      this.logger.log('Checking if model is available:', model);
-      await this.client.models.retrieve(model);
-      return true;
-    } catch (error) {
-      this.logger.error('OpenAI model is not available:', model, error);
+      this.logger.log('Checking if model is available via /v1/models:', model);
+      const list = await this.client.models.list();
+      const ids = list.data.map((m) => m.id);
+      const ok = ids.includes(model);
+      if (!ok)
+        this.logger.warn('Model not found in /v1/models list:', {
+          available: ids,
+        });
+      return ok;
+    } catch (err) {
+      this.logger.error('Model availability check failed:', err);
       return false;
     }
   }
 
+  // Keep AIProvider contract: size must be number; OpenAI doesn't expose it -> 0 sentinel
   public async getModels(): Promise<{ name: string; size: number }[]> {
-    const response = await this.client.models.list();
-    return response.data.map((model) => ({
-      name: model.id,
-      size: 0, // OpenAI doesn't provide size information in the models list
-    }));
+    const list = await this.client.models.list();
+    return list.data.map((m) => ({ name: m.id, size: 0 }));
   }
 
   private async makeApiCall(
@@ -54,28 +98,52 @@ export class OpenAIProvider implements AIProvider {
     isJson = false,
     jsonSchema?: z.ZodSchema,
     temperature?: number,
-  ) {
-    this.logger.log('Making API call with temperature:', temperature);
+  ): Promise<string> {
     this.logger.log(
-      `Skipping temperature (${temperature}), because it's not supported by OpenAI`,
+      'Making OpenAI/vLLM API call with temperature:',
+      temperature,
     );
 
-    const response = await this.client.chat.completions.create({
-      model: this.model,
-      messages: messages.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-      // temperature,
-      response_format:
-        isJson && jsonSchema ? { type: 'json_object' as const } : undefined,
-    });
+    // Map to OpenAI SDK message type
+    const openAIMessages: ChatMessage[] = messages.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
 
-    if (!response.choices[0]?.message?.content) {
-      throw new Error('No response from OpenAI');
+    // Build response_format with correct typing
+    let response_format: ResponseFormat | undefined;
+    if (isJson) {
+      if (jsonSchema) {
+        try {
+          const raw = z.toJSONSchema(jsonSchema) as unknown;
+          const sanitized = deepStripKeys(
+            raw,
+            new Set(['propertyNames']),
+          ) as Record<string, unknown>;
+          response_format = {
+            type: 'json_schema',
+            json_schema: { name: 'response', schema: sanitized, strict: true },
+          };
+        } catch {
+          response_format = { type: 'json_object' };
+        }
+      } else {
+        response_format = { type: 'json_object' };
+      }
     }
 
-    return response.choices[0].message.content;
+    const params: OpenAI.ChatCompletionCreateParamsNonStreaming = {
+      model: this.model,
+      messages: openAIMessages,
+      temperature,
+      stream: false,
+      ...(response_format ? { response_format } : {}),
+    };
+
+    const res = await this.client.chat.completions.create(params);
+    const content = res.choices?.[0]?.message?.content ?? '';
+    if (!content) throw new Error('No content returned from OpenAI/vLLM');
+    return content;
   }
 
   async generateText(
@@ -85,27 +153,15 @@ export class OpenAIProvider implements AIProvider {
   ): Promise<string> {
     const messages = [
       ...(options?.messages || []),
-      {
-        role: 'user' as const,
-        content: prompt,
-      },
+      { role: 'user' as const, content: prompt },
     ];
-
-    let response = await this.makeApiCall(
+    const content = await this.makeApiCall(
       messages,
       false,
       undefined,
-      temperature || 0.7,
+      temperature ?? 0.7,
     );
-
-    if (response.startsWith('<think>')) {
-      response = response.slice(response.indexOf('</think>') + 8);
-      this.logger.log(
-        chalk.magenta('Stripped <think> tags from natural language thought'),
-      );
-    }
-
-    return response.trim();
+    return content.trim();
   }
 
   async generateJson<T>(
@@ -114,32 +170,20 @@ export class OpenAIProvider implements AIProvider {
     jsonSchema?: z.ZodSchema,
     temperature?: number,
   ): Promise<T> {
+    const schemaMsg = jsonSchema
+      ? [
+          {
+            role: 'system' as const,
+            content:
+              'You are a JSON generator. Output ONE valid JSON object ONLY. No markdown, no comments, no extra text. It MUST follow the given schema.',
+          },
+        ]
+      : [];
+
     const messages = [
-      ...(jsonSchema
-        ? [
-            {
-              role: 'system' as const,
-              content: `You are a JSON response generator. Your task is to generate a single valid JSON object that strictly follows the provided schema.
-
-IMPORTANT RULES:
-1. The response must be a single valid JSON object
-2. Do not include any explanations, markdown, or text outside the JSON object
-3. Do not include any comments or notes
-4. Ensure all required fields from the schema are present
-5. Ensure all values match their expected types
-6. Do not add any fields not specified in the schema
-7. The response must be parseable by JSON.parse()
-
-The schema of the JSON object is:
-${JSON.stringify(z.toJSONSchema(jsonSchema), null, 2)}`,
-            },
-          ]
-        : []),
+      ...schemaMsg,
       ...(options?.messages || []),
-      {
-        role: 'user' as const,
-        content: prompt,
-      },
+      { role: 'user' as const, content: prompt },
     ];
 
     const content = await this.makeApiCall(
@@ -150,26 +194,26 @@ ${JSON.stringify(z.toJSONSchema(jsonSchema), null, 2)}`,
     );
 
     if (!jsonSchema) {
-      return content as T;
+      return content as unknown as T;
     }
 
-    let jsonResponse;
+    let jsonResponse: unknown;
     try {
-      // Clean the response content before parsing
-      const cleanedContent = content.trim().replace(/^```json\n?|\n?```$/g, '');
-      jsonResponse = JSON.parse(cleanedContent);
-    } catch (error) {
-      this.logger.error('Failed to parse JSON response:', error);
+      const cleaned = content.trim().replace(/^```json\n?|\n?```$/g, '');
+      jsonResponse = JSON.parse(cleaned);
+    } catch (err) {
+      this.logger.error('Failed to parse JSON response:', err);
       this.logger.error('Raw content:', content);
       throw new Error('Invalid JSON response format');
     }
 
-    const parsedResponse = jsonSchema.safeParse(jsonResponse);
-    if (parsedResponse.success === false) {
-      this.logger.error('Invalid JSON response', content, parsedResponse.error);
+    const parsed = jsonSchema.safeParse(jsonResponse);
+    if (!parsed.success) {
+      this.logger.error('Invalid JSON response', jsonResponse, parsed.error);
       throw new Error('Invalid JSON response');
     }
-
-    return parsedResponse.data as T;
+    return parsed.data as T;
   }
 }
+
+export default OpenAIProvider;

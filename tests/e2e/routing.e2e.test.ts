@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import { RoutingAgentClient } from '../utils/routing-agent-client';
 import { waitForService } from '../utils/wait-for-service';
 import { Wiremock } from '@master-thesis-agentic-ai/test-utils';
@@ -11,8 +11,6 @@ describe('E2E Routing Agent Test', () => {
   let routingAgent: RoutingAgentClient;
 
   beforeAll(async () => {
-    await Wiremock.reset();
-
     routingAgent = new RoutingAgentClient(ROUTING_AGENT_URL);
 
     // Wait for services to be ready
@@ -28,6 +26,11 @@ describe('E2E Routing Agent Test', () => {
 
     // All services are ready
   }, 30_000);
+
+  beforeEach(async () => {
+    await Wiremock.reset();
+    await Wiremock.addMoodleLoginMapping('mock-token');
+  });
 
   it('should tell his capabilities', async () => {
     const testPrompt = 'What are your capabilities?';
@@ -173,7 +176,7 @@ describe('E2E Routing Agent Test', () => {
     ).toBe(1);
   }, 60_000);
 
-  it.only('should create a daily recurring calendar event', async () => {
+  it('should create a daily recurring calendar event', async () => {
     const requestBody = {
       summary: 'Daily Standup',
       description: 'Daily team check-in meeting',
