@@ -87,53 +87,39 @@ export class CalendarProvider {
 
   public async createCalendarEvent(
     eventName: string,
-    eventDescription: string,
+    eventDescription: string | undefined,
     eventStartDate: string,
     eventEndDate: string,
     location: string | undefined,
-    recurrenceRule?: string,
+    recurrenceRules: string[] | undefined,
   ): Promise<CalendarEvent> {
     this.logger.debug('Creating calendar event', {
       eventName,
       eventDescription,
       eventStartDate,
       eventEndDate,
-      recurrenceRule,
+      recurrenceRules,
     });
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
-    // Build the request body
-    const requestBody: {
-      summary: string;
-      description: string;
-      start: { dateTime: string; timeZone: string };
-      end: { dateTime: string; timeZone: string };
-      location?: string;
-      recurrence?: string[];
-    } = {
-      summary: eventName,
-      description: eventDescription,
-      start: {
-        dateTime: formatDateTime(eventStartDate),
-        timeZone: 'UTC',
-      },
-      end: {
-        dateTime: formatDateTime(eventEndDate),
-        timeZone: 'UTC',
-      },
-      location: location,
-    };
-
-    // Add recurrence rule if provided
-    if (recurrenceRule) {
-      requestBody.recurrence = [recurrenceRule];
-    }
-
     const event = await calendar.events.insert(
       {
         calendarId: 'primary',
-        requestBody,
+        requestBody: {
+          summary: eventName,
+          description: eventDescription,
+          start: {
+            dateTime: formatDateTime(eventStartDate),
+            timeZone: 'UTC',
+          },
+          end: {
+            dateTime: formatDateTime(eventEndDate),
+            timeZone: 'UTC',
+          },
+          location: location,
+          recurrence: recurrenceRules ?? undefined,
+        },
       },
       GOOGLE_API_SETTINGS,
     );

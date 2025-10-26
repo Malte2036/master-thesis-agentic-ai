@@ -358,6 +358,10 @@ async def set_starters():
                 label="Create a calendar event",
                 message="Can you create a calendar event in 10 minutes with the name 'Meeting with the team'?",
                 # icon="/public/idea.svg",
+            ),cl.Starter(
+                label="Create a recurring calendar event",
+                message="Erstelle einen Kalendereintarg für die Mittagspause alle zwei Tage (Wochentags) um 13:30 Uhr für 1.5h. Der erste eintrag sollte in zwei wochen sein, und montags starten.",
+                # icon="/public/idea.svg",
             ),
         ]
 

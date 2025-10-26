@@ -6,8 +6,8 @@ import {
 import { createResponseError } from '@master-thesis-agentic-ai/types';
 import dotenv from 'dotenv';
 import { z } from 'zod/v3';
-import { CalendarEvent, CalendarProvider } from './providers/calendarProvider';
 import { googleAuthRoutes } from './auth/google';
+import { CalendarEvent, CalendarProvider } from './providers/calendarProvider';
 
 dotenv.config();
 
@@ -26,8 +26,11 @@ mcpServer.tool(
   'create_calendar_event',
   'Create a new calendar event (one-time or recurring).',
   {
-    event_name: z.string().describe('Name of the calendar event'),
-    event_description: z.string().describe('Description of the calendar event'),
+    event_name: z.string().describe('Name (summary) of the calendar event'),
+    event_description: z
+      .string()
+      .describe('Description of the calendar event')
+      .nullish(),
     event_start_date: z
       .string()
       .describe(
@@ -39,10 +42,13 @@ mcpServer.tool(
         'End date of the event in ISO format (e.g., 2025-10-22T14:00:00Z). If the event is recurring, this is the end date of the first occurrence.',
       ),
     location: z.string().describe('Location of the calendar event').nullish(),
-    recurrence_rule: z
+    recurrence_rules: z
       .string()
       .describe(
-        'Optional recurrence rule in RRULE format (e.g., FREQ=WEEKLY;BYDAY=MO for every Monday, FREQ=DAILY for daily, FREQ=MONTHLY for monthly). Leave empty for one-time events.',
+        'Recurrence rule for the event in RFC5545 format (e.g., "FREQ=WEEKLY;BYDAY=MO,WE,FR"). Leave empty for one-time events.',
+      )
+      .transform((val) =>
+        val ? [`RRULE:${val.replace(/\s/g, '')}`] : undefined,
       )
       .nullish(),
   },
@@ -52,7 +58,7 @@ mcpServer.tool(
     event_start_date,
     event_end_date,
     location,
-    recurrence_rule,
+    recurrence_rules,
   }) => {
     if (
       !event_name ||
@@ -77,14 +83,14 @@ mcpServer.tool(
         event_start_date,
         event_end_date,
         location ?? undefined,
-        recurrence_rule ?? undefined,
+        recurrence_rules ?? undefined,
       );
     } catch (error) {
       logger.error('Failed to create calendar event:', error);
       throw createResponseError('Failed to create calendar event', 500);
     }
 
-    const eventType = recurrence_rule
+    const eventType = recurrence_rules
       ? 'recurring calendar event'
       : 'calendar event';
     const humanReadableResponse = `We successfully created the ${eventType}:  \n\n${objectsToHumanReadableString(
