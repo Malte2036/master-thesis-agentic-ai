@@ -18,7 +18,6 @@ services:
       - .env
     environment:
       # - MOODLE_BASE_URL=http://wiremock:8080
-      # - MOODLE_TOKEN=mock-token
       - MOODLE_BASE_URL=http://moodle:80
       - MOODLE_USERNAME=$MOODLE_USERNAME
       - MOODLE_PASSWORD=$MOODLE_PASSWORD
@@ -46,7 +45,6 @@ services:
       - GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
       - GOOGLE_REDIRECT_URI=$GOOGLE_REDIRECT_URI
       - GOOGLE_PRIVATE_REFRESH_TOKEN=$GOOGLE_PRIVATE_REFRESH_TOKEN
-      - CALENDAR_BASE_URL=http://localhost:3004
       # - NODE_ENV=test
     healthcheck:
       test:

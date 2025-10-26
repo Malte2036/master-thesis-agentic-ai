@@ -118,6 +118,118 @@ describe('E2E Routing Agent Test', () => {
     ).toBe(1);
   }, 30_000);
 
+  it('should create a recurring calendar event', async () => {
+    const requestBody = {
+      summary: 'Weekly Team Standup',
+      description: 'Our regular weekly team standup meeting',
+      start: {
+        dateTime: '2017-10-23T09:00:00Z',
+        timeZone: 'UTC',
+      },
+      end: {
+        dateTime: '2017-10-23T09:30:00Z',
+        timeZone: 'UTC',
+      },
+      recurrence: ['FREQ=WEEKLY;BYDAY=MO'],
+    };
+
+    const responseBody = {
+      id: 'recurring-event-123',
+      summary: requestBody.summary,
+      description: requestBody.description,
+      start: {
+        dateTime: requestBody.start.dateTime,
+        timeZone: 'UTC',
+      },
+      end: {
+        dateTime: requestBody.end.dateTime,
+        timeZone: 'UTC',
+      },
+      recurrence: requestBody.recurrence,
+    };
+
+    await Wiremock.addCalendarMapping(
+      '/calendar/v3/calendars/primary/events',
+      requestBody,
+      responseBody,
+    );
+
+    const testPrompt = `Create a recurring calendar event with the name "${requestBody.summary}" and the description "${requestBody.description}" every Monday at 9:00 AM UTC for 30 minutes beginning on ${requestBody.start.dateTime}.`;
+    const finalResponse = await routingAgent.askAndWaitForResponse({
+      prompt: testPrompt,
+    });
+
+    expect(finalResponse).toBeDefined();
+    expect(finalResponse.length).toBeGreaterThan(0);
+    expect(finalResponse).toContain(responseBody.summary);
+    expect(finalResponse.toLowerCase()).toContain('recurring');
+    expect(finalResponse.toLowerCase()).toContain('created');
+
+    expect(
+      await Wiremock.countCalendarRequests(
+        '/calendar/v3/calendars/primary/events',
+        requestBody,
+      ),
+    ).toBe(1);
+  }, 60_000);
+
+  it.only('should create a daily recurring calendar event', async () => {
+    const requestBody = {
+      summary: 'Daily Standup',
+      description: 'Daily team check-in meeting',
+      start: {
+        dateTime: '2025-01-15T10:00:00Z',
+        timeZone: 'UTC',
+      },
+      end: {
+        dateTime: '2025-01-15T10:15:00Z',
+        timeZone: 'UTC',
+      },
+      recurrence: ['FREQ=DAILY;COUNT=10'],
+    };
+
+    const responseBody = {
+      id: 'daily-recurring-event-456',
+      summary: requestBody.summary,
+      description: requestBody.description,
+      start: {
+        dateTime: requestBody.start.dateTime,
+        timeZone: 'UTC',
+      },
+      end: {
+        dateTime: requestBody.end.dateTime,
+        timeZone: 'UTC',
+      },
+      recurrence: requestBody.recurrence,
+    };
+
+    await Wiremock.addCalendarMapping(
+      '/calendar/v3/calendars/primary/events',
+      requestBody,
+      responseBody,
+    );
+
+    const testPrompt = `Create a daily recurring calendar event with the name "${requestBody.summary}" and the description "${requestBody.description}" every day at 10:00 AM UTC for 15 minutes, repeating 10 times. Beginning on ${requestBody.start.dateTime}.`;
+    const finalResponse = await routingAgent.askAndWaitForResponse({
+      prompt: testPrompt,
+    });
+
+    expect(finalResponse).toBeDefined();
+    expect(finalResponse.length).toBeGreaterThan(0);
+    expect(finalResponse).toContain(responseBody.summary);
+    expect(finalResponse.toLowerCase()).toContain('recurring');
+    expect(finalResponse.toLowerCase()).toContain('scheduled');
+    expect(finalResponse.toLowerCase()).toContain('daily');
+    expect(finalResponse.toLowerCase()).toContain('10');
+
+    expect(
+      await Wiremock.countCalendarRequests(
+        '/calendar/v3/calendars/primary/events',
+        requestBody,
+      ),
+    ).toBe(1);
+  }, 60_000);
+
   it('should combine the moodle-agent and the calendar-agent', async () => {
     await Wiremock.addMoodleMapping(
       'core_webservice_get_site_info',

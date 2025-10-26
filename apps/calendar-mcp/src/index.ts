@@ -13,12 +13,7 @@ dotenv.config();
 
 const logger = new Logger({ agentName: 'calendar-mcp' });
 
-const calendarBaseUrl = process.env.CALENDAR_BASE_URL;
-if (!calendarBaseUrl) {
-  throw new Error('CALENDAR_BASE_URL is not set');
-}
-
-const calendarProvider = new CalendarProvider(logger, calendarBaseUrl);
+const calendarProvider = new CalendarProvider(logger);
 
 const mcpServerFramework = createMCPServerFramework(
   logger,
@@ -29,26 +24,35 @@ const mcpServer = mcpServerFramework.getServer();
 
 mcpServer.tool(
   'create_calendar_event',
-  'Create a new calendar event.',
+  'Create a new calendar event (one-time or recurring).',
   {
     event_name: z.string().describe('Name of the calendar event'),
     event_description: z.string().describe('Description of the calendar event'),
     event_start_date: z
       .string()
       .describe(
-        'Start date of the event in ISO format (e.g., 2025-10-22T13:00:00 or 2025-10-22T13:00:00Z)',
+        'Start date of the event in ISO format (e.g., 2025-10-22T13:00:00Z). If the event is recurring, this is the start date of the first occurrence.',
       ),
     event_end_date: z
       .string()
       .describe(
-        'End date of the event in ISO format (e.g., 2025-10-22T14:00:00 or 2025-10-22T14:00:00Z)',
+        'End date of the event in ISO format (e.g., 2025-10-22T14:00:00Z). If the event is recurring, this is the end date of the first occurrence.',
       ),
+    location: z.string().describe('Location of the calendar event').nullish(),
+    recurrence_rule: z
+      .string()
+      .describe(
+        'Optional recurrence rule in RRULE format (e.g., FREQ=WEEKLY;BYDAY=MO for every Monday, FREQ=DAILY for daily, FREQ=MONTHLY for monthly). Leave empty for one-time events.',
+      )
+      .nullish(),
   },
   async ({
     event_name,
     event_description,
     event_start_date,
     event_end_date,
+    location,
+    recurrence_rule,
   }) => {
     if (
       !event_name ||
@@ -72,13 +76,18 @@ mcpServer.tool(
         event_description,
         event_start_date,
         event_end_date,
+        location ?? undefined,
+        recurrence_rule ?? undefined,
       );
     } catch (error) {
       logger.error('Failed to create calendar event:', error);
       throw createResponseError('Failed to create calendar event', 500);
     }
 
-    const humanReadableResponse = `We successfully created the calendar event:  \n\n${objectsToHumanReadableString(
+    const eventType = recurrence_rule
+      ? 'recurring calendar event'
+      : 'calendar event';
+    const humanReadableResponse = `We successfully created the ${eventType}:  \n\n${objectsToHumanReadableString(
       [createdEvent],
       {
         serializeOptions: {
@@ -127,9 +136,10 @@ mcpServer.tool(
       end: z
         .string()
         .describe(
-          'End date of the event in ISO format (e.g., 2025-10-22T14:00:00Z or 2025-10-22T14:00:00+00:00)',
+          'End date of the event in ISO format (e.g., 2025-10-22T14:00:00Z)',
         )
         .nullish(),
+      location: z.string().describe('Location of the calendar event').nullish(),
     }),
   },
   async ({ event_id, data }) => {
@@ -138,6 +148,7 @@ mcpServer.tool(
       description: data.description ?? undefined,
       start: data.start ?? undefined,
       end: data.end ?? undefined,
+      location: data.location ?? undefined,
     });
 
     const humanReadableResponse = `We successfully updated the calendar event:  \n\n${objectsToHumanReadableString(

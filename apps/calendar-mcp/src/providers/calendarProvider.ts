@@ -40,6 +40,7 @@ const CalendarEventSchema = z.object({
     .nullish(),
   location: z.string().nullish(),
   htmlLink: z.string().nullish(),
+  recurrence: z.array(z.string()).nullish(),
 });
 
 export type CalendarEvent = z.infer<typeof CalendarEventSchema>;
@@ -78,34 +79,61 @@ const formatDateTime = (dateString: string): string => {
 };
 
 export class CalendarProvider {
-  constructor(
-    private readonly logger: Logger,
-    private readonly calendarBaseUrl: string,
-  ) {}
+  constructor(private readonly logger: Logger) {
+    this.logger.debug(
+      `Using ${GOOGLE_API_SETTINGS ? 'Wiremock' : 'Google'} API`,
+    );
+  }
 
   public async createCalendarEvent(
     eventName: string,
     eventDescription: string,
     eventStartDate: string,
     eventEndDate: string,
+    location: string | undefined,
+    recurrenceRule?: string,
   ): Promise<CalendarEvent> {
     this.logger.debug('Creating calendar event', {
       eventName,
       eventDescription,
       eventStartDate,
       eventEndDate,
+      recurrenceRule,
     });
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+    // Build the request body
+    const requestBody: {
+      summary: string;
+      description: string;
+      start: { dateTime: string; timeZone: string };
+      end: { dateTime: string; timeZone: string };
+      location?: string;
+      recurrence?: string[];
+    } = {
+      summary: eventName,
+      description: eventDescription,
+      start: {
+        dateTime: formatDateTime(eventStartDate),
+        timeZone: 'UTC',
+      },
+      end: {
+        dateTime: formatDateTime(eventEndDate),
+        timeZone: 'UTC',
+      },
+      location: location,
+    };
+
+    // Add recurrence rule if provided
+    if (recurrenceRule) {
+      requestBody.recurrence = [recurrenceRule];
+    }
+
     const event = await calendar.events.insert(
       {
         calendarId: 'primary',
-        requestBody: {
-          summary: eventName,
-          description: eventDescription,
-          start: { dateTime: formatDateTime(eventStartDate) },
-          end: { dateTime: formatDateTime(eventEndDate) },
-        },
+        requestBody,
       },
       GOOGLE_API_SETTINGS,
     );
@@ -179,6 +207,7 @@ export class CalendarProvider {
       description: string | undefined;
       start: string | undefined;
       end: string | undefined;
+      location: string | undefined;
     },
   ): Promise<CalendarEvent> {
     this.logger.debug('Patching calendar event', {
@@ -200,6 +229,7 @@ export class CalendarProvider {
               dateTime: data.start ? formatDateTime(data.start) : undefined,
             },
             end: { dateTime: data.end ? formatDateTime(data.end) : undefined },
+            location: data.location,
           },
         },
         GOOGLE_API_SETTINGS,
