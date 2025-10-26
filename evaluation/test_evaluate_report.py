@@ -16,13 +16,21 @@ def get_test_cases(path="./report/report.json"):
         for e in entries
     ]
 
-# metric = GEval(
-#     name="Correctness",
-#     criteria="Determine if the 'actual output' is correct based on the 'expected output'.",
-#     evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT, LLMTestCaseParams.EXPECTED_OUTPUT],
-#     threshold=0.5,
-# )
-metric = AnswerRelevancyMetric(threshold=0.5)
+metrics = [
+    GEval(
+        name="Correctness",
+        evaluation_steps=[
+            "Check if the 'actual output' accurately matches the facts in 'expected output'.",
+            "Penalize any missing or incorrect facts.",
+            "Minor rewording or paraphrasing is fine as long as the meaning stays the same.",
+            "Do not penalize style or tone differences.",
+            "Vague wording is okay unless it causes loss of important detail.",
+        ],
+        evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT, LLMTestCaseParams.EXPECTED_OUTPUT],
+        threshold=0.7,
+    ),
+    AnswerRelevancyMetric(threshold=0.5)
+]
 
 tcs = get_test_cases()
-result = evaluate(test_cases=tcs, metrics=[metric])
+result = evaluate(test_cases=tcs, metrics=metrics)
