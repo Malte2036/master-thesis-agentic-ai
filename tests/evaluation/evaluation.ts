@@ -1,6 +1,10 @@
 import { RoutingAgentClient } from '../utils/routing-agent-client';
 import { waitForService } from '../utils/wait-for-service';
-import { EvaluationReport, writeEvaluationReport } from '../report/report';
+import {
+  EvaluationReport,
+  EvaluationReportEntry,
+  writeEvaluationReport,
+} from '../report/report';
 import { E2E_EVALUATION_TEST_DATA } from './evaluation.data';
 
 const ROUTING_AGENT_URL = 'http://localhost:3000';
@@ -41,12 +45,7 @@ async function runEvaluationTests() {
     // Run tests in batches to prevent SSE timeout issues
     const BATCH_SIZE = 1;
     const BATCH_DELAY = 2000; // 2 seconds between batches
-    const results: Array<{
-      input: string;
-      actual_output: string;
-      expected_output: string;
-      completion_time: number;
-    }> = [];
+    const results: EvaluationReportEntry[] = [];
 
     for (let i = 0; i < E2E_EVALUATION_TEST_DATA.length; i += BATCH_SIZE) {
       const batch = E2E_EVALUATION_TEST_DATA.slice(i, i + BATCH_SIZE);
@@ -88,6 +87,7 @@ async function runEvaluationTests() {
           return {
             input: testData.input,
             actual_output: finalResponse,
+            retrieval_context: testData.retrieval_context,
             expected_output: testData.expected_output,
             completion_time: completionTime,
           };
@@ -104,12 +104,14 @@ async function runEvaluationTests() {
             input: testData.input,
             actual_output: `ERROR: ${error}`,
             expected_output: testData.expected_output,
+            retrieval_context: testData.retrieval_context,
             completion_time: completionTime,
           };
         }
       });
 
-      const batchResults = await Promise.all(batchPromises);
+      const batchResults: EvaluationReportEntry[] =
+        await Promise.all(batchPromises);
       results.push(...batchResults);
 
       // Add delay between batches (except for the last batch)

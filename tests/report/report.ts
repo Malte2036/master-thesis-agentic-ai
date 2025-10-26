@@ -3,10 +3,12 @@ import fs from 'fs';
 export type EvaluationReportBase = {
   input: string;
   expected_output: string;
+  retrieval_context: string;
 };
 
 export type EvaluationReportEntry = EvaluationReportBase & {
   actual_output: string;
+  completion_time: number;
 };
 
 export type EvaluationReport = {

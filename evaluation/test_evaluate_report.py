@@ -1,7 +1,7 @@
 import json
 from deepeval import evaluate
 from deepeval.test_case import LLMTestCase, LLMTestCaseParams
-from deepeval.metrics import GEval, AnswerRelevancyMetric
+from deepeval.metrics import GEval, AnswerRelevancyMetric, ContextualRelevancyMetric
 
 def get_test_cases(path="./report/report.json"):
     data = json.load(open(path, "r", encoding="utf-8"))
@@ -11,6 +11,7 @@ def get_test_cases(path="./report/report.json"):
             input=e["input"],
             actual_output=e["actual_output"],
             expected_output=e.get("expected_output"),
+            retrieval_context=e.get("retrieval_context"),
             completion_time=e.get("completion_time"),
         )
         for e in entries
@@ -29,7 +30,10 @@ metrics = [
         evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT, LLMTestCaseParams.EXPECTED_OUTPUT],
         threshold=0.7,
     ),
-    AnswerRelevancyMetric(threshold=0.5)
+    AnswerRelevancyMetric(threshold=0.5),
+    ContextualRelevancyMetric(
+    threshold=0.7,
+)
 ]
 
 tcs = get_test_cases()
