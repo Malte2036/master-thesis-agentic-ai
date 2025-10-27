@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { randomUUID } from 'crypto';
 
 const WIREMOCK_URL = 'http://localhost:8082/__admin';
@@ -38,14 +39,18 @@ type Mapping = {
 };
 
 export class Wiremock {
-  public static generateTestId(): string {
+  public readonly contextId: string;
+
+  constructor(name: string) {
+    this.contextId = `${randomUUID().slice(0, 8)}-${name.replace(/ /g, '-').toLowerCase().slice(0, 100)}`;
+    console.debug(`Wiremock context ID: ${this.contextId}`);
+  }
+
+  private static generateContextId(): string {
     return `test-${randomUUID()}`;
   }
 
-  /**
-   * Reset all mappings and requests in Wiremock
-   */
-  static async reset(): Promise<void> {
+  public static async resetGlobal(): Promise<void> {
     await fetch(`${WIREMOCK_URL}/mappings/reset`, { method: 'POST' });
     await fetch(`${WIREMOCK_URL}/requests/reset`, { method: 'POST' });
   }
@@ -53,7 +58,12 @@ export class Wiremock {
   /**
    * Add a new mapping to Wiremock
    */
-  public static async addMapping(mapping: Mapping): Promise<void> {
+  public async addMapping(mapping: Mapping): Promise<void> {
+    mapping.request.headers = {
+      ...mapping.request.headers,
+      'X-Context-Id': { equalTo: this.contextId },
+    };
+
     await fetch(`${WIREMOCK_URL}/mappings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -64,8 +74,7 @@ export class Wiremock {
   /**
    * Count requests with the given method & URL pattern (and optional body patterns)
    */
-  static async count(
-    testId: string,
+  async count(
     method: string,
     urlPattern: string,
     bodyPatterns?: BodyPattern[],
@@ -74,7 +83,7 @@ export class Wiremock {
       method,
       urlPattern,
       bodyPatterns,
-      headers: { 'X-Context-Id': { equalTo: testId } },
+      headers: { 'X-Context-Id': { equalTo: this.contextId } },
     };
 
     const res = await fetch(`${WIREMOCK_URL}/requests/count`, {
@@ -88,8 +97,7 @@ export class Wiremock {
   }
 
   // Moodle Wiremock helper methods
-  static async addMoodleMapping<T>(
-    testId: string,
+  async addMoodleMapping<T>(
     wsfunction: string,
     responseBody: T,
     args?: Record<string, string>,
@@ -112,16 +120,11 @@ export class Wiremock {
       contains: `moodlewsrestformat=json`,
     });
 
-    await Wiremock.addMapping({
+    await this.addMapping({
       request: {
         method: 'POST',
         url: MOODLE_WEBSERVICE_PATH,
         bodyPatterns,
-        headers: {
-          'X-Context-Id': {
-            equalTo: testId,
-          },
-        },
       },
       response: {
         status: 200,
@@ -133,19 +136,11 @@ export class Wiremock {
     });
   }
 
-  public static async addMoodleLoginMapping(
-    testId: string,
-    token: string,
-  ): Promise<void> {
-    await Wiremock.addMapping({
+  public async addMoodleLoginMapping(token: string): Promise<void> {
+    await this.addMapping({
       request: {
         method: 'POST',
         url: '/login/token.php',
-        headers: {
-          'X-Context-Id': {
-            equalTo: testId,
-          },
-        },
       },
 
       response: {
@@ -161,8 +156,7 @@ export class Wiremock {
   /**
    * Count Moodle webservice requests with the given function and optional arguments
    */
-  static async countMoodleRequests(
-    testId: string,
+  async countMoodleRequests(
     wsfunction: string,
     args?: Record<string, string>,
   ): Promise<number> {
@@ -184,21 +178,16 @@ export class Wiremock {
       contains: `moodlewsrestformat=json`,
     });
 
-    return await Wiremock.count(
-      testId,
-      'POST',
-      MOODLE_WEBSERVICE_PATH,
-      bodyPatterns,
-    );
+    return await this.count('POST', MOODLE_WEBSERVICE_PATH, bodyPatterns);
   }
 
   // calendar Wiremock helper methods
-  static async addCalendarMapping(
+  async addCalendarMapping(
     url: CalendarPath,
     requestBody: any,
     responseBody: any,
   ): Promise<void> {
-    await Wiremock.addMapping({
+    await this.addMapping({
       request: {
         method: 'POST',
         url,
@@ -212,12 +201,11 @@ export class Wiremock {
     });
   }
 
-  static async countCalendarRequests(
+  async countCalendarRequests(
     url: CalendarPath,
     requestBody: any,
   ): Promise<number> {
-    return await Wiremock.count(
-      'todo',
+    return await this.count(
       'POST',
       url,
       requestBody

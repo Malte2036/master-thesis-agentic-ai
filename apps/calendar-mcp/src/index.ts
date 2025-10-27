@@ -1,5 +1,6 @@
 import {
   createMCPServerFramework,
+  getContextIdFromMcpServerRequestHandlerExtra,
   Logger,
   objectsToHumanReadableString,
 } from '@master-thesis-agentic-ai/agent-framework';
@@ -12,8 +13,6 @@ import { CalendarEvent, CalendarProvider } from './providers/calendarProvider';
 dotenv.config();
 
 const logger = new Logger({ agentName: 'calendar-mcp' });
-
-const calendarProvider = new CalendarProvider(logger);
 
 const mcpServerFramework = createMCPServerFramework(
   logger,
@@ -45,21 +44,24 @@ mcpServer.tool(
     recurrence_rules: z
       .string()
       .describe(
-        'Recurrence rule for the event in RFC5545 format (e.g., "FREQ=WEEKLY;BYDAY=MO,WE,FR"). Leave empty for one-time events.',
+        'Recurrence rule for the event in RFC5545 format (e.g., "FREQ=WEEKLY;BYDAY=MO,WE,FR", "FREQ=DAILY;COUNT=10"). Leave empty for one-time events.',
       )
       .transform((val) =>
         val ? [`RRULE:${val.replace(/\s/g, '')}`] : undefined,
       )
       .nullish(),
   },
-  async ({
-    event_name,
-    event_description,
-    event_start_date,
-    event_end_date,
-    location,
-    recurrence_rules,
-  }) => {
+  async (
+    {
+      event_name,
+      event_description,
+      event_start_date,
+      event_end_date,
+      location,
+      recurrence_rules,
+    },
+    extra,
+  ) => {
     if (
       !event_name ||
       !event_description ||
@@ -74,6 +76,9 @@ mcpServer.tool(
       });
       throw createResponseError('Required fields are missing', 400);
     }
+
+    const contextId = getContextIdFromMcpServerRequestHandlerExtra(extra);
+    const calendarProvider = new CalendarProvider(logger, contextId);
 
     let createdEvent: CalendarEvent;
     try {
@@ -148,7 +153,10 @@ mcpServer.tool(
       location: z.string().describe('Location of the calendar event').nullish(),
     }),
   },
-  async ({ event_id, data }) => {
+  async ({ event_id, data }, extra) => {
+    const contextId = getContextIdFromMcpServerRequestHandlerExtra(extra);
+    const calendarProvider = new CalendarProvider(logger, contextId);
+
     const updatedEvent = await calendarProvider.patchCalendarEvent(event_id, {
       summary: data.summary ?? undefined,
       description: data.description ?? undefined,
@@ -191,7 +199,10 @@ mcpServer.tool(
       )
       .nullish(),
   },
-  async ({ start_date, end_date }) => {
+  async ({ start_date, end_date }, extra) => {
+    const contextId = getContextIdFromMcpServerRequestHandlerExtra(extra);
+    const calendarProvider = new CalendarProvider(logger, contextId);
+
     let calendarEvents: CalendarEvent[];
     try {
       calendarEvents = await calendarProvider.getCalendarEvents(
@@ -226,7 +237,10 @@ mcpServer.tool(
   {
     query: z.string().describe('Query to find calendar events'),
   },
-  async ({ query }) => {
+  async ({ query }, extra) => {
+    const contextId = getContextIdFromMcpServerRequestHandlerExtra(extra);
+    const calendarProvider = new CalendarProvider(logger, contextId);
+
     let calendarEvents: CalendarEvent[];
     try {
       calendarEvents =

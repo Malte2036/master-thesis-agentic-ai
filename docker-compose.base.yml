@@ -17,10 +17,10 @@ services:
     env_file:
       - .env
     environment:
-      # - MOODLE_BASE_URL=http://wiremock:8080
       - MOODLE_BASE_URL=http://moodle:80
       - MOODLE_USERNAME=$MOODLE_USERNAME
       - MOODLE_PASSWORD=$MOODLE_PASSWORD
+      - NODE_ENV=${NODE_ENV}
     healthcheck:
       test:
         [
@@ -45,7 +45,7 @@ services:
       - GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
       - GOOGLE_REDIRECT_URI=$GOOGLE_REDIRECT_URI
       - GOOGLE_PRIVATE_REFRESH_TOKEN=$GOOGLE_PRIVATE_REFRESH_TOKEN
-      # - NODE_ENV=test
+      - NODE_ENV=${NODE_ENV}
     healthcheck:
       test:
         [

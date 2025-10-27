@@ -24,19 +24,20 @@ export class MoodleProvider {
   constructor(
     private readonly logger: Logger,
     private readonly moodleBaseUrl: string,
-  ) {}
+    private readonly contextId: string,
+  ) {
+    if (process.env.NODE_ENV === 'test') {
+      this.moodleBaseUrl = 'http://wiremock:8080';
+    }
+  }
 
-  public async getToken(
-    contextId: string,
-    username: string,
-    password: string,
-  ): Promise<string> {
+  public async getToken(username: string, password: string): Promise<string> {
     try {
       const response = await fetch(`${this.moodleBaseUrl}/login/token.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'X-Context-Id': contextId,
+          'X-Context-Id': this.contextId,
         },
         body: new URLSearchParams({
           username: username,
@@ -74,13 +75,11 @@ export class MoodleProvider {
    * @throws Will throw an error if the network response is not ok or if the API returns an error
    */
   private async callMoodleFunction<T>(
-    contextId: string,
-    moodleBaseUrl: string,
     token: string,
     wsfunction: string,
     args: Record<string, unknown> = {},
   ): Promise<T> {
-    const MoodleUrl = `${moodleBaseUrl}${MOODLE_WEBSERVICE_PATH}`;
+    const MoodleUrl = `${this.moodleBaseUrl}${MOODLE_WEBSERVICE_PATH}`;
     const params = new URLSearchParams();
     params.append('wstoken', token);
     params.append('wsfunction', wsfunction);
@@ -104,7 +103,7 @@ export class MoodleProvider {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'X-Context-Id': contextId,
+          'X-Context-Id': this.contextId,
         },
         body: params.toString(),
       });
@@ -145,13 +144,8 @@ export class MoodleProvider {
     return result.data;
   }
 
-  public async getUserInfo(
-    contextId: string,
-    token: string,
-  ): Promise<UserInfo> {
+  public async getUserInfo(token: string): Promise<UserInfo> {
     const data = await this.callMoodleFunction<unknown>(
-      contextId,
-      this.moodleBaseUrl,
       token,
       'core_webservice_get_site_info',
     );
@@ -160,13 +154,10 @@ export class MoodleProvider {
   }
 
   public async getEnrolledCourses(
-    contextId: string,
     token: string,
     userid: number,
   ): Promise<CoursesResponse> {
     const data = await this.callMoodleFunction<unknown>(
-      contextId,
-      this.moodleBaseUrl,
       token,
       'core_enrol_get_users_courses',
       { userid: userid.toString() },
@@ -176,13 +167,10 @@ export class MoodleProvider {
   }
 
   public async findCoursesByName(
-    contextId: string,
     token: string,
     courseName: string,
   ): Promise<SearchCoursesResponse> {
     const data = await this.callMoodleFunction<unknown>(
-      contextId,
-      this.moodleBaseUrl,
       token,
       'core_course_search_courses',
       { criterianame: 'search', criteriavalue: courseName },
@@ -192,13 +180,10 @@ export class MoodleProvider {
   }
 
   public async getCourseContents(
-    contextId: string,
     token: string,
     courseid: number,
   ): Promise<CourseContentsResponse> {
     const data = await this.callMoodleFunction<unknown>(
-      contextId,
-      this.moodleBaseUrl,
       token,
       'core_course_get_contents',
       { courseid: courseid.toString() },
@@ -208,13 +193,10 @@ export class MoodleProvider {
   }
 
   public async getAssignments(
-    contextId: string,
     token: string,
     courseIds?: number[],
   ): Promise<AssignmentsResponse> {
     const data = await this.callMoodleFunction<unknown>(
-      contextId,
-      this.moodleBaseUrl,
       token,
       'mod_assign_get_assignments',
       { courseids: courseIds },
@@ -224,11 +206,10 @@ export class MoodleProvider {
   }
 
   public async getAssignmentsForCourse(
-    contextId: string,
     token: string,
     courseid: number,
   ): Promise<MinimalCourse | undefined> {
-    const response = await this.getAssignments(contextId, token, [courseid]);
+    const response = await this.getAssignments(token, [courseid]);
     return response.courses[0];
   }
 }

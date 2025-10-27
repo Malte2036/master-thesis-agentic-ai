@@ -4,13 +4,15 @@ import z from 'zod';
 import { oauth2Client } from '../auth/google';
 import { createResponseError } from '@master-thesis-agentic-ai/types';
 
-const GOOGLE_API_SETTINGS =
-  process.env.NODE_ENV === 'test'
-    ? {
-        http2: false,
-        rootUrl: 'http://wiremock:8080/',
-      }
-    : undefined;
+type GoogleApiSettings =
+  | {
+      http2: boolean;
+      rootUrl: string;
+      headers: {
+        'x-context-id': string;
+      };
+    }
+  | undefined;
 
 const CalendarEventSchema = z.object({
   id: z.string().nullish(),
@@ -79,10 +81,23 @@ const formatDateTime = (dateString: string): string => {
 };
 
 export class CalendarProvider {
-  constructor(private readonly logger: Logger) {
-    this.logger.debug(
-      `Using ${GOOGLE_API_SETTINGS ? 'Wiremock' : 'Google'} API`,
-    );
+  private readonly apiSettings: GoogleApiSettings;
+
+  constructor(
+    private readonly logger: Logger,
+    private readonly contextId: string,
+  ) {
+    if (process.env.NODE_ENV === 'test') {
+      this.apiSettings = {
+        http2: false,
+        rootUrl: 'http://wiremock:8080/',
+        headers: {
+          'x-context-id': contextId,
+        },
+      };
+    }
+
+    this.logger.debug(`Using ${this.apiSettings ? 'Wiremock' : 'Google'} API`);
   }
 
   public async createCalendarEvent(
@@ -121,7 +136,7 @@ export class CalendarProvider {
           recurrence: recurrenceRules ?? undefined,
         },
       },
-      GOOGLE_API_SETTINGS,
+      this.apiSettings,
     );
 
     const validatedEvent = CalendarEventSchema.safeParse(event.data);
@@ -146,7 +161,7 @@ export class CalendarProvider {
         timeMin: startDate,
         timeMax: endDate,
       },
-      GOOGLE_API_SETTINGS,
+      this.apiSettings,
     );
 
     const validatedEvents = CalendarEventSchema.array().safeParse(
@@ -171,7 +186,7 @@ export class CalendarProvider {
         calendarId: 'primary',
         q: query,
       },
-      GOOGLE_API_SETTINGS,
+      this.apiSettings,
     );
     const validatedEvents = CalendarEventSchema.array().safeParse(
       events.data.items,
@@ -218,7 +233,7 @@ export class CalendarProvider {
             location: data.location,
           },
         },
-        GOOGLE_API_SETTINGS,
+        this.apiSettings,
       );
     } catch (error: unknown) {
       if (errorHasStatusCode(error, 404)) {
