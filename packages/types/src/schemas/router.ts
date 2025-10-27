@@ -1,5 +1,6 @@
 import { z } from 'zod/v4';
 import { FunctionCallSchema as FunctionCallSchema } from './agent';
+import { ToolCallTraceSchema } from './trace';
 
 export const StructuredThoughtResponseSchema = z.object({
   functionCalls: z
@@ -30,6 +31,7 @@ export const RouterProcessSchema = z.object({
       }),
     )
     .optional(),
+  trace: z.array(ToolCallTraceSchema),
 });
 
 export type RouterProcess = z.infer<typeof RouterProcessSchema>;

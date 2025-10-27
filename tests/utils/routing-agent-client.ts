@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import { RouterProcess } from '@master-thesis-agentic-ai/types';
 import EventSource from 'eventsource';
 
 export interface RoutingAgentRequest {
@@ -62,7 +63,7 @@ export class RoutingAgentClient {
     testId: string | undefined,
     timeout = 180000,
     maxRetries = 2,
-  ): Promise<string> {
+  ): Promise<{ finalResponse: string; process: RouterProcess }> {
     let lastError: Error | null = null;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -102,7 +103,10 @@ export class RoutingAgentClient {
               if (data.type === 'final_response') {
                 cleanup();
                 console.log('✅ Received final response');
-                resolve(data.data.finalResponse || '');
+                resolve({
+                  finalResponse: data.data.finalResponse || '',
+                  process: data.data.process as RouterProcess | undefined,
+                });
               } else if (data.type === 'error') {
                 cleanup();
                 reject(new Error(`SSE Error: ${data.data}`));

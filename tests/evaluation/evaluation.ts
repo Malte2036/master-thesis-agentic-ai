@@ -1,11 +1,12 @@
 /* eslint-disable no-console */
-import { RoutingAgentClient } from '../utils/routing-agent-client';
-import { waitForService } from '../utils/wait-for-service';
+import { ToolCallTrace } from '@master-thesis-agentic-ai/types';
 import {
   EvaluationReport,
   EvaluationReportEntry,
   writeEvaluationReport,
 } from '../report/report';
+import { RoutingAgentClient } from '../utils/routing-agent-client';
+import { waitForService } from '../utils/wait-for-service';
 import { E2E_EVALUATION_TEST_DATA } from './evaluation.data';
 
 const ROUTING_AGENT_URL = 'http://localhost:3000';
@@ -58,57 +59,82 @@ async function runEvaluationTests() {
         `🔄 Running batch ${batchNumber}/${totalBatches} (${batch.length} tests)...`,
       );
 
-      const batchPromises = batch.map(async (testData, batchIndex) => {
-        const globalIndex = i + batchIndex;
-        console.log(
-          `📝 Running test ${globalIndex + 1}/${E2E_EVALUATION_TEST_DATA.length}: "${testData.input}"`,
-        );
-
-        const startTime = Date.now();
-
-        try {
-          const finalResponse = await routingAgent.askAndWaitForResponse(
-            {
-              prompt: testData.input,
-            },
-            `test-${globalIndex}`,
-            TIMEOUT,
-          );
-
-          const endTime = Date.now();
-          const completionTime = (endTime - startTime) / 1000; // Convert to seconds
-
+      const batchResults: EvaluationReportEntry[] = await Promise.all(
+        batch.map(async (testData) => {
           console.log(
-            `✅ Test ${globalIndex + 1} completed in ${completionTime.toFixed(2)}s`,
+            `📝 Running test ${testData.id}/${E2E_EVALUATION_TEST_DATA.length}: "${testData.input}"`,
           );
 
-          return {
-            input: testData.input,
-            actual_output: finalResponse,
-            retrieval_context: testData.retrieval_context,
-            expected_output: testData.expected_output,
-            completion_time: completionTime,
-          };
-        } catch (error) {
-          const endTime = Date.now();
-          const completionTime = (endTime - startTime) / 1000; // Convert to seconds
+          const startTime = Date.now();
 
-          console.error(
-            `❌ Test ${globalIndex + 1} failed after ${completionTime.toFixed(2)}s:`,
-            error,
-          );
-          return {
-            input: testData.input,
-            actual_output: `ERROR: ${error}`,
-            expected_output: testData.expected_output,
-            retrieval_context: testData.retrieval_context,
-            completion_time: completionTime,
-          };
-        }
-      });
+          try {
+            const { finalResponse, process } =
+              await routingAgent.askAndWaitForResponse(
+                {
+                  prompt: testData.input,
+                },
+                `test-${testData.id}`,
+                TIMEOUT,
+              );
 
-      const batchResults: EvaluationReportEntry[] =
-        await Promise.all(batchPromises);
+            const endTime = Date.now();
+            const completionTime = (endTime - startTime) / 1000; // Convert to seconds
+
+            console.log(
+              `✅ Test ${testData.id} completed in ${completionTime.toFixed(2)}s`,
+            );
+
+            const trace: ToolCallTrace[] = process?.iterationHistory?.flatMap(
+              (iteration) =>
+                iteration.structuredThought.functionCalls.map(
+                  (call) =>
+                    ({
+                      tool: call.function,
+                      args: call.args,
+                      obs: iteration.response,
+                    }) satisfies ToolCallTrace,
+                ),
+            );
+
+            // console.log(
+            //   `📝 Test ${testData.id} trace:`,
+            //   JSON.stringify(trace, null, 2),
+            // );
+
+            return {
+              id: testData.id,
+              task_type: testData.task_type,
+              input: testData.input,
+              actual_output: finalResponse,
+              retrieval_context: [],
+              expected_output: testData.expected_output,
+              completion_time: completionTime,
+              trace: trace,
+              token_cost: 0,
+            } satisfies EvaluationReportEntry;
+          } catch (error) {
+            const endTime = Date.now();
+            const completionTime = (endTime - startTime) / 1000; // Convert to seconds
+
+            console.error(
+              `❌ Test ${testData.id} failed after ${completionTime.toFixed(2)}s:`,
+              error,
+            );
+            return {
+              id: testData.id,
+              task_type: testData.task_type,
+              input: testData.input,
+              actual_output: `ERROR: ${error}`,
+              expected_output: testData.expected_output,
+              retrieval_context: [],
+              completion_time: completionTime,
+              trace: [],
+              token_cost: 0,
+            } satisfies EvaluationReportEntry;
+          }
+        }),
+      );
+
       results.push(...batchResults);
 
       // Add delay between batches (except for the last batch)

@@ -62,6 +62,7 @@ describe('ReActRouter', () => {
         maxIterations: 3,
         iterationHistory: [],
         contextId: 'test-context-id',
+        trace: [],
       };
 
       const routerIterator = router.iterate(routerProcess);

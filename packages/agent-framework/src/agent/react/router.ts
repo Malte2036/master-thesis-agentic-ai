@@ -87,6 +87,7 @@ export class ReActRouter implements Router {
       question,
       maxIterations,
       iterationHistory: [],
+      trace: [],
     };
     const generator = this.iterate(routerProcess);
     while (true) {
@@ -192,6 +193,12 @@ export class ReActRouter implements Router {
         routerProcess.contextId,
       );
 
+      this.addToolCallTraces(
+        routerProcess,
+        structuredThought.functionCalls,
+        agentResponses,
+      );
+
       this.logger.debug(
         chalk.magenta('The response from calling the agent functions:'),
         JSON.stringify(agentResponses, null, 2),
@@ -264,6 +271,20 @@ export class ReActRouter implements Router {
           JSON.stringify(response.structuredThought.functionCalls) ===
           currentFunctionCallsStr,
       ) ?? false
+    );
+  }
+
+  private addToolCallTraces(
+    routerProcess: RouterProcess,
+    functionCalls: FunctionCall[],
+    agentResponses: string[],
+  ) {
+    routerProcess.trace.push(
+      ...functionCalls.map((functionCall, index) => ({
+        tool: functionCall.function,
+        args: functionCall.args,
+        obs: agentResponses[index],
+      })),
     );
   }
 }

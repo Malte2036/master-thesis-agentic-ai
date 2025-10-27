@@ -116,6 +116,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
               question: c.question,
               maxIterations: 3,
               iterationHistory: [],
+              trace: [],
             };
 
             const thought = await getNaturalLanguageThought(
@@ -185,6 +186,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
               },
             },
           ],
+          trace: [],
         };
 
         const thought = await getNaturalLanguageThought(
@@ -248,6 +250,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
                 ']',
             },
           ],
+          trace: [],
         };
 
         const thought = await getNaturalLanguageThought(
