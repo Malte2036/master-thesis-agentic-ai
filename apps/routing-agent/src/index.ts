@@ -179,13 +179,23 @@ expressApp.post('/ask', async (req, res) => {
         args: {
           prompt: {
             type: 'string',
-            description: 'The prompt to call the agent with',
+            description: `
+    A clear and specific instruction describing what you want this agent to accomplish.
+    This should include the *goal*, *context*, and *expected output type* (e.g., summary, list, calendar event, etc.).
+    Example: "List all assignments due next week for my course 'Digital Health'."`,
             required: true,
           },
-          reason: {
+          parameters: {
             type: 'string',
-            description: 'The reason for calling the agent',
-            required: true,
+            description: `
+    Structured or natural language parameters that provide additional context or control input for the agent.
+    Prefer structured data (e.g., JSON) when possible — e.g.:
+    {
+      "courseId": "CS-401",
+      "includePastAssignments": false
+    }
+    If you don't know all exact parameters, describe them naturally in text (the agent will infer them).`,
+            required: false,
           },
         },
       }),
@@ -245,6 +255,7 @@ expressApp.post('/ask', async (req, res) => {
       type: 'final_response',
       data: {
         finalResponse: friendlyResponse,
+        process: results.process,
       },
     });
 
