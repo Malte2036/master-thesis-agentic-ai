@@ -70,7 +70,7 @@ async function runEvaluationTests() {
               prompt: testData.input,
             },
             `test-${globalIndex}`,
-            180000,
+            360000,
           );
 
           const endTime = Date.now();

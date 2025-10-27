@@ -21,7 +21,10 @@ dotenv.config();
 
 const logger = new Logger({ agentName: 'moodle-mcp' });
 
-export const MOODLE_BASE_URL = process.env.MOODLE_BASE_URL;
+export const MOODLE_BASE_URL =
+  process.env.NODE_ENV === 'test'
+    ? 'http://wiremock:8080'
+    : process.env.MOODLE_BASE_URL;
 
 if (!MOODLE_BASE_URL) {
   throw new Error('MOODLE_BASE_URL is not set');
@@ -112,10 +115,6 @@ mcpServer.tool(
       `search_courses_by_name: ${JSON.stringify({ course_name }, null, 2)}`,
     );
 
-    if (!course_name) {
-      throw createResponseError('Course name is required', 400);
-    }
-
     const moodleToken = await moodleProvider.getToken(
       MOODLE_USERNAME,
       MOODLE_PASSWORD,
@@ -201,9 +200,6 @@ mcpServer.tool(
       MOODLE_BASE_URL,
       contextId,
     );
-    if (!course_id) {
-      throw createResponseError('Course ID is required', 400);
-    }
 
     const moodleToken = await moodleProvider.getToken(
       MOODLE_USERNAME,
@@ -363,10 +359,6 @@ mcpServer.tool(
     logger.log(
       `get_assignments_for_course: ${JSON.stringify({ course_id }, null, 2)}`,
     );
-
-    if (!course_id) {
-      throw createResponseError('Course ID is required', 400);
-    }
 
     const moodleToken = await moodleProvider.getToken(
       MOODLE_USERNAME,

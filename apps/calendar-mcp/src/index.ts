@@ -62,21 +62,6 @@ mcpServer.tool(
     },
     extra,
   ) => {
-    if (
-      !event_name ||
-      !event_description ||
-      !event_start_date ||
-      !event_end_date
-    ) {
-      logger.error('Required fields are missing', {
-        event_name,
-        event_description,
-        event_start_date,
-        event_end_date,
-      });
-      throw createResponseError('Required fields are missing', 400);
-    }
-
     const contextId = getContextIdFromMcpServerRequestHandlerExtra(extra);
     const calendarProvider = new CalendarProvider(logger, contextId);
 
@@ -84,7 +69,7 @@ mcpServer.tool(
     try {
       createdEvent = await calendarProvider.createCalendarEvent(
         event_name,
-        event_description,
+        event_description ?? undefined,
         event_start_date,
         event_end_date,
         location ?? undefined,

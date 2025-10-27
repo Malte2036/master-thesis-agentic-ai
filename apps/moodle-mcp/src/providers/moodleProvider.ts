@@ -25,11 +25,7 @@ export class MoodleProvider {
     private readonly logger: Logger,
     private readonly moodleBaseUrl: string,
     private readonly contextId: string,
-  ) {
-    if (process.env.NODE_ENV === 'test') {
-      this.moodleBaseUrl = 'http://wiremock:8080';
-    }
-  }
+  ) {}
 
   public async getToken(username: string, password: string): Promise<string> {
     try {

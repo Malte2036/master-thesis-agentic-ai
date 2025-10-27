@@ -275,6 +275,18 @@ export const objectToHumanReadableString = <T extends object>(
     .join(', ');
 };
 
+const valueTransformer = (value: unknown): string => {
+  if (typeof value === 'number' && /^\d{10}$/.test(String(value))) {
+    return new Date(value * 1000).toString();
+  }
+  if (typeof value === 'object' && value !== null) {
+    return Object.entries(value)
+      .map(([key, value]) => `${key}: ${valueTransformer(value)}`)
+      .join(', ');
+  }
+  return String(value || '');
+};
+
 export const objectsToHumanReadableString = <T extends object>(
   objs: T[],
   options?: {
@@ -292,12 +304,7 @@ export const objectsToHumanReadableString = <T extends object>(
     Object.keys(objs[0] as Record<string, unknown>).map((key) => ({
       key,
       header: key,
-      transform: (value: unknown) => {
-        if (typeof value === 'number' && /^\d{10}$/.test(String(value))) {
-          return new Date(value * 1000).toString();
-        }
-        return String(value || '');
-      },
+      transform: valueTransformer,
     }));
 
   return serializeTable(objs, columns, {
