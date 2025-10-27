@@ -11,7 +11,7 @@ def get_test_cases(path="./report/report.json"):
             input=e["input"],
             actual_output=e["actual_output"],
             expected_output=e.get("expected_output"),
-            retrieval_context=e.get("retrieval_context"),
+            retrieval_context=[e.get("retrieval_context")],
             completion_time=e.get("completion_time"),
         )
         for e in entries

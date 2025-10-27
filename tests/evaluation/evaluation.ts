@@ -41,7 +41,7 @@ async function runEvaluationTests() {
     console.log('🔄 Running evaluation tests in batches...');
 
     // Run tests in batches to prevent SSE timeout issues
-    const BATCH_SIZE = 1;
+    const BATCH_SIZE = 10;
     const BATCH_DELAY = 2000; // 2 seconds between batches
     const results: EvaluationReportEntry[] = [];
 
@@ -69,9 +69,9 @@ async function runEvaluationTests() {
             {
               prompt: testData.input,
             },
-            undefined,
+            `test-${globalIndex}`,
             180000,
-          ); // 3 minutes timeout
+          );
 
           const endTime = Date.now();
           const completionTime = (endTime - startTime) / 1000; // Convert to seconds

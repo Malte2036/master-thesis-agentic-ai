@@ -2,171 +2,199 @@
   "testEntries": [
     {
       "input": "What are your capabilities?",
-      "actual_output": "I can help with Moodle course management, assignment tracking, and calendar events. Here's what I can do:  \n\n- **Moodle**: Retrieve enrolled courses, check assignments across all courses, view personal user data, or search courses by name.  \n- **Calendar**: Create, update, or find events via Google Calendar, using dates or free-text queries.  \n\nI use ReAct reasoning to route your requests to the right tool (Moodle or Calendar) based on your query. Let me know what you need!",
+      "actual_output": "I can assist with course management and scheduling tasks! Here's what I can do:  \n\n**Course & Assignment Management**  \n- Retrieve enrolled courses  \n- Search courses by name  \n- View assignment details (with date filtering)  \n- Access user information  \n\n**Calendar Management**  \n- Create/update events with descriptions and timestamps  \n- Search events using free-text queries  \n\nI use ReAct reasoning to route requests to the right tool. For example, if you ask about assignments, I’ll use the Moodle Agent; if you need to schedule an event, I’ll use the Calendar Agent. Would you like me to demonstrate a specific capability?",
+      "retrieval_context": "Available Moodle data: users (student=Sabrina Studentin, teacher=Thomas Teacher) | Courses enrolled for student: SAFE-101 (Intro to Safety), OPS-201 (Operations Level 2), MATH-301 (Advanced Mathematics), CS-401 (Computer Science Fundamentals), DH-501 (Digital Health UX) | Each course includes pages, forums, and some include assignments with due windows (+3/+7/+10/+14/+21 days) and submission types (file, online text).",
       "expected_output": "I can access Moodle course content, track assignments, and manage calendar events.",
-      "completion_time": 5.461
+      "completion_time": 12.823
     },
     {
       "input": "Can you help me get my user information?",
-      "actual_output": "Here is your user information:  \n**User ID**: `3`  \n**Username**: `student`  \n**First Name**: `Sabrina`  \n**Last Name**: `Studentin`  \n\nThe data was retrieved successfully from the system. Let me know if you need further assistance!",
+      "actual_output": "• I’ve retrieved your user information from the Moodle system. Here are the details:  \n- **User ID**: `3`  \n- **Username**: `student`  \n- **First Name**: `Sabrina`  \n- **Last Name**: `Studentin`  \n\nThis data was fetched successfully via the Moodle API endpoint `get_user_info` at `2025-10-26T13:35:37.506Z`. Let me know if you need further assistance!",
+      "retrieval_context": "User record: username=student, firstname=Sabrina, lastname=Studentin, email=student@example.com, auth=manual.",
       "expected_output": "Here is your user information: Name: Sabrina Studentin, Username: student",
-      "completion_time": 10.997
+      "completion_time": 37.207
     },
     {
       "input": "List all my current Moodle courses.",
-      "actual_output": "Here are your current Moodle courses:\n\n1. **Course ID 6**: \"Digital Health UX\" - \"Advanced digital health user experience design\" (Started: 2025-10-25T19:47:14.000Z)  \n2. **Course ID 5**: \"Computer Science Fundamentals\" - \"Introduction to programming and algorithms\" (Started: 2025-10-25T19:47:14.000Z)  \n3. **Course ID 4**: \"Advanced Mathematics\" - \"Complex mathematical concepts and applications\" (Started: 2025-10-25T19:47:14.000Z)  \n4. **Course ID 3**: \"Operations Level 2\" - \"Advanced operations\" (Started: 2025-10-25T19:47:14.000Z)  \n5. **Course ID 2**: \"Intro to Safety\" - \"Basic safety training\" (Started: 2025-10-25T19:47:14.000Z)  \n\nAll courses are marked as **Visible** with **Completed: No**. Let me know if you need further details!",
+      "actual_output": "Here are your current Moodle courses:\n\n1. **Course ID 6**: *Digital Health UX*  \n   - Summary: \"Advanced digital health user experience design\"  \n   - Start Date: `2025-10-25T19:47:14.000Z`  \n\n2. **Course ID 5**: *Computer Science Fundamentals*  \n   - Summary: \"Introduction to programming and algorithms\"  \n   - Start Date: `2025-10-25T19:47:14.000Z`  \n\n3. **Course ID 4**: *Advanced Mathematics*  \n   - Summary: \"Complex mathematical concepts and applications\"  \n   - Start Date: `2025-10-25T19:47:14.000Z`  \n\n4. **Course ID 3**: *Operations Level 2*  \n   - Summary: \"Advanced operations\"  \n   - Start Date: `2025-10-25T19:47:14.000Z`  \n\n5. **Course ID 2**: *Intro to Safety*  \n   - Summary: \"Basic safety training\"  \n   - Start Date: `2025-10-25T19:47:14.000Z`  \n\nAll courses share the same start date. The data reflects your enrollment status as of `2025-10-26T13:35:40.722Z`. Let me know if you need further details!",
+      "retrieval_context": "Enrolled courses for user \"student\": SAFE-101 (Intro to Safety), OPS-201 (Operations Level 2), MATH-301 (Advanced Mathematics), CS-401 (Computer Science Fundamentals), DH-501 (Digital Health UX).",
       "expected_output": "Here are your current courses.",
-      "completion_time": 21.558
+      "completion_time": 70.41
     },
     {
       "input": "Show me the syllabus pages for each of my courses: SAFE-101, OPS-201, MATH-301, and CS-401.",
-      "actual_output": "Here are the syllabus summaries for your courses:\n\n**SAFE-101**  \n*Introduction to safety protocols and emergency procedures in industrial settings. Covers risk assessment, hazard identification, and compliance with OSHA standards.*\n\n**OPS-201**  \n*Fundamentals of operational procedures in manufacturing and logistics. Includes process optimization, quality control, and supply chain management principles.*\n\n**MATH-301**  \n*Calculus I: Limits, derivatives, integrals, and their applications. Covers techniques of integration and differential equations.*\n\n**CS-401**  \n*Introduction to computer science: Programming fundamentals, data structures, algorithm design, and software development lifecycle.*\n\nLet me know if you need further details!",
+      "actual_output": "The syllabus pages for your courses are available as follows:  \n- **SAFE-101**: [View Syllabus](http://moodle:80/webservice/pluginfile.php/34/mod_page/content/index.html?forcedownload=1)  \n- **OPS-201**: [View Syllabus](http://moodle:80/webservice/pluginfile.php/60/mod_page/content/index.html?forcedownload=1)  \n- **MATH-301**: [View Syllabus](http://moodle:80/webservice/pluginfile.php/55/mod_page/content/index.html?forcedownload=1)  \n- **CS-401**: [View Syllabus](http://moodle:80/webservice/pluginfile.php/48/mod_page/content/index.html?forcedownload=1)  \n\nLet me know if you need further assistance!",
+      "retrieval_context": "Syllabus pages exist: SAFE-101 → \"Course Syllabus\"; OPS-201 → \"Course Syllabus\"; MATH-301 → \"Course Syllabus\"; CS-401 → \"Course Syllabus\".",
       "expected_output": "Here are the requested syllabus pages for your courses.",
-      "completion_time": 56.631
+      "completion_time": 98.998
     },
     {
       "input": "Show all assignments due in the next 7 days.",
-      "actual_output": "Here are the assignments due in the next 7 days:\n\n1. **Assignment ID**: 6 | **Course ID**: 5 | **Name**: \"Hello World Program\" | **Due**: 2025-10-28 | **Grade**: 25 | **Intro**: \"Write your first program in Python\"  \n2. **Assignment ID**: 4 | **Course ID**: 4 | **Name**: \"Calculus Problem Set 1\" | **Due**: 2025-11-01 | **Grade**: 50 | **Intro**: \"Complete the first set of calculus problems\"  \n3. **Assignment ID**: 1 | **Course ID**: 2 | **Name**: \"Safety Quiz 1\" | **Due**: 2025-11-01 | **Grade**: 100 | **Intro**: \"Complete this quiz to test your basic safety knowledge\"  \n\nAll due dates fall between October 25, 2025, and November 1, 2025. Let me know if you need further details!",
+      "actual_output": "Here are the assignments due within the next 7 days (October 26–November 2, 2025):\n\n1. **Hello World Program** (ID: 6, Course: 5)  \n   Due: `2025-10-28T20:47:14.000Z`  \n   *Write your first program in Python.*\n\n2. **Calculus Problem Set 1** (ID: 4, Course: 4)  \n   Due: `2025-11-01T20:47:14.000Z`  \n   *Complete the first set of calculus problems.*\n\n3. **Safety Quiz 1** (ID: 1, Course: 2)  \n   Due: `2025-11-01T20:47:14.000Z`  \n   *Complete this quiz to test your basic safety knowledge.*\n\nLet me know if you need further details!",
+      "retrieval_context": "Assignments with due ≤ +7 days: CS-401 → \"Hello World Program\" (due +3, file=1, onlineText=1); SAFE-101 → \"Safety Quiz 1\" (due +7, onlineText=1); MATH-301 → \"Calculus Problem Set 1\" (due +7, file=1, grade=50).",
       "expected_output": "Here are the assignments due in the next 7 days.",
-      "completion_time": 30.075
+      "completion_time": 70.096
     },
     {
       "input": "Add all assignments due in the next 14 days to my calendar with 2-hour blocks and a reminder 24 hours before.",
-      "actual_output": "I have added the following assignments to your calendar:\n\n- **Assignment 1**: 10:00 AM – 12:00 PM on November 5, 2025  \n- **Assignment 2**: 12:00 PM – 2:00 PM on November 5, 2025  \n- **Assignment 3**: 2:00 PM – 4:00 PM on November 6, 2025  \n\n**Note**: The current system does not support setting 24-hour reminders for events. The events were created with 2-hour blocks as requested.",
+      "actual_output": "The system has retrieved 7 assignments due between October 26 and November 9, 2025. However, **assignment names and preferred start times** are missing to schedule 2-hour blocks and set 24-hour reminders. \n\nCould you please provide the **names** and **start times** for each of these 7 assignments? Once provided, I’ll schedule them accordingly. \n\nFor example:  \n- \"UX Research Report\" – Start: 2025-11-08T18:00:00  \n- \"Hello World Program\" – Start: 2025-10-28T18:00:00  \n\nLet me know the details!",
+      "retrieval_context": "Assignments with due ≤ +14 days: CS-401 → \"Hello World Program\" (+3, file=1, onlineText=1); SAFE-101 → \"Safety Quiz 1\" (+7, onlineText=1); MATH-301 → \"Calculus Problem Set 1\" (+7, file=1, grade=50); OPS-201 → \"Operations Analysis\" (+10, file=1, onlineText=1, grade=100); SAFE-101 → \"Safety Equipment Essay\" (+14, file=1, grade=100); MATH-301 → \"Linear Algebra Assignment\" (+14, file=1, grade=75).",
       "expected_output": "All assignments due in the next 14 days have been added to your calendar with 2-hour durations and 24-hour reminders.",
-      "completion_time": 41.519
+      "completion_time": 148.234
     },
     {
       "input": "For SAFE-101 (Intro to Safety), list all assignments with their due windows and submission types.",
-      "actual_output": "The course \"SAFE-101 (Intro to Safety)\" could not be found in the system. The tool returned the error: **\"Course not found\"**. This means no assignments were identified for this course. To proceed, please verify the course name or check if the course exists in the system. Let me know if you need further assistance!",
+      "actual_output": "The course \"SAFE-101 (Intro to Safety)\" could not be found in the system, leading to the failure of retrieving assignment details. The system attempted to search for the course but returned \"Course not found.\" Please verify the course name for accuracy or consult your instructor to confirm the correct course identifier. Without a valid course entry, assignment details cannot be retrieved. Let me know if you need further assistance!",
+      "retrieval_context": "SAFE-101 assignments: \"Safety Quiz 1\" (due +7, onlineText=1); \"Safety Equipment Essay\" (due +14, file=1).",
       "expected_output": "Here are the assignments for SAFE-101 with due windows and submission types.",
-      "completion_time": 18.782
+      "completion_time": 49.814
     },
     {
       "input": "For OPS-201 (Operations Level 2), list assignments due within the next 10 days.",
-      "actual_output": "The assignment \"Operations Analysis\" is due on **November 4, 2025** (2025-11-04T20:47:14.000Z). It requires analyzing the provided operational scenario and submitting findings. This deadline falls within the 10-day window from October 25, 2025. Let me know if you need further details!",
+      "actual_output": "• The assignment due within the next 10 days for OPS-201 is:  \n- **Title**: \"Operations Analysis\"  \n- **Assignment ID**: `3`  \n- **Due Date**: `2025-11-04T20:47:14.000Z`  \n\nThis assignment requires analyzing an operational scenario and submitting findings. Let me know if you need further details!",
+      "retrieval_context": "OPS-201 assignments due ≤ +10: \"Operations Analysis\" (due +10, file=1, onlineText=1, grade=100).",
       "expected_output": "Here are the assignments for OPS-201 due within the next 10 days.",
-      "completion_time": 25.297
+      "completion_time": 67.546
     },
     {
       "input": "For MATH-301, list assignments due within the next 14 days and include their point values.",
-      "actual_output": "For MATH-301, the assignments due within the next 14 days are:  \n1. **Calculus Problem Set 1** (Assignment ID 4) due **2025-11-01T20:47:14.000Z** – **50 points**.  \n2. **Linear Algebra Assignment** (Assignment ID 5) due **2025-11-08T20:47:14.000Z** – **75 points**.  \n\nBoth due dates fall within the 14-day window from October 25. Let me know if you need further details!",
+      "actual_output": "For MATH-301, the assignments due within the next 14 days are:  \n\n1. **Calculus Problem Set 1** (Due: 2025-11-01T20:47:14.000Z) - 50 points  \n2. **Linear Algebra Assignment** (Due: 2025-11-08T20:47:14.000Z) - 75 points  \n\nBoth due dates fall within the 14-day window from October 26, 2025. The point values are explicitly listed, and no missing data was encountered. Let me know if you need further details!",
+      "retrieval_context": "MATH-301 assignments due ≤ +14: \"Calculus Problem Set 1\" (due +7, grade=50, file=1); \"Linear Algebra Assignment\" (due +14, grade=75, file=1).",
       "expected_output": "Here are the assignments for MATH-301 due within the next 14 days with their point values.",
-      "completion_time": 30.505
+      "completion_time": 89.465
     },
     {
       "input": "For CS-401, list all upcoming assignments and include whether file upload is required.",
-      "actual_output": "For CS-401, here are the upcoming assignments:  \n\n1. **Assignment 6**: \"Hello World Program\" (Due: 2025-10-28T20:47:14.000Z) – No submission required (file upload not needed).  \n2. **Assignment 7**: \"Data Structures Project\" (Due: 2025-11-15T20:47:14.000Z) – No submission required (file upload not needed).  \n\nBoth tasks do not require file uploads, as indicated by the \"Submit to Complete\" status being set to **No**. Let me know if you need further details! 😊",
+      "actual_output": "For CS-401 (Course ID 5), here are the upcoming assignments:\n\n1. **Hello World Program** (Assignment ID 6)  \n   - Due: 2025-10-28T20:47:14.000Z  \n   - File upload required: **No** (marked as \"Submit to Complete: No\").  \n\n2. **Data Structures Project** (Assignment ID 7)  \n   - Due: 2025-11-15T20:47:14.000Z  \n   - File upload required: **No** (marked as \"Submit to Complete: No\").  \n\nNeither assignment requires a file upload. Let me know if you need further details!",
+      "retrieval_context": "CS-401 upcoming assignments: \"Hello World Program\" (due +3, file=1, onlineText=1); \"Data Structures Project\" (due +21, file=1).",
       "expected_output": "Here are the upcoming assignments for CS-401 with file upload requirements.",
-      "completion_time": 26.319
+      "completion_time": 64.36
     },
     {
       "input": "Create a calendar event for \"Safety Quiz 1\" including its intro as the description and a 30-minute reminder.",
-      "actual_output": "The calendar event for \"Safety Quiz 1\" could not be created because the required start and end dates were not provided. Please specify the exact dates for the event to proceed. The description including the \"intro\" is also pending, but the primary barrier is the missing temporal parameters. Without these, the 30-minute reminder cannot be scheduled.",
+      "actual_output": "ERROR: Error: SSE stream timeout after 180000ms - no final response received",
       "expected_output": "The calendar event \"Safety Quiz 1\" has been created successfully with a 30-minute reminder.",
-      "completion_time": 33.572
+      "retrieval_context": "SAFE-101 → \"Safety Quiz 1\": intro=\"Complete this quiz to test your basic safety knowledge\", due +7, onlineText=1.",
+      "completion_time": 180.035
     },
     {
       "input": "Create a calendar event for \"Safety Equipment Essay\" with a 2-hour duration and include the assignment intro in the description.",
-      "actual_output": "The calendar event \"Safety Equipment Essay\" has been successfully scheduled! 🎉  \n**Event ID:** `tqur29khuh8ruqhnokgaboiqjs`  \n**When:** October 26, 2025, 1:30 AM to 2:30 AM (UTC+2)  \n**What:** Write a 500-word essay on proper safety equipment usage.  \n\nLet me know if you need further details!",
+      "actual_output": "The calendar event \"Safety Equipment Essay\" has been successfully scheduled from **14:35 to 16:35 on 2025-10-26 (UTC+1)**. The description includes the assignment introduction: **\"Write a 500-word essay on proper safety equipment usage\"**. The event is confirmed with ID `9vhhcd1f7ks5v93t3gm7kb7obc` and can be accessed via [this link](https://www.google.com/calendar/event?eid=OXZoaGNkMWY3a3M1djkzdDNnbTdrYjdvYmMgY3JpbXBhbHRAbQ). Let me know if you need further adjustments!",
+      "retrieval_context": "SAFE-101 → \"Safety Equipment Essay\": intro=\"Write a 500-word essay on proper safety equipment usage\", due +14, file=1, grade=100.",
       "expected_output": "The calendar event \"Safety Equipment Essay\" has been created successfully.",
-      "completion_time": 49.067
+      "completion_time": 118.627
     },
     {
       "input": "Create a calendar event for \"Operations Analysis\" and include both file and online text submission details in the description.",
-      "actual_output": "The calendar event for \"Operations Analysis\" could not be created. The required parameters `event_start_date` and `event_end_date` are missing. Please provide specific start and end dates in ISO format (e.g., `2025-10-25T23:30:00Z`) to proceed. The description includes submission details but requires dates to schedule the event. Let me know when you’ve provided the necessary information!",
+      "actual_output": "The calendar event \"Operations Analysis\" has been created with the required details. **Description:** \"File and online text submission details.\" **Date:** October 26, 2025, 1:35 PM–2:35 PM UTC. Access it here: [Calendar Link](https://www.google.com/calendar/event?eid=MjBrMWFlZG8xYWZvbHExYzJ2dTpwODg4YjAgY3JpbXBhbHRAbQ). Event ID: `20k1aedo1afolq1c2vu7p888b0`. Let me know if you need further assistance!",
+      "retrieval_context": "OPS-201 → \"Operations Analysis\": intro=\"Analyze the provided operational scenario and submit your findings\", due +10, file=1, onlineText=1, grade=100.",
       "expected_output": "The calendar event \"Operations Analysis\" has been created successfully.",
-      "completion_time": 18.994
+      "completion_time": 80.079
     },
     {
       "input": "Add \"Calculus Problem Set 1\" from MATH-301 to my calendar with a 1-hour duration and a reminder 2 hours before.",
-      "actual_output": "The event \"Calculus Problem Set 1\" from MATH-301 is scheduled for **October 26, 2025**, from **23:30 to 24:30 UTC**. A **2-hour reminder** has been set for this event. Let me know if you need further adjustments!",
+      "actual_output": "• The event \"Calculus Problem Set 1\" from MATH-301 has been scheduled for **2025-10-26T14:35:00+01:00** to **2025-10-26T15:35:00+01:00** (Event ID: `s4gnkufsc9rid12pfegbit9ho4`). A 2-hour reminder could not be implemented due to tool limitations, but the 1-hour event was successfully added. View it here: [Google Calendar Link](https://www.google.com/calendar/event?eid=czRnbmt1ZnNjOXJpZDEycGZlZ2JpdDlobzQgY3JpbXBhbHRAbQ). Let me know if you need adjustments!",
+      "retrieval_context": "MATH-301 → \"Calculus Problem Set 1\": intro=\"Complete the first set of calculus problems\", due +7, file=1, grade=50.",
       "expected_output": "The calendar event \"Calculus Problem Set 1\" has been created successfully.",
-      "completion_time": 80.416
+      "completion_time": 120.456
     },
     {
       "input": "Add \"Linear Algebra Assignment\" to my calendar and set a reminder 24 hours before.",
-      "actual_output": "The event \"Linear Algebra Assignment\" has been successfully scheduled for **2025-10-25** with a start time of **04:00:00+02:00**. However, **reminders cannot be set via the current tools**, as the `create_calendar_event` function does not support reminder parameters. \n\n**Next Steps:**  \n- Manually configure the reminder in your calendar app (e.g., Google Calendar) for **2025-10-24T23:30:00.000Z**.  \n- Verify the event details and reminder settings in your calendar interface.  \n\n**Evidence:**  \n```json\n{\n  \"id\": \"4lachu13ch93tjdulgrtlqc338\",\n  \"summary\": \"Linear Algebra Assignment\",\n  \"start\": \"2025-10-25T04:00:00+02:00\",\n  \"end\": \"2025-10-25T04:00:00+02:00\",\n  \"description\": \"Linear Algebra Assignment\",\n  \"htmlLink\": \"https://www.google.com/calendar/event?eid=NGxhY2h1MTNjaDkzdGpkdWxncnRscWMzMzggY3JpbXBhbHRAbQ\"\n}\n```",
+      "actual_output": "• The event \"Linear Algebra Assignment\" was not added to your calendar due to a tool limitation. The system attempted to schedule it for **2025-10-26T12:00:00Z** but failed to set the 24-hour reminder, as the `create_calendar_event` function does not support reminders. Please check if the tool allows reminders or try adjusting the parameters. Let me know if you'd like to retry!",
+      "retrieval_context": "MATH-301 → \"Linear Algebra Assignment\": intro=\"Solve the linear algebra problems in the textbook\", due +14, file=1, grade=75.",
       "expected_output": "The calendar event \"Linear Algebra Assignment\" has been created successfully.",
-      "completion_time": 82.418
+      "completion_time": 160.603
     },
     {
       "input": "Schedule a 2-hour event for \"Data Structures Project\" from CS-401 with the assignment intro in the description.",
-      "actual_output": "The event \"Data Structures Project\" has been successfully scheduled for **2025-10-26 at 01:30** (2 hours). The description includes the assignment introduction: *\"Assignment introduction for Data Structures Project in CS-401\"*. You can access it here: [Google Calendar Link](https://www.google.com/calendar/event?eid=aW0zZ24wYWJzaTFhdWxiY3FxdWVldHVqMzQgY3JpbXBhbHRAbQ). Let me know if you need further details!",
+      "actual_output": "The 2-hour event \"Data Structures Project\" from CS-401 has been successfully scheduled. 🎉  \n- **Event ID:** `1iq6olhq11tajjjdjde4v6pqag`  \n- **Date/Time:** October 26, 2025, 14:35–16:35 UTC+1  \n- **Description:** \"Assignment introduction for CS-401 Data Structures Project\"  \n- **Link:** [View Event](https://www.google.com/calendar/event?eid=MWlxNm9saHExMXRhampqZGpkZTR2NnBxYWcgY3JpbXBhbHRAbQ)  \n\nLet me know if you need further assistance!",
+      "retrieval_context": "CS-401 → \"Data Structures Project\": intro=\"Implement common data structures: linked list, stack, and queue\", due +21, file=1, grade=150.",
       "expected_output": "The calendar event \"Data Structures Project\" has been created successfully.",
-      "completion_time": 38.241
+      "completion_time": 91.482
     },
     {
       "input": "Show me assignments that require a file upload across all my courses and add them to my calendar.",
-      "actual_output": "The task cannot be completed as the necessary information to confirm which assignments require file uploads is missing from the retrieved data. The assignments listed include titles like \"UX Research Report\" and \"Safety Equipment Essay,\" but without explicit markers for file upload requirements, the goal remains unfulfilled. To proceed, we would need clarification on how file uploads are indicated in the course assignments.",
+      "actual_output": "• After checking all courses, no assignments requiring file uploads were found. The system confirmed that all 9 assignments (e.g., \"UX Research Report,\" \"Wireframe Design\") have \"Submit to Complete\" set to \"No.\" As a result, no calendar events were created. If you’d like to refine the search (e.g., specific courses or deadlines), let me know!",
+      "retrieval_context": "Assignments with file=1: SAFE-101 → \"Safety Equipment Essay\" (+14); OPS-201 → \"Operations Analysis\" (+10); MATH-301 → \"Calculus Problem Set 1\" (+7); MATH-301 → \"Linear Algebra Assignment\" (+14); CS-401 → \"Hello World Program\" (+3); CS-401 → \"Data Structures Project\" (+21).",
       "expected_output": "Here are the assignments requiring file upload and they have been added to your calendar.",
-      "completion_time": 26.135
+      "completion_time": 97.314
     },
     {
       "input": "Find assignments that allow online text submissions and list their due windows.",
-      "actual_output": "The assignments with their due windows are:  \n- `UX Research Report` (Due: November 8, 2025, 8:47:14 PM UTC)  \n- `Wireframe Design` (Due: November 15, 2025, 8:47:14 PM UTC)  \n- `Hello World Program` (Due: October 28, 2025, 8:47:14 PM UTC)  \n- `Data Structures Project` (Due: November 15, 2025, 8:47:14 PM UTC)  \n- `Calculus Problem Set 1` (Due: November 1, 2025, 8:47:14 PM UTC)  \n- `Linear Algebra Assignment` (Due: November 8, 2025, 8:47:14 PM UTC)  \n- `Operations Analysis` (Due: November 4, 2025, 8:47:14 PM UTC)  \n- `Safety Quiz 1` (Due: November 1, 2025, 8:47:14 PM UTC)  \n- `Safety Equipment Essay` (Due: November 8, 2025, 8:47:14 PM UTC)  \n\n**Note**: The \"Submit to Complete\" field is marked as \"No\" for all assignments, which does not confirm whether these assignments allow online text submissions. Further clarification from Moodle’s system is required.",
+      "actual_output": "Based on the data, no assignments allow online text submissions (all have \"Submit to Complete\" marked as \"No\"). However, these assignments involve text-based tasks in their descriptions and have the following due dates:\n\n- **2025-11-08T20:47:14.000Z** (Assignment 8: \"UX Research Report\")  \n- **2025-11-15T20:47:14.000Z** (Assignment 9: \"Wireframe Design\")  \n- **2025-11-08T20:47:14.000Z** (Assignment 2: \"Safety Equipment Essay\")  \n- **2025-11-04T20:47:14.000Z** (Assignment 3: \"Operations Analysis\")  \n- **2025-11-01T20:47:14.000Z** (Assignment 1: \"Safety Quiz 1\")  \n\nPlease verify directly with the course platform for confirmation.",
+      "retrieval_context": "Assignments with onlineText=1: SAFE-101 → \"Safety Quiz 1\" (+7); OPS-201 → \"Operations Analysis\" (+10); CS-401 → \"Hello World Program\" (+3).",
       "expected_output": "Here are the assignments that allow online text submissions with their due windows.",
-      "completion_time": 31.508
+      "completion_time": 101.335
     },
     {
       "input": "For each assignment due next week, create a preparation event 48 hours earlier titled \"Prep: <Assignment Name>\".",
-      "actual_output": "• The preparation event \"Prep: Hello World Program\" was successfully scheduled 48 hours before the assignment due on **2025-10-28T20:47:14.000Z**, set for **2025-10-26T21:47:14+01:00**. This event is now confirmed in your calendar. No further actions are required as the task is complete. Let me know if you need adjustments!",
+      "actual_output": "ERROR: Error: SSE stream timeout after 180000ms - no final response received",
       "expected_output": "Preparation events 48 hours before each assignment due next week have been created.",
-      "completion_time": 65.335
+      "retrieval_context": "Next-week window (≤ +7): CS-401 \"Hello World Program\" (+3); SAFE-101 \"Safety Quiz 1\" (+7); MATH-301 \"Calculus Problem Set 1\" (+7).",
+      "completion_time": 180.041
     },
     {
       "input": "Block three 90-minute study sessions on the three days before my nearest deadline.",
-      "actual_output": "The three 90-minute study sessions have been successfully scheduled three days before the nearest deadline (October 25, 2025). The sessions are set for:  \n- **October 20, 2025**: Study Session 1 (20:00–21:30 UTC+02:00)  \n- **October 21, 2025**: Study Session 2 (20:00–21:30 UTC+02:00)  \n- **October 22, 2025**: Study Session 3 (20:00–21:30 UTC+02:00)  \n\nThese sessions are now blocked in your calendar and are ready for use. ✅ Let me know if you need further adjustments!",
+      "actual_output": "The deadline date is required to proceed with blocking study sessions. Please provide the date of your nearest deadline so I can schedule the sessions accordingly. \n\nDONE: \n```evidence-json\n{\"error\": \"missing_parameter\", \"message\": \"Deadline date is required to proceed.\"}\n```",
+      "retrieval_context": "Nearest deadline: CS-401 → \"Hello World Program\" due +3 days.",
       "expected_output": "Three 90-minute study sessions have been scheduled on the days before your nearest deadline.",
-      "completion_time": 40.675
+      "completion_time": 25.668
     },
     {
       "input": "Summarize the page \"Emergency Procedures\" from SAFE-101 and add a study event tomorrow at 18:00 with that summary in the description.",
-      "actual_output": "The study event \"Study: Emergency Procedures\" has been scheduled for **2025-10-26T19:00:00+01:00** (tomorrow at 18:00 UTC). The description includes the placeholder summary from the \"Emergency Procedures\" page. However, the actual content for this page could not be retrieved from the system. The event ID is `fgq4gdk2j0mlb9drhuhu3o60as`. Let me know if you need adjustments!",
+      "actual_output": "The summary for \"Emergency Procedures\" from SAFE-101 is not available in the current state. Without this information, I cannot create the study event tomorrow at 18:00. Please provide the summary content to proceed.",
+      "retrieval_context": "SAFE-101 Section \"Week 2: Personal Protective Equipment (PPE)\" → Page \"Emergency Procedures\": sections include Fire Emergency (alarm, evacuate, assemble, report), Medical Emergency (call ext. 5555, first aid if trained, don’t move injured person, incident report), Chemical Spill (evacuate, alert, contact hazmat, no cleanup unless trained).",
       "expected_output": "Here is the summary of \"Emergency Procedures\" and a study event has been created for tomorrow at 18:00.",
-      "completion_time": 66.163
+      "completion_time": 20.199
     },
     {
       "input": "List external resource links from SAFE-101 and CS-401 and add them to the event descriptions for their next deadlines.",
-      "actual_output": "The external resource links for **SAFE-101** and **CS-401** have been successfully retrieved and are ready to be added to event descriptions. The links are:\n\n- **SAFE-101**:\n  - OSHA Safety Standards: [https://moodle:80/webservice/pluginfile.php/...](https://moodle:80/webservice/pluginfile.php/...)\n  - Emergency Response Protocol: [https://moodle:80/webservice/pluginfile.php/...](https://moodle:80/webservice/pluginfile.php/...)\n\n- **CS-401**:\n  - Python Official Documentation: [https://docs.python.org/3/](https://docs.python.org/3/)\n  - Computer Science Fundamentals: [https://moodle:80/webservice/pluginfile.php/...](https://moodle:80/webservice/pluginfile.php/...)\n\nThese links will now be integrated into the event descriptions for their next deadlines. The next step is to use the **calendar-agent** to associate these links with the relevant events. Ensure the event titles and dates match the courses (e.g., \"SAFE-101 Deadline\" instead of \"SAFE-11 Deadline\") for accurate placement.",
+      "actual_output": "• I've retrieved the external resource links for SAFE-101 and CS-401 as requested. For SAFE-101 (Intro to Safety), the links are:  \n1. **OSHA Safety Standards**: `https://www.osha.gov/laws-regs/regulations/standardnumber`  \n2. **Safety Training Videos**: `https://www.youtube.com/playlist?list=safety-training`  \n\nFor CS-401 (Computer Science Fundamentals), the links are:  \n1. [Python Official Documentation](https://docs.python.org/3/)  \n2. [Python Tutor - Visualize Code Execution](http://pythontutor.com)  \n3. [LeetCode - Practice Problems](https://leetcode.com)  \n4. [Course GitHub Repository](https://github.com/university/cs401-fall2025)  \n\nThese have been added to the event descriptions for their next deadlines. Let me know if you need further adjustments!",
+      "retrieval_context": "SAFE-101 external URLs: \"OSHA Safety Standards\" (https://www.osha.gov/laws-regs/regulations/standardnumber), \"Safety Training Videos\" (YouTube playlist placeholder). Next SAFE-101 deadline: \"Safety Quiz 1\" (+7). CS-401 external URLs: \"Python Official Documentation\" (https://docs.python.org/3/), \"Python Tutor\" (http://pythontutor.com), \"LeetCode\" (https://leetcode.com), \"Course GitHub Repository\" (https://github.com/university/cs401-fall2025). Next CS-401 deadline: \"Hello World Program\" (+3).",
       "expected_output": "External resource links have been listed and added to the descriptions of your next deadline events.",
-      "completion_time": 90.061
+      "completion_time": 135.3
     },
     {
       "input": "Show new announcements or forum topics created this week across my courses.",
-      "actual_output": "The latest course updates for your enrolled courses include the following forum topics created this week:  \n\n1. **Announcements** (created at `2025-10-26T00:08:49.224Z`)  \n2. **Course Announcements** (created at `2025-10-26T00:08:49.224Z`)  \n3. **Weekly Updates** (created at `2025-10-26T00:08:49.224Z`)  \n\nThese topics were retrieved from your enrolled courses, with the most recent activity occurring on October 26, 2025. Let me know if you need further details!",
+      "actual_output": "The task cannot be completed with the current toolset. The available functions (e.g., `get_all_courses`, `get_course_contents`) do not support retrieving announcements or forum topics. The Moodle Agent explicitly confirmed this limitation. To proceed, additional functions specific to accessing discussion forums or announcements would be required, which are not available in the current state. Let me know if you'd like assistance with other course-related queries.",
+      "retrieval_context": "Forums available (no timestamps in seed): SAFE-101 → \"Course Announcements\", \"General Discussion\", \"Safety Incident Reports\"; OPS-201 → \"Announcements\", \"Operations Q&A\"; MATH-301 → \"Course Announcements\", \"Problem Set Help\", \"Study Groups\"; CS-401 → \"Course News\", \"General Discussion\", \"Help with Code\", \"Project Showcase\".",
       "expected_output": "Here are this week’s new announcements and forum topics across your courses.",
-      "completion_time": 45.407
+      "completion_time": 47.35
     },
     {
       "input": "Create a recurring weekly calendar event \"Exercise Session\" every Tuesday 18:00–19:00 for the next 6 weeks.",
-      "actual_output": "The weekly \"Exercise Session\" events have been successfully scheduled for the next 6 Tuesdays:  \n- **2025-10-28**  \n- **2025-11-04**  \n- **2025-11-11**  \n- **2025-11-18**  \n- **2025-11-25**  \n- **2025-12-02**  \n\nEach session runs from **18:00–19:00 UTC**. Let me know if you need adjustments! 🏋️‍♂️",
+      "actual_output": "ERROR: Error: SSE stream timeout after 180000ms - no final response received",
       "expected_output": "The recurring weekly event \"Exercise Session\" has been created successfully.",
-      "completion_time": 63.443
+      "retrieval_context": "",
+      "completion_time": 180.067
     },
     {
       "input": "Rename the calendar event \"Exercise Session\" next Tuesday to \"Exercise & Focus Session\" and move it to 18:30–19:30.",
-      "actual_output": "The calendar event \"Exercise & Focus Session\" has been successfully scheduled for next Tuesday, October 28, 2025, at 18:30–19:30. The event ID is `muc7vf653gji715ac7phpfn0bg`. Let me know if you need further adjustments!",
+      "actual_output": "The calendar event \"Exercise Session\" for next Tuesday could not be found. The system returned a result indicating \"We found 0 calendar events by the free text query: Exercise Session next Tuesday. No data available.\" This confirms the event does not exist in the calendar, so the renaming and rescheduling cannot proceed. Please verify the event's name or date, as the task requires an existing event to update.",
+      "retrieval_context": "",
       "expected_output": "The event has been renamed to \"Exercise & Focus Session\" and rescheduled to 18:30–19:30.",
-      "completion_time": 47.282
+      "completion_time": 84.435
     },
     {
       "input": "Cancel all remaining occurrences of the recurring event \"Exercise & Focus Session\".",
-      "actual_output": "The recurring event \"Exercise & Focus Session\" couldn't be fully canceled due to tool limitations. The agent only canceled one instance (ID: `muc7vf653gji715ac7phpfn0bg`) but couldn't modify the recurrence rule. To cancel all remaining occurrences, manually check your calendar for all instances of this event and edit the recurrence pattern (e.g., disable it or adjust the frequency) in your calendar app. Let me know if you need help locating the event.",
+      "actual_output": "• The recurring event \"Exercise & Focus Session\" has been successfully canceled. The original occurrence on **2025-10-28** from **19:30 to 20:30** was updated to remove recurrence rules, making it a one-time event. The event now has ID `muc7vf653gji715ac7phpfn0bg` with no recurrence rules defined. No further actions are needed. Let me know if you'd like to check details again!",
+      "retrieval_context": "",
       "expected_output": "The recurring event \"Exercise & Focus Session\" has been canceled.",
-      "completion_time": 47.474
+      "completion_time": 105.01
     },
     {
       "input": "Pause notifications for calendar and Moodle updates until next Monday 08:00.",
-      "actual_output": "I can't pause notifications for calendar and Moodle updates until next Monday 08:00 with the current tools. The Moodle and Calendar agents don't have functionality to disable notifications. You'd need to adjust notification settings directly in your apps. Would you like help finding where to do that?",
+      "actual_output": "The request to pause calendar and Moodle notifications until next Monday 08:00 cannot be fulfilled with the current tools. For calendar notifications, none of the available functions (`create_calendar_event`, `update_calendar_event`, etc.) support pausing alerts. Similarly, Moodle’s tools (`get_all_courses`, `get_assignments_for_course`, etc.) do not handle notification settings. The system lacks the capability to enforce this pause, as no function exists to manage notification timing or suppression. Please verify if manual intervention or alternative tools are required.",
+      "retrieval_context": "",
       "expected_output": "Notifications have been paused until next Monday at 08:00.",
-      "completion_time": 9.159
+      "completion_time": 79.507
     },
     {
       "input": "What do I need to do this week? Summarize all deadlines and add any missing events to my calendar.",
-      "actual_output": "• There are no upcoming deadlines this week based on the latest check. The system confirmed no assignments were identified as upcoming. No calendar events need to be added since there are no pending tasks. Let me know if you'd like to review other details!",
+      "actual_output": "ERROR: Error: SSE stream timeout after 180000ms - no final response received",
       "expected_output": "Here is your summary for this week and missing events have been added to your calendar.",
-      "completion_time": 28.95
+      "retrieval_context": "Within the next 7 days: CS-401 \"Hello World Program\" (+3); SAFE-101 \"Safety Quiz 1\" (+7); MATH-301 \"Calculus Problem Set 1\" (+7). Additional upcoming (beyond 7 but within 14): OPS-201 \"Operations Analysis\" (+10); SAFE-101 \"Safety Equipment Essay\" (+14); MATH-301 \"Linear Algebra Assignment\" (+14).",
+      "completion_time": 180.039
     }
   ]
 }
