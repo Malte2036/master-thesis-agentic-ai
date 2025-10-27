@@ -82,7 +82,7 @@
               "name": "Safety Quiz 1",
               "intro": "Complete this quiz to test your basic safety knowledge",
               "assignsubmission_onlinetext_enabled": 1,
-              "duedate": "+7 days",
+              "duedate": "2025-09-15",
               "grade": 100
             }
           ]
@@ -102,7 +102,7 @@
               "name": "Safety Equipment Essay",
               "intro": "Write a 500-word essay on proper safety equipment usage",
               "assignsubmission_file_enabled": 1,
-              "duedate": "+14 days",
+              "duedate": "2025-09-29",
               "grade": 100
             }
           ],
@@ -218,7 +218,7 @@
               "intro": "Analyze the provided operational scenario and submit your findings",
               "assignsubmission_file_enabled": 1,
               "assignsubmission_onlinetext_enabled": 1,
-              "duedate": "+10 days",
+              "duedate": "2025-10-02",
               "grade": 100
             }
           ]
@@ -333,7 +333,7 @@
               "name": "Calculus Problem Set 1",
               "intro": "Complete the first set of calculus problems",
               "assignsubmission_file_enabled": 1,
-              "duedate": "+7 days",
+              "duedate": "2025-09-15",
               "grade": 50
             }
           ]
@@ -357,7 +357,7 @@
               "name": "Linear Algebra Assignment",
               "intro": "Solve the linear algebra problems in the textbook",
               "assignsubmission_file_enabled": 1,
-              "duedate": "+14 days",
+              "duedate": "2025-10-13",
               "grade": 75
             }
           ]
@@ -482,7 +482,7 @@
               "intro": "Write your first program in Python",
               "assignsubmission_file_enabled": 1,
               "assignsubmission_onlinetext_enabled": 1,
-              "duedate": "+3 days",
+              "duedate": "2025-09-11",
               "grade": 25
             }
           ]
@@ -511,7 +511,7 @@
               "name": "Data Structures Project",
               "intro": "Implement common data structures: linked list, stack, and queue",
               "assignsubmission_file_enabled": 1,
-              "duedate": "+21 days",
+              "duedate": "2025-10-27",
               "grade": 150
             }
           ]
@@ -635,7 +635,7 @@
               "name": "UX Research Report",
               "intro": "Conduct user research and submit a comprehensive report",
               "assignsubmission_file_enabled": 1,
-              "duedate": "+14 days",
+              "duedate": "2025-09-22",
               "grade": 100
             }
           ]
@@ -660,7 +660,7 @@
               "name": "Wireframe Design",
               "intro": "Create wireframes for a digital health application",
               "assignsubmission_file_enabled": 1,
-              "duedate": "+21 days",
+              "duedate": "2025-10-13",
               "grade": 100
             }
           ]

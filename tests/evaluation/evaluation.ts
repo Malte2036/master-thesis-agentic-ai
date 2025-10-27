@@ -12,6 +12,8 @@ const ROUTING_AGENT_URL = 'http://localhost:3000';
 const MOODLE_AGENT_URL = 'http://localhost:1234';
 const CALENDAR_AGENT_URL = 'http://localhost:1235';
 
+const TIMEOUT = 360000;
+
 const report: EvaluationReport = {
   testEntries: [],
 };
@@ -41,7 +43,7 @@ async function runEvaluationTests() {
     console.log('🔄 Running evaluation tests in batches...');
 
     // Run tests in batches to prevent SSE timeout issues
-    const BATCH_SIZE = 10;
+    const BATCH_SIZE = 30;
     const BATCH_DELAY = 2000; // 2 seconds between batches
     const results: EvaluationReportEntry[] = [];
 
@@ -70,7 +72,7 @@ async function runEvaluationTests() {
               prompt: testData.input,
             },
             `test-${globalIndex}`,
-            360000,
+            TIMEOUT,
           );
 
           const endTime = Date.now();

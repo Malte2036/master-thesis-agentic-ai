@@ -135,7 +135,6 @@ expressApp.post('/ask', async (req, res) => {
     return;
   }
 
-  logger.log('Request headers:', req.headers);
   let contextId: string = randomUUID();
   if (
     req.headers['x-test-id'] &&

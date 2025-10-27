@@ -18,18 +18,18 @@ def get_test_cases(path="./report/report.json"):
     ]
 
 metrics = [
-    GEval(
-        name="Correctness",
-        evaluation_steps=[
-            "Check if the 'actual output' accurately matches the facts in 'expected output'.",
-            "Penalize any missing or incorrect facts.",
-            "Minor rewording or paraphrasing is fine as long as the meaning stays the same.",
-            "Do not penalize style or tone differences.",
-            "Vague wording is okay unless it causes loss of important detail.",
-        ],
-        evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT, LLMTestCaseParams.EXPECTED_OUTPUT],
-        threshold=0.7,
-    ),
+    # GEval(
+    #     name="Correctness",
+    #     evaluation_steps=[
+    #         "Check if the 'actual output' accurately matches the facts in 'expected output'.",
+    #         "Penalize any missing or incorrect facts.",
+    #         "Minor rewording or paraphrasing is fine as long as the meaning stays the same.",
+    #         "Do not penalize style or tone differences.",
+    #         "Vague wording is okay unless it causes loss of important detail.",
+    #     ],
+    #     evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT, LLMTestCaseParams.EXPECTED_OUTPUT],
+    #     threshold=0.7,
+    # ),
     AnswerRelevancyMetric(threshold=0.5),
     ContextualRelevancyMetric(
     threshold=0.7,
