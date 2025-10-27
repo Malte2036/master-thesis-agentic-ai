@@ -335,9 +335,11 @@ describe('E2E Routing Agent Test', () => {
 
       expect(finalResponse).toBeDefined();
       expect(finalResponse.length).toBeGreaterThan(0);
-      expect(finalResponse.toLowerCase()).toContain('assignment');
       expect(finalResponse.toLowerCase()).toContain('calendar event');
       expect(finalResponse.toLowerCase()).toContain('created');
+      expect(finalResponse.toLowerCase()).toContain(
+        calendarResponseBody.summary.toLowerCase(),
+      );
 
       expect(
         await wiremock.countCalendarRequests(

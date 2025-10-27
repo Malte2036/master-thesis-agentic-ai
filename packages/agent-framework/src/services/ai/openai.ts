@@ -5,6 +5,20 @@ import { AIProvider, AIGenerateTextOptions } from './types';
 import { Logger } from '../../logger';
 import chalk from 'chalk';
 
+type ModelOptions = {
+  temperature?: number;
+  top_p?: number;
+  top_k?: number;
+  min_p?: number;
+};
+
+const DEFAULT_OPTIONS: ModelOptions = {
+  temperature: 0.6,
+  top_p: 0.8,
+  top_k: 20,
+  min_p: 0,
+};
+
 // Use SDK's message param type for compatibility with .create()
 type ChatMessage = OpenAI.ChatCompletionMessageParam;
 
@@ -90,7 +104,6 @@ export class OpenAIProvider implements AIProvider {
     }
   }
 
-  // Keep AIProvider contract: size must be number; OpenAI doesn't expose it -> 0 sentinel
   public async getModels(): Promise<{ name: string; size: number }[]> {
     const list = await this.client.models.list();
     return list.data.map((m) => ({ name: m.id, size: 0 }));
@@ -100,20 +113,15 @@ export class OpenAIProvider implements AIProvider {
     messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
     isJson = false,
     jsonSchema?: z.ZodSchema,
-    temperature?: number,
+    opts?: ModelOptions,
   ): Promise<string> {
-    this.logger.log(
-      'Making OpenAI/vLLM API call with temperature:',
-      temperature,
-    );
+    this.logger.log('Making OpenAI/vLLM API call with options:', opts);
 
-    // Map to OpenAI SDK message type
     const openAIMessages: ChatMessage[] = messages.map((m) => ({
       role: m.role,
       content: m.content,
     }));
 
-    // Build response_format with correct typing
     let response_format: ResponseFormat | undefined;
     if (isJson) {
       if (jsonSchema) {
@@ -138,7 +146,11 @@ export class OpenAIProvider implements AIProvider {
     const params: OpenAI.ChatCompletionCreateParamsNonStreaming = {
       model: this.model,
       messages: openAIMessages,
-      temperature,
+      temperature: opts?.temperature,
+      top_p: opts?.top_p,
+      // vLLM-specific sampling options — harmlessly ignored by OpenAI
+      ...(opts?.top_k !== undefined ? { top_k: opts.top_k } : {}),
+      ...(opts?.min_p !== undefined ? { min_p: opts.min_p } : {}),
       stream: false,
       ...(response_format ? { response_format } : {}),
     };
@@ -158,12 +170,10 @@ export class OpenAIProvider implements AIProvider {
       ...(options?.messages || []),
       { role: 'user' as const, content: prompt },
     ];
-    const content = await this.makeApiCall(
-      messages,
-      false,
-      undefined,
-      temperature ?? 0.7,
-    );
+    const content = await this.makeApiCall(messages, false, undefined, {
+      ...DEFAULT_OPTIONS,
+      temperature: temperature ?? DEFAULT_OPTIONS.temperature,
+    });
     return content.trim();
   }
 
@@ -189,12 +199,10 @@ export class OpenAIProvider implements AIProvider {
       { role: 'user' as const, content: prompt },
     ];
 
-    const content = await this.makeApiCall(
-      messages,
-      true,
-      jsonSchema,
-      temperature,
-    );
+    const content = await this.makeApiCall(messages, true, jsonSchema, {
+      ...DEFAULT_OPTIONS,
+      temperature: temperature ?? DEFAULT_OPTIONS.temperature,
+    });
 
     if (!jsonSchema) {
       return content as unknown as T;
