@@ -136,6 +136,7 @@ export class MyAgentExecutor implements AgentExecutor {
               kind: 'text',
               text: finalResponse,
             },
+            { kind: 'data', data: results },
           ],
           taskId: taskId,
           contextId: contextId,

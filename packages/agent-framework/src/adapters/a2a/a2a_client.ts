@@ -13,6 +13,7 @@ import { randomUUID } from 'crypto';
 import { A2AClient } from '@a2a-js/sdk/client';
 import { AgentCard } from '@a2a-js/sdk';
 import { z } from 'zod/v4';
+import { RouterProcess } from '@master-thesis-agentic-ai/types';
 
 // // undici-diagnostics.ts
 // import dc from 'node:diagnostics_channel';
@@ -61,7 +62,10 @@ export class AgentClient {
     return await this.client.getAgentCard();
   }
 
-  async call(message: string, contextId: string): Promise<string> {
+  async call(
+    message: string,
+    contextId: string,
+  ): Promise<{ message: string; process: RouterProcess | undefined }> {
     const messageId = randomUUID();
     let taskId: string | undefined;
 
@@ -104,24 +108,27 @@ export class AgentClient {
 
         const getTaskResult = (getResponse as GetTaskSuccessResponse).result;
 
-        const message = JSON.stringify(
-          getTaskResult.status.message?.parts.map((part) => {
-            if (part.kind === 'text') {
-              return part.text;
-            }
-            return part;
-          }),
-          null,
-          2,
-        );
-        this.logger.log('Get Task Result:', message);
-        return message;
+        const process = getTaskResult.status.message?.parts.find(
+          (part) => part.kind === 'data',
+        )?.data as RouterProcess;
+        const message = getTaskResult.status.message?.parts.find(
+          (part) => part.kind === 'text',
+        )?.text as string;
+
+        return { message, process };
       }
 
-      return 'We could not get the task result. Please try again.';
+      return {
+        message: 'We could not get the task result. Please try again.',
+        process: undefined,
+      };
     } catch (error) {
       this.logger.error('A2A Client Communication Error:', error);
-      return 'Due to an error, we could not get the task result. Please try again.';
+      return {
+        message:
+          'Due to an error, we could not get the task result. Please try again.',
+        process: undefined,
+      };
     }
   }
 }

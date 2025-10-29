@@ -18,46 +18,26 @@ export const handleToolCalls = async (
 
   // Process all function calls in parallel
   const agentPromises = functionCalls.map(async (parsedDecision) => {
-    if (
-      !parsedDecision.args['prompt'] ||
-      typeof parsedDecision.args['prompt'] !== 'string'
-    ) {
-      logger.log(
-        'No prompt was provided for function:',
-        parsedDecision.function,
-      );
-      return 'No prompt was provided';
-    }
-
     const agentClient = agents.find(
       (agent) => agent.name === parsedDecision.function,
     );
     if (!agentClient) {
       logger.log(`No agent found for function: ${parsedDecision.function}`);
-      return `No agent found for function: ${parsedDecision.function}`;
+      return {
+        message: `No agent found for function: ${parsedDecision.function}`,
+        process: undefined,
+      };
     }
-    let agentResponse: any = '';
 
     try {
-      agentResponse = await agentClient.call(
+      return await agentClient.call(
         `${parsedDecision.args['prompt']}; We want to call the agent because: ${parsedDecision.args['reason']}`,
         contextId,
       );
-      logger.log(
-        `Result from agent ${parsedDecision.function}:`,
-        agentResponse,
-      );
     } catch (error) {
       logger.log(`Error calling agent ${parsedDecision.function}:`, error);
-      agentResponse = `Error calling agent: ${error}`;
+      return { message: `Error calling agent: ${error}`, process: undefined };
     }
-
-    const textResponse =
-      typeof agentResponse === 'object' && agentResponse.response
-        ? agentResponse.response
-        : agentResponse;
-
-    return String(textResponse);
   });
 
   // Wait for all agent calls to complete
@@ -65,5 +45,5 @@ export const handleToolCalls = async (
 
   logger.log('All agent calls completed:', results);
 
-  return results;
+  return results.map((r) => r.message);
 };
