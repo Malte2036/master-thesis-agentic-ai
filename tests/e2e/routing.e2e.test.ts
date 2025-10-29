@@ -46,7 +46,7 @@ describe('E2E Routing Agent Test', () => {
   it.concurrent('should tell his capabilities', async ({ wiremock }) => {
     const testPrompt = 'What are your capabilities?';
 
-    const finalResponse = await routingAgent.askAndWaitForResponse(
+    const { finalResponse } = await routingAgent.askAndWaitForResponse(
       {
         prompt: testPrompt,
       },
@@ -73,7 +73,7 @@ describe('E2E Routing Agent Test', () => {
 
       const testPrompt = 'Can you help me get my user information?';
 
-      const finalResponse = await routingAgent.askAndWaitForResponse(
+      const { finalResponse } = await routingAgent.askAndWaitForResponse(
         {
           prompt: testPrompt,
         },
@@ -127,7 +127,7 @@ describe('E2E Routing Agent Test', () => {
     );
 
     const testPrompt = `Create a calendar event with the name "${requestBody.summary}" and the description "${requestBody.description}" from ${new Date(requestBody.start.dateTime).toUTCString()} to ${new Date(requestBody.end.dateTime).toUTCString()}.`;
-    const finalResponse = await routingAgent.askAndWaitForResponse(
+    const { finalResponse } = await routingAgent.askAndWaitForResponse(
       {
         prompt: testPrompt,
       },
@@ -187,7 +187,7 @@ describe('E2E Routing Agent Test', () => {
       );
 
       const testPrompt = `Create a recurring calendar event with the name "${requestBody.summary}" and the description "${requestBody.description}" every Monday at 9:00 AM UTC for 30 minutes beginning on ${requestBody.start.dateTime}.`;
-      const finalResponse = await routingAgent.askAndWaitForResponse(
+      const { finalResponse } = await routingAgent.askAndWaitForResponse(
         {
           prompt: testPrompt,
         },
@@ -248,7 +248,7 @@ describe('E2E Routing Agent Test', () => {
       );
 
       const testPrompt = `Create a daily recurring calendar event with the name "${requestBody.summary}" and the description "${requestBody.description}" every day at 10:00 AM UTC for 15 minutes, repeating 10 times. Beginning on ${requestBody.start.dateTime}.`;
-      const finalResponse = await routingAgent.askAndWaitForResponse(
+      const { finalResponse } = await routingAgent.askAndWaitForResponse(
         {
           prompt: testPrompt,
         },
@@ -326,7 +326,7 @@ describe('E2E Routing Agent Test', () => {
       const testPrompt =
         'Get my last past assignment and create a calendar event for the date of the assignment and for 1.5hours. The Description of the calendar event should be the assignment intro.';
 
-      const finalResponse = await routingAgent.askAndWaitForResponse(
+      const { finalResponse } = await routingAgent.askAndWaitForResponse(
         {
           prompt: testPrompt,
         },
@@ -375,7 +375,7 @@ describe('E2E Routing Agent Test', () => {
       const testPrompt =
         'Hole mir alle Abgaben und erstelle je einen Kalendareintrag pro assignment';
 
-      const finalResponse = await routingAgent.askAndWaitForResponse(
+      const { finalResponse } = await routingAgent.askAndWaitForResponse(
         {
           prompt: testPrompt,
         },
