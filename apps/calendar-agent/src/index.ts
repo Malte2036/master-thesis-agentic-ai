@@ -2,8 +2,10 @@ import {
   createA2AFramework,
   getAIProvider,
   Logger,
-  ReActRouter,
+  MCPReActRouterRouter,
   Router,
+  RouterAIOptions,
+  RouterSystemPromptOptions,
 } from '@master-thesis-agentic-ai/agent-framework';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -14,17 +16,25 @@ const logger = new Logger({ agentName: 'calendar-agent' });
 
 export async function getRouter(): Promise<Router> {
   const aiProvider = getAIProvider(logger);
-  const structuredAiProvider = aiProvider;
-  return await ReActRouter.createWithMCP(
+
+  const aiOptions: RouterAIOptions = {
     aiProvider,
-    structuredAiProvider,
+    structuredAiProvider: aiProvider,
+  };
+
+  const systemPromptOptions: RouterSystemPromptOptions = {
+    extendedNaturalLanguageThoughtSystemPrompt: `
+    ### Calendar Specific Instructions
+      - You are a highly skilled calendar expert, and only answer questions related to his calendar.
+    - If someone speaks to you, he always mean something related to his calendar.
+        `,
+  };
+
+  return await MCPReActRouterRouter.create(
     logger,
+    aiOptions,
+    systemPromptOptions,
     'calendar-mcp',
-    `
-### Calendar Specific Instructions
-  - You are a highly skilled calendar expert, and only answer questions related to his calendar.
-- If someone speaks to you, he always mean something related to his calendar.
-    `,
   );
 }
 

@@ -1,13 +1,14 @@
 import {
+  A2AReActRouter,
   AIProvider,
   Logger,
-  ReActRouter,
+  RouterAIOptions,
+  RouterSystemPromptOptions,
   getFriendlyResponse,
 } from '@master-thesis-agentic-ai/agent-framework';
 import { RouterProcess, RouterResponse } from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
 import { getAgents } from './get-agents';
-import { handleToolCalls } from './handle-tool-calls';
 import { sendSSEUpdate } from './sse-handler';
 
 type RouteQuestionParams = {
@@ -37,22 +38,25 @@ async function routeQuestion({
   // Get available agents and tools
   const { agentClients, agentTools } = await getAgents(logger, agentUrls);
 
-  // Create router
-  const agentRouter = new ReActRouter(
+  const aiOptions: RouterAIOptions = {
     aiProvider,
-    aiProvider,
-    logger,
-    agentTools,
-    `You are **RouterGPT**, the dispatcher in a multi-agent system.
+    structuredAiProvider: aiProvider,
+  };
+
+  const systemPromptOptions: RouterSystemPromptOptions = {
+    extendedNaturalLanguageThoughtSystemPrompt: `You are **RouterGPT**, the dispatcher in a multi-agent system.
     
     Always include the "prompt" and "reason" in the function calls.
     `,
-    ``,
-    (logger, functionCalls) =>
-      handleToolCalls(logger, functionCalls, agentClients, contextId),
-    async () => {
-      logger.log('Disconnecting from Client');
-    },
+  };
+
+  // Create router
+  const agentRouter = await A2AReActRouter.create(
+    logger,
+    aiOptions,
+    systemPromptOptions,
+    agentTools,
+    agentClients,
   );
 
   // Route the question

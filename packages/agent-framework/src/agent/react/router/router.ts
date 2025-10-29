@@ -6,75 +6,24 @@ import {
 } from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
 
+import { Logger } from '../../../logger';
 import {
-  callMcpClientInParallel,
-  getMcpClient,
-} from '../../adapters/mcp/mcp_client_utils';
-import { MCPName } from '../../config';
-import { Logger } from '../../logger';
-import { AIProvider } from '../../services';
-import { Router } from '../router';
-import { listAgentsToolsToAgentTools } from '../utils';
-import { getNaturalLanguageThought } from './get-natural-language-thought';
-import { getStructuredThought } from './get-structured-thought';
-import { AgentTool } from './types';
+  Router,
+  RouterAIOptions,
+  RouterSystemPromptOptions,
+} from '../../router';
+import { getNaturalLanguageThought } from '../get-natural-language-thought';
+import { getStructuredThought } from '../get-structured-thought';
+import { AgentTool } from '../types';
 
-export class ReActRouter implements Router {
-  constructor(
-    private readonly aiProvider: AIProvider,
-    private readonly structuredAiProvider: AIProvider,
-    private readonly logger: Logger,
-    private readonly agentTools: AgentTool[],
-    private readonly extendedNaturalLanguageThoughtSystemPrompt: string,
-    private readonly extendedStructuredThoughtSystemPrompt: string | undefined,
-    private readonly callClientInParallel: (
-      logger: Logger,
-      functionCalls: FunctionCall[],
-      remainingCalls: number,
-      contextId: string,
-    ) => Promise<string[]>,
-    private readonly disconnectClient?: () => Promise<void>,
-  ) {}
-
-  static async createWithMCP(
-    aiProvider: AIProvider,
-    structuredAiProvider: AIProvider,
-    logger: Logger,
-    mcpName: MCPName,
-    extendedNaturalLanguageThoughtSystemPrompt: string,
-    extendedStructuredThoughtSystemPrompt?: string,
+export abstract class ReActRouter extends Router {
+  protected constructor(
+    protected readonly logger: Logger,
+    protected readonly aiOptions: RouterAIOptions,
+    protected readonly systemPromptOptions: RouterSystemPromptOptions,
+    protected readonly agentTools: AgentTool[],
   ) {
-    const mcpClient = await getMcpClient(logger, mcpName);
-    const listAgentsTools = await mcpClient.listTools();
-    const agentTools = listAgentsToolsToAgentTools(listAgentsTools);
-
-    const disconnectClient = () =>
-      mcpClient.terminateSession().then(() => mcpClient.disconnect());
-
-    const callClientInParallel = (
-      logger: Logger,
-      functionCalls: FunctionCall[],
-      remainingCalls: number,
-      contextId: string,
-    ) =>
-      callMcpClientInParallel(
-        logger,
-        mcpClient,
-        functionCalls,
-        remainingCalls,
-        contextId,
-      );
-
-    return new ReActRouter(
-      aiProvider,
-      structuredAiProvider,
-      logger,
-      agentTools,
-      extendedNaturalLanguageThoughtSystemPrompt,
-      extendedStructuredThoughtSystemPrompt,
-      callClientInParallel,
-      disconnectClient,
-    );
+    super();
   }
 
   async *routeQuestion(
@@ -124,17 +73,16 @@ export class ReActRouter implements Router {
       const naturalLanguageThought = await getNaturalLanguageThought(
         this.agentTools,
         routerProcess,
-        this.aiProvider,
+        this.aiOptions.aiProvider,
         this.logger,
-        this.extendedNaturalLanguageThoughtSystemPrompt,
+        this.systemPromptOptions.extendedNaturalLanguageThoughtSystemPrompt,
       );
 
       const structuredThought = await getStructuredThought(
         naturalLanguageThought,
         this.agentTools,
-        this.structuredAiProvider,
+        this.aiOptions.structuredAiProvider,
         this.logger,
-        this.extendedStructuredThoughtSystemPrompt,
       );
 
       if (structuredThought.isFinished) {
@@ -187,7 +135,6 @@ export class ReActRouter implements Router {
       this.logFunctionCalls(structuredThought.functionCalls);
 
       const agentResponses = await this.callClientInParallel(
-        this.logger,
         structuredThought.functionCalls,
         maxIterations - currentIteration - 1,
         routerProcess.contextId,

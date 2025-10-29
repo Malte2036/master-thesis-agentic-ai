@@ -148,7 +148,6 @@ ${pastText}`,
    */
   public static getStructuredThoughtPrompt = (
     agentTools: AgentTool[],
-    extendedStructuredThoughtSystemPrompt: string | undefined,
   ): AIGenerateTextOptions => ({
     messages: [
       {
@@ -187,7 +186,6 @@ Follow these rules with absolute precision:
    • "functionCalls" MUST be [].
    • "isFinished" MUST be true.
 
-${extendedStructuredThoughtSystemPrompt}
 
 Now, parse the following thought with zero deviation from these rules.`,
       },
