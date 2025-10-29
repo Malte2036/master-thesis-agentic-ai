@@ -102,12 +102,9 @@ async function runEvaluationTests() {
             // );
 
             return {
-              id: testData.id,
-              task_type: testData.task_type,
-              input: testData.input,
+              ...testData,
               actual_output: finalResponse,
               retrieval_context: [],
-              expected_output: testData.expected_output,
               completion_time: completionTime,
               trace: trace,
               token_cost: 0,
@@ -121,11 +118,8 @@ async function runEvaluationTests() {
               error,
             );
             return {
-              id: testData.id,
-              task_type: testData.task_type,
-              input: testData.input,
+              ...testData,
               actual_output: `ERROR: ${error}`,
-              expected_output: testData.expected_output,
               retrieval_context: [],
               completion_time: completionTime,
               trace: [],

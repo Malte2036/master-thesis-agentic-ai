@@ -1,4 +1,4 @@
-import { ToolCallTrace } from '@master-thesis-agentic-ai/types';
+import { ToolCall, ToolCallTrace } from '@master-thesis-agentic-ai/types';
 import fs from 'fs';
 
 export type EvaluationReportBase = {
@@ -6,6 +6,7 @@ export type EvaluationReportBase = {
   task_type: string;
   input: string;
   expected_output: string;
+  expected_tool_calls: ToolCall[];
 };
 
 export type EvaluationReportEntry = EvaluationReportBase & {
