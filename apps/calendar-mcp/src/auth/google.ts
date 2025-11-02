@@ -34,6 +34,7 @@ export const googleAuthRoutes = (logger: Logger): AuthRoutes => ({
     const url = oauth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: scopes,
+      prompt: 'consent',
     });
     res.redirect(url);
   },
@@ -43,10 +44,20 @@ export const googleAuthRoutes = (logger: Logger): AuthRoutes => ({
     const { tokens } = await oauth2Client.getToken(code);
     logger.log('Tokens acquired:', tokens);
     oauth2Client.setCredentials(tokens);
-    logger.log('Logged in with Google. Tokens acquired:', tokens);
+
+    const refreshToken = tokens.refresh_token;
+    if (!refreshToken) {
+      const errorMessage =
+        'Refresh token not found. This usually happens if the app was already authorized.';
+      logger.log('Error:', errorMessage);
+      logger.log('Tokens received:', JSON.stringify(tokens, null, 2));
+      throw new Error(errorMessage);
+    }
+
+    logger.log('Logged in with Google. Refresh token acquired:', refreshToken);
     res.send(
-      'Authentication successful! You can close this tab. Your token is: ' +
-        tokens.access_token,
+      'Authentication successful! You can close this tab. <br><br>Your refresh token is: ' +
+        refreshToken,
     );
   },
 });

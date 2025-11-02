@@ -81,11 +81,11 @@ const formatDateTime = (dateString: string): string => {
 };
 
 export class CalendarProvider {
-  private readonly apiSettings: GoogleApiSettings;
+  private readonly apiSettings: GoogleApiSettings | undefined;
 
   constructor(
     private readonly logger: Logger,
-    private readonly contextId: string,
+    contextId: string,
   ) {
     if (process.env.NODE_ENV === 'test') {
       this.apiSettings = {
@@ -95,9 +95,9 @@ export class CalendarProvider {
           'x-context-id': contextId,
         },
       };
-    }
 
-    this.logger.debug(`Using ${this.apiSettings ? 'Wiremock' : 'Google'} API`);
+      this.logger.debug(`Using Wiremock API. Context ID: ${contextId}`);
+    }
   }
 
   public async createCalendarEvent(
