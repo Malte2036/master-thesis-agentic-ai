@@ -1,7 +1,7 @@
 import { z } from 'zod/v4';
 
 // MCP Agent Call Types
-export const FunctionCallSchema = z.object({
+export const ToolCallSchema = z.object({
   function: z.string().describe('The name of the function to call'),
   args: z
     .record(
@@ -23,12 +23,10 @@ export const FunctionCallSchema = z.object({
     ),
 });
 
-export type FunctionCall = z.infer<typeof FunctionCallSchema>;
+export type ToolCall = z.infer<typeof ToolCallSchema>;
 
-export const FunctionCallsSchema = z.object({
-  functionCalls: z
-    .array(FunctionCallSchema)
-    .describe('The function calls to make.'),
+export const ToolCallWithResultSchema = ToolCallSchema.extend({
+  result: z.string().describe('The result of the tool call.'),
 });
 
-export type FunctionCalls = z.infer<typeof FunctionCallsSchema>;
+export type ToolCallWithResult = z.infer<typeof ToolCallWithResultSchema>;

@@ -18,7 +18,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
       'Here is your user information: Name: Sabrina Studentin, Username: student, Email: student@example.com.',
     expected_tool_calls: [
       {
-        tool: 'get_user_info',
+        function: 'get_user_info',
         args: {},
       },
     ],

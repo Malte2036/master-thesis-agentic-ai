@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { ToolCallTrace } from '@master-thesis-agentic-ai/types';
+import { ToolCallWithResult } from '@master-thesis-agentic-ai/types';
 import {
   EvaluationReport,
   EvaluationReportEntry,
@@ -84,17 +84,10 @@ async function runEvaluationTests() {
               `✅ Test ${testData.id} completed in ${completionTime.toFixed(2)}s`,
             );
 
-            const trace: ToolCallTrace[] = process?.iterationHistory?.flatMap(
-              (iteration) =>
-                iteration.structuredThought.functionCalls.map(
-                  (call) =>
-                    ({
-                      tool: call.function,
-                      args: call.args,
-                      obs: iteration.response,
-                    }) satisfies ToolCallTrace,
-                ),
-            );
+            const trace: ToolCallWithResult[] =
+              process?.iterationHistory?.flatMap(
+                (iteration) => iteration.structuredThought.functionCalls,
+              );
 
             // console.log(
             //   `📝 Test ${testData.id} trace:`,

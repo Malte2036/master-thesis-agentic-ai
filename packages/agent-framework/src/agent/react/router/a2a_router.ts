@@ -1,4 +1,4 @@
-import { FunctionCall } from '@master-thesis-agentic-ai/types';
+import { ToolCall } from '@master-thesis-agentic-ai/types';
 import { AgentClient } from '../../../adapters';
 import { Logger } from '../../../logger';
 import { RouterAIOptions, RouterSystemPromptOptions } from '../../router';
@@ -47,7 +47,7 @@ export class A2AReActRouter extends ReActRouter {
   }
 
   protected override async callClientInParallel(
-    functionCalls: FunctionCall[],
+    functionCalls: ToolCall[],
     remainingCalls: number,
     contextId: string,
   ): Promise<string[]> {

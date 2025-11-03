@@ -29,7 +29,6 @@ describe('getNaturalLanguageThought', () => {
           maxIterations: 3,
           iterationHistory: [],
           contextId: 'test-context-id',
-          trace: [],
         };
 
         const result = await getNaturalLanguageThought(

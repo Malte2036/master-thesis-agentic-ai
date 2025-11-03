@@ -1,8 +1,4 @@
-import {
-  FunctionCall,
-  RouterProcess,
-  RouterResponse,
-} from '@master-thesis-agentic-ai/types';
+import { RouterProcess, ToolCall } from '@master-thesis-agentic-ai/types';
 import { AIProvider } from '../services';
 
 export type RouterAIOptions = {
@@ -19,12 +15,12 @@ export abstract class Router {
     question: string,
     maxIterations: number,
     contextId: string,
-  ): AsyncGenerator<RouterProcess, RouterResponse, unknown>;
+  ): AsyncGenerator<RouterProcess, RouterProcess, unknown>;
 
   protected abstract disconnectClient(): Promise<void>;
 
   protected abstract callClientInParallel(
-    functionCalls: FunctionCall[],
+    functionCalls: ToolCall[],
     remainingCalls: number,
     contextId: string,
   ): Promise<string[]>;

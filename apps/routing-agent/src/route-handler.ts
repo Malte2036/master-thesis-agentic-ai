@@ -6,7 +6,7 @@ import {
   RouterSystemPromptOptions,
   getFriendlyResponse,
 } from '@master-thesis-agentic-ai/agent-framework';
-import { RouterProcess, RouterResponse } from '@master-thesis-agentic-ai/types';
+import { RouterProcess } from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
 import { getAgents } from './get-agents';
 import { sendSSEUpdate } from './sse-handler';
@@ -32,7 +32,7 @@ async function routeQuestion({
   maxIterations,
   contextId,
   sessionId,
-}: RouteQuestionParams): Promise<RouterResponse> {
+}: RouteQuestionParams): Promise<RouterProcess> {
   logger.log(chalk.magenta('Finding out which agent to call first:'));
 
   // Get available agents and tools
@@ -63,11 +63,11 @@ async function routeQuestion({
   const generator = agentRouter.routeQuestion(prompt, maxIterations, contextId);
 
   // Process the generator and send SSE updates
-  let results: RouterResponse;
+  let results: RouterProcess;
   while (true) {
     const { done, value } = await generator.next();
     if (done) {
-      results = value as RouterResponse;
+      results = value as RouterProcess;
       break;
     }
 
@@ -86,7 +86,7 @@ async function routeQuestion({
  */
 export async function processQuestion(params: RouteQuestionParams): Promise<{
   friendlyResponse: string;
-  process: RouterResponse['process'];
+  process: RouterProcess;
 }> {
   const results = await routeQuestion(params);
 
@@ -103,12 +103,12 @@ export async function processQuestion(params: RouteQuestionParams): Promise<{
     type: 'final_response',
     data: {
       finalResponse: friendlyResponse,
-      process: results.process,
+      process: results,
     },
   });
 
   return {
     friendlyResponse,
-    process: results.process,
+    process: results,
   };
 }

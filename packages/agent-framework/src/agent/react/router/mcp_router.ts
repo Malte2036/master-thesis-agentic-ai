@@ -1,4 +1,4 @@
-import { FunctionCall } from '@master-thesis-agentic-ai/types';
+import { ToolCall } from '@master-thesis-agentic-ai/types';
 import { MCPClient } from '../../../adapters';
 import { getMcpClient } from '../../../adapters/mcp/mcp_client_utils';
 import { MCPName } from '../../../config';
@@ -39,7 +39,7 @@ export class MCPReActRouterRouter extends ReActRouter {
   }
 
   protected override async callClientInParallel(
-    functionCalls: FunctionCall[],
+    functionCalls: ToolCall[],
     remainingCalls: number,
     contextId: string,
   ): Promise<string[]> {

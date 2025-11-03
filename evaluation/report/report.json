@@ -6,9 +6,9 @@
       "input": "What are your capabilities?",
       "expected_output": "I can access Moodle course content (pages, forums, assignments), track assignments and their due windows, and create/manage calendar events (one-off and recurring), including adding reminders and updating or canceling events.",
       "expected_tool_calls": [],
-      "actual_output": "I can assist with tasks related to Moodle Learning Management System (LMS) operations and calendar management. For Moodle, I can:  \n- Retrieve all enrolled courses or search for specific courses by name  \n- Inspect detailed course contents and view assignments across all courses or for specific courses (with optional date filtering)  \n- Access personal user information  \n\nFor calendar management, I can:  \n- Create new events with detailed descriptions and ISO-formatted timestamps  \n- Update existing events by event ID  \n- Retrieve all calendar events for a schedule overview  \n- Search events using free-text queries for intelligent discovery  \n\nThese capabilities are powered by integration with Moodle's MCP tools and Google Calendar APIs, using ReAct reasoning to route requests appropriately. Let me know if you need help with specific tasks!",
+      "actual_output": "I can help with managing courses, assignments, and user information in a learning management system, as well as scheduling and managing calendar events. For example, I can retrieve course details, track assignments, or schedule meetings. I also handle event creation, updates, and searches. Let me know what specific task you need assistance with!",
       "retrieval_context": [],
-      "completion_time": 12.318,
+      "completion_time": 8.896,
       "trace": [],
       "token_cost": 0
     },
@@ -19,21 +19,21 @@
       "expected_output": "Here is your user information: Name: Sabrina Studentin, Username: student, Email: student@example.com.",
       "expected_tool_calls": [
         {
-          "tool": "get_user_info",
+          "function": "get_user_info",
           "args": {}
         }
       ],
-      "actual_output": "• I’ve retrieved your user information through the system. Here are the details:  \n- **User ID**: `3`  \n- **Username**: `student`  \n- **First Name**: `Sabrina`  \n- **Last Name**: `Studentin`  \n\nLet me know if you need further assistance!",
+      "actual_output": "Your user information has been successfully retrieved:  \n- **User ID**: 3  \n- **Username**: `student`  \n- **First Name**: Sabrina  \n- **Last Name**: Studentin  \n- **Email**: `johndoe@example.com`  \n- **Enrolled Courses**: CS101, MATH201  \n\nLet me know if you need further assistance!",
       "retrieval_context": [],
-      "completion_time": 23.289,
+      "completion_time": 32.444,
       "trace": [
         {
-          "tool": "get_user_info",
+          "function": "moodle-agent",
           "args": {
             "prompt": "Get my user information",
             "parameters": ""
           },
-          "obs": "[\n  \"[\\n  \\\"SUMMARY: The original goal was to retrieve the user's personal information, which was successfully accomplished through the `get_user_info` function call. The system retrieved the following details:  \\\\n- **User ID**: `3`  \\\\n- **Username**: `student`  \\\\n- **First Name**: `Sabrina`  \\\\n- **Last Name**: `Studentin`  \\\\n\\\\nThe operation concluded with a status of **success**, as the function returned valid data without errors. The retrieved information is explicitly documented in the observation, confirming the user’s identity and basic profile. No further actions were required, and the final answer is derived directly from the successful API response.\\\"\\n]\"\n]"
+          "result": "User information retrieved: Name: John Doe, Email: john.doe@example.com, Enrolled Courses: CS101, Math101"
         }
       ],
       "token_cost": 0

@@ -116,7 +116,6 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
               question: c.question,
               maxIterations: 3,
               iterationHistory: [],
-              trace: [],
             };
 
             const thought = await getNaturalLanguageThought(
@@ -180,13 +179,13 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
                   {
                     function: 'get_user_info',
                     args: {},
+                    result: '',
                   },
                 ],
                 isFinished: false,
               },
             },
           ],
-          trace: [],
         };
 
         const thought = await getNaturalLanguageThought(
@@ -231,6 +230,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
                       reason:
                         'User requested to create a calendar entry for today',
                     },
+                    result: '',
                   },
                 ],
                 isFinished: false,
@@ -250,7 +250,6 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
                 ']',
             },
           ],
-          trace: [],
         };
 
         const thought = await getNaturalLanguageThought(

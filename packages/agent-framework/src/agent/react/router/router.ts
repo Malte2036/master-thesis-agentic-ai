@@ -1,8 +1,7 @@
 import {
   addIterationToRouterProcess,
-  FunctionCall,
   RouterProcess,
-  RouterResponse,
+  ToolCall,
 } from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
 
@@ -30,14 +29,14 @@ export abstract class ReActRouter extends Router {
     question: string,
     maxIterations: number,
     contextId: string,
-  ): AsyncGenerator<RouterProcess, RouterResponse, unknown> {
+  ): AsyncGenerator<RouterProcess, RouterProcess, unknown> {
     const routerProcess: RouterProcess = {
       contextId,
       question,
       maxIterations,
       iterationHistory: [],
-      trace: [],
     };
+
     const generator = this.iterate(routerProcess);
     while (true) {
       const { done, value } = await generator.next();
@@ -45,7 +44,7 @@ export abstract class ReActRouter extends Router {
         if (this.disconnectClient) {
           await this.disconnectClient();
         }
-        return value satisfies RouterResponse;
+        return value satisfies RouterProcess;
       }
       yield value satisfies RouterProcess;
     }
@@ -53,10 +52,7 @@ export abstract class ReActRouter extends Router {
 
   async *iterate(
     routerProcess: RouterProcess,
-  ): AsyncGenerator<RouterProcess, RouterResponse, unknown> {
-    // const listAgentsTools = await mcpClient.listTools();
-    // const agentTools = listAgentsToolsToAgentTools(listAgentsTools);
-
+  ): AsyncGenerator<RouterProcess, RouterProcess, unknown> {
     const maxIterations = routerProcess.maxIterations;
     let currentIteration = routerProcess.iterationHistory?.length ?? 0;
 
@@ -95,17 +91,15 @@ export abstract class ReActRouter extends Router {
           structuredThought,
           'Finished',
         );
-        return {
-          process: routerProcess,
-        };
+        return routerProcess;
       }
 
       if (!structuredThought.functionCalls) {
         this.logger.log(chalk.magenta('No agent calls found.'));
-        return {
-          process: routerProcess,
-          error: 'No agent calls found. Please try rephrasing your question.',
-        };
+        return this.setError(
+          routerProcess,
+          'No agent calls found. Please try rephrasing your question.',
+        );
       }
 
       if (
@@ -138,12 +132,6 @@ export abstract class ReActRouter extends Router {
         structuredThought.functionCalls,
         maxIterations - currentIteration - 1,
         routerProcess.contextId,
-      );
-
-      this.addToolCallTraces(
-        routerProcess,
-        structuredThought.functionCalls,
-        agentResponses,
       );
 
       this.logger.debug(
@@ -183,13 +171,13 @@ export abstract class ReActRouter extends Router {
       currentIteration++;
     }
 
-    return {
-      error: 'Maximum number of iterations reached.',
-      process: routerProcess,
-    };
+    return this.setError(
+      routerProcess,
+      'Maximum number of iterations reached.',
+    );
   }
 
-  private logFunctionCalls(functionCalls: FunctionCall[]) {
+  private logFunctionCalls(functionCalls: ToolCall[]) {
     this.logger.log(chalk.cyan('Function calls:'));
     const flattenedCalls = functionCalls.flatMap((functionCall) => [
       {
@@ -202,7 +190,7 @@ export abstract class ReActRouter extends Router {
 
   private hasDuplicateFunctionCalls(
     routerProcess: RouterProcess,
-    functionCalls: FunctionCall[],
+    functionCalls: ToolCall[],
   ): boolean {
     // Serialize current agent calls to check for duplicates
     const currentFunctionCallsStr = JSON.stringify(
@@ -221,17 +209,10 @@ export abstract class ReActRouter extends Router {
     );
   }
 
-  private addToolCallTraces(
-    routerProcess: RouterProcess,
-    functionCalls: FunctionCall[],
-    agentResponses: string[],
-  ) {
-    routerProcess.trace.push(
-      ...functionCalls.map((functionCall, index) => ({
-        tool: functionCall.function,
-        args: functionCall.args,
-        obs: agentResponses[index],
-      })),
-    );
+  private setError(routerProcess: RouterProcess, error: string) {
+    return {
+      ...routerProcess,
+      error,
+    };
   }
 }

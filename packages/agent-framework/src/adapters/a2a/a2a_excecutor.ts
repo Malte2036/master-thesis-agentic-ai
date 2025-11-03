@@ -4,7 +4,7 @@ import {
   ExecutionEventBus,
   RequestContext,
 } from '@a2a-js/sdk/server';
-import { RouterResponse } from '@master-thesis-agentic-ai/types';
+import { RouterProcess } from '@master-thesis-agentic-ai/types';
 import { randomUUID } from 'crypto';
 import { Router } from '../../agent';
 import { Logger } from '../../logger';
@@ -101,7 +101,7 @@ export class MyAgentExecutor implements AgentExecutor {
 
     const router = await this.getRouter();
     const generator = router.routeQuestion(userMessageText, 5, contextId);
-    let results: RouterResponse;
+    let results: RouterProcess;
     while (true) {
       const { done, value } = await generator.next();
       if (done) {

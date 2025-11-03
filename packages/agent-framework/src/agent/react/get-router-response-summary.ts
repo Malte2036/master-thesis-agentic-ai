@@ -1,16 +1,16 @@
-import { RouterResponse } from '@master-thesis-agentic-ai/types';
+import { RouterProcess } from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
 import { Logger } from '../../logger';
 import { AIProvider } from '../../services';
 import { ReActPrompt } from './prompt';
 
 export async function getRouterResponseSummary(
-  routerResponse: RouterResponse,
+  routerProcess: RouterProcess,
   aiProvider: AIProvider,
   logger: Logger,
 ): Promise<string> {
   const systemPrompt =
-    ReActPrompt.getRouterResponseSummaryPrompt(routerResponse);
+    ReActPrompt.getRouterResponseSummaryPrompt(routerProcess);
 
   logger.log(chalk.magenta('Generating summary...'));
 

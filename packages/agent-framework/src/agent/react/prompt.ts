@@ -1,4 +1,4 @@
-import { RouterProcess, RouterResponse } from '@master-thesis-agentic-ai/types';
+import { RouterProcess } from '@master-thesis-agentic-ai/types';
 import { AIGenerateTextOptions } from '../../services';
 import { AgentTool } from './types';
 import { parseTimestampToISOString } from '../../utils';
@@ -200,7 +200,7 @@ ${JSON.stringify(agentTools)}
   });
 
   public static getRouterResponseSummaryPrompt = (
-    routerResponse: RouterResponse,
+    routerResponse: RouterProcess,
   ): AIGenerateTextOptions => ({
     messages: [
       ...this.BASE_PROMPTS.map((content) => ({
@@ -212,7 +212,7 @@ ${JSON.stringify(agentTools)}
       {
         role: 'system' as const,
         content: `<STATE_JSON>
-  ${JSON.stringify(routerResponse.process)}
+  ${JSON.stringify(routerResponse)}
   ${routerResponse.error ? `\nERROR: ${routerResponse.error}` : ''}
   </STATE_JSON>`,
       },
@@ -220,7 +220,7 @@ ${JSON.stringify(agentTools)}
       // Original goal (for intent + language mirroring)
       {
         role: 'system' as const,
-        content: `ORIGINAL_GOAL: ${routerResponse.process?.question}`,
+        content: `ORIGINAL_GOAL: ${routerResponse.question}`,
       },
 
       {
@@ -251,7 +251,7 @@ ${JSON.stringify(agentTools)}
   });
 
   public static getFriendlyResponsePrompt = (
-    routerResponse: RouterResponse,
+    routerResponse: RouterProcess,
   ): AIGenerateTextOptions => ({
     messages: [
       ...this.BASE_PROMPTS.map((content) => ({
@@ -260,7 +260,7 @@ ${JSON.stringify(agentTools)}
       })),
       {
         role: 'system',
-        content: `ORIGINAL_GOAL: ${String(routerResponse.process?.question ?? '(missing)')}`,
+        content: `ORIGINAL_GOAL: ${String(routerResponse.question ?? '(missing)')}`,
       },
       {
         role: 'system',

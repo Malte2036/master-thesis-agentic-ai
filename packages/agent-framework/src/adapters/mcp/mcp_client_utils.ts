@@ -1,4 +1,4 @@
-import { FunctionCall } from '@master-thesis-agentic-ai/types';
+import { ToolCall } from '@master-thesis-agentic-ai/types';
 import { MCPName, getMCPConfig } from '../../config';
 import { Logger } from '../../logger';
 import { MCPClient } from './mcp_client';
@@ -6,7 +6,7 @@ import { MCPClient } from './mcp_client';
 export async function callMcpClientInParallel(
   logger: Logger,
   mcpClient: MCPClient,
-  functionCalls: FunctionCall[],
+  functionCalls: ToolCall[],
   remainingCalls: number,
   contextId: string,
 ): Promise<string[]> {

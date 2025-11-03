@@ -66,11 +66,11 @@ services:
       - '1234:1234'
     entrypoint: ['sh', '-c', 'pnpm run dev:moodle-agent']
     environment:
-      - OLLAMA_BASE_URL=http://10.50.60.153:11434
-      - OPENAI_BASE_URL=http://10.50.60.153:8000/v1
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL}
       - HOSTNAME=moodle-agent
       # - AI_MODEL=qwen3:4b
-      - AI_MODEL=Qwen/Qwen3-4B
+      - AI_MODEL=${AI_MODEL}
     depends_on:
       - moodle-mcp
 
@@ -82,11 +82,11 @@ services:
       - '1235:1235'
     entrypoint: ['sh', '-c', 'pnpm run dev:calendar-agent']
     environment:
-      - OLLAMA_BASE_URL=http://10.50.60.153:11434
-      - OPENAI_BASE_URL=http://10.50.60.153:8000/v1
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL}
       - HOSTNAME=calendar-agent
       # - AI_MODEL=qwen3:4b
-      - AI_MODEL=Qwen/Qwen3-4B
+      - AI_MODEL=${AI_MODEL}
     depends_on:
       - calendar-mcp
 
@@ -98,11 +98,11 @@ services:
       - '3000:3000'
     entrypoint: ['sh', '-c', 'pnpm run dev:routing-agent']
     environment:
-      - OLLAMA_BASE_URL=http://10.50.60.153:11434
-      - OPENAI_BASE_URL=http://10.50.60.153:8000/v1
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL}
       - AGENT_URLS=http://moodle-agent:1234,http://calendar-agent:1235
       # - AI_MODEL=qwen3:4b
-      - AI_MODEL=Qwen/Qwen3-4B
+      - AI_MODEL=${AI_MODEL}
     depends_on:
       - moodle-agent
       - calendar-agent

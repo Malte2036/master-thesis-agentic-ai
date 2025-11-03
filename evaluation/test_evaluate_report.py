@@ -28,7 +28,7 @@ def get_expected_tool_calls(e: Dict[str, Any]) -> List[ToolCall]:
     tool_calls = []
     for tool_call in e.get("expected_tool_calls", []):
         tool_calls.append(ToolCall(
-            name=tool_call.get("tool"),
+            name=tool_call.get("function"),
             input_parameters=tool_call.get("args"),
         ))
     return tool_calls
@@ -37,7 +37,7 @@ def get_tools_called(e: Dict[str, Any]) -> List[ToolCall]:
     tool_calls = []
     for tool_call in e.get("trace", []):
         tool_calls.append(ToolCall(
-            name=tool_call.get("tool"),
+            name=tool_call.get("function"),
             input_parameters=tool_call.get("args"),
         ))
     return tool_calls

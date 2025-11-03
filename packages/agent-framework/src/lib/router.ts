@@ -1,5 +1,5 @@
 import { Router } from '../index';
-import { RouterResponse } from '@master-thesis-agentic-ai/types';
+import { RouterProcess } from '@master-thesis-agentic-ai/types';
 
 /**
  * Test utility for getting router responses in tests.
@@ -14,13 +14,13 @@ export const getRouterTestResponse = async (
   agent: Router,
   question: string,
   maxIterations: number,
-): Promise<RouterResponse | undefined> => {
+): Promise<RouterProcess | undefined> => {
   const routerIterator = agent.routeQuestion(
     question,
     maxIterations,
     'test-id',
   );
-  let routerResponse: RouterResponse | undefined;
+  let routerResponse: RouterProcess | undefined;
   while (true) {
     const { value, done } = await routerIterator.next();
     if (done) {
