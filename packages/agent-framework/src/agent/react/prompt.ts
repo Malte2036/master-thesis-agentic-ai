@@ -1,10 +1,9 @@
 import {
+  AgentTool,
   RouterProcess,
-  ToolCall,
   ToolCallWithResult,
 } from '@master-thesis-agentic-ai/types';
 import { AIGenerateTextOptions } from '../../services';
-import { AgentTool } from './types';
 import { parseTimestampToISOString } from '../../utils';
 
 /**

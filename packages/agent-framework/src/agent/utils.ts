@@ -1,5 +1,5 @@
 import { ListToolsResult } from '@modelcontextprotocol/sdk/types.js';
-import { AgentTool, AgentToolSchema } from './react/types';
+import { AgentTool, AgentToolSchema } from '@master-thesis-agentic-ai/types';
 
 // Helper function to convert JSON Schema type to string
 const convertJsonSchemaType = (type: any): string => {

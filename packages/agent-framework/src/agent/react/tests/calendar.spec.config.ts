@@ -1,4 +1,4 @@
-import { AgentTool } from '../types';
+import { AgentTool } from '@master-thesis-agentic-ai/types';
 
 export const calendarAgentToolsMock: AgentTool[] = [
   {

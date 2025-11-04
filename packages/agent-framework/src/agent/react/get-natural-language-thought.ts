@@ -1,9 +1,8 @@
-import { RouterProcess } from '@master-thesis-agentic-ai/types';
+import { AgentTool, RouterProcess } from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
 import { Logger } from '../../logger';
 import { AIProvider } from '../../services';
 import { ReActPrompt } from './prompt';
-import { AgentTool } from './types';
 
 export async function getNaturalLanguageThought(
   agentTools: AgentTool[],

@@ -1,11 +1,14 @@
-import { ToolCall, ToolCallWithResult } from '@master-thesis-agentic-ai/types';
+import {
+  AgentTool,
+  ToolCall,
+  ToolCallWithResult,
+} from '@master-thesis-agentic-ai/types';
 import { MCPClient } from '../../../adapters';
 import { getMcpClient } from '../../../adapters/mcp/mcp_client_utils';
 import { MCPName } from '../../../config';
 import { Logger } from '../../../logger';
 import { RouterAIOptions, RouterSystemPromptOptions } from '../../router';
 import { listAgentsToolsToAgentTools } from '../../utils';
-import { AgentTool } from '../types';
 import { ReActRouter } from './router';
 
 export class MCPReActRouterRouter extends ReActRouter {

@@ -1,5 +1,6 @@
 import { z } from 'zod/v4';
 import { ToolCallSchema, ToolCallWithResultSchema } from './agent';
+import { AgentToolSchema } from './tool';
 
 // Lazy import function to handle circular dependency
 // Using require() to ensure the module is fully loaded before accessing the export
@@ -59,6 +60,7 @@ export const RouterProcessSchema = z.object({
   response: z.string().optional(),
   iterationHistory: z.array(RouterIterationSchema),
   error: z.string().optional(),
+  agentTools: z.array(AgentToolSchema),
 });
 
 export type RouterProcess = z.infer<typeof RouterProcessSchema>;

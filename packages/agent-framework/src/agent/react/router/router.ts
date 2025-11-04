@@ -1,5 +1,6 @@
 import {
   addIterationToRouterProcess,
+  AgentTool,
   RouterProcess,
   StructuredThoughtResponseWithResults,
   ToolCall,
@@ -14,7 +15,6 @@ import {
 } from '../../router';
 import { getNaturalLanguageThought } from '../get-natural-language-thought';
 import { getStructuredThought } from '../get-structured-thought';
-import { AgentTool } from '../types';
 
 export abstract class ReActRouter extends Router {
   protected constructor(
@@ -36,6 +36,7 @@ export abstract class ReActRouter extends Router {
       question,
       maxIterations,
       iterationHistory: [],
+      agentTools: this.agentTools,
     };
 
     const generator = this.iterate(routerProcess);

@@ -116,6 +116,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
               question: c.question,
               maxIterations: 3,
               iterationHistory: [],
+              agentTools: mockAgentToolsComplex,
             };
 
             const thought = await getNaturalLanguageThought(
@@ -174,6 +175,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
               },
             },
           ],
+          agentTools: moodleAgentToolsMock,
         };
 
         const thought = await getNaturalLanguageThought(
@@ -226,6 +228,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
               },
             },
           ],
+          agentTools: calendarAgentToolsMock,
         };
 
         const thought = await getNaturalLanguageThought(

@@ -56,10 +56,8 @@ def get_test_cases(path: str = "./report/report.json") -> List[LLMTestCase]:
     tcs = []
     for e in entries:
         trace = e.get("trace", {})
-        context = [
-            # Add default context
-            "I can assist with Moodle LMS operations and calendar management. For Moodle, I can retrieve course enrollments, track assignments across courses or specific courses, and access user information. For calendar tasks, I can create, update, retrieve, or search events via Google Calendar.",
-        ]
+         # Add default context
+        context = [x.get("description") for x in trace.get("agentTools", [])]
         context.extend(get_context(trace))
 
         tool_calls = get_tools_called(trace)

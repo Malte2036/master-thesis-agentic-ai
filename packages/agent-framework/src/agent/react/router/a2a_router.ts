@@ -1,11 +1,11 @@
 import {
+  AgentTool,
   AgentToolCallWithResult,
   ToolCall,
 } from '@master-thesis-agentic-ai/types';
 import { AgentClient } from '../../../adapters';
 import { Logger } from '../../../logger';
 import { RouterAIOptions, RouterSystemPromptOptions } from '../../router';
-import { AgentTool } from '../types';
 import { ReActRouter } from './router';
 
 export class A2AReActRouter extends ReActRouter {

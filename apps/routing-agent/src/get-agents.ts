@@ -1,10 +1,9 @@
 import {
   AgentCard,
   AgentClient,
-  AgentTool,
-  AgentToolSchema,
   Logger,
 } from '@master-thesis-agentic-ai/agent-framework';
+import { AgentTool, AgentToolSchema } from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
 
 export interface GetAgentsResult {

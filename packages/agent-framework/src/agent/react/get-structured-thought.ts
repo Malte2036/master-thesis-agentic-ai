@@ -1,4 +1,5 @@
 import {
+  AgentTool,
   StructuredThoughtResponse,
   StructuredThoughtResponseSchema,
 } from '@master-thesis-agentic-ai/types';
@@ -6,7 +7,6 @@ import chalk from 'chalk';
 import { Logger } from '../../logger';
 import { AIProvider } from '../../services';
 import { ReActPrompt } from './prompt';
-import { AgentTool } from './types';
 
 export async function getStructuredThought(
   naturalLanguageThought: string,
