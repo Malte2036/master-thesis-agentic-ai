@@ -2,7 +2,7 @@ import json
 from typing import Iterable, List, Any, Dict
 from deepeval import evaluate
 from deepeval.test_case import LLMTestCase, LLMTestCaseParams, ToolCall, ToolCallParams
-from deepeval.metrics import GEval, AnswerRelevancyMetric, ContextualRelevancyMetric,ToolCorrectnessMetric
+from deepeval.metrics import GEval, AnswerRelevancyMetric, ContextualRelevancyMetric,ToolCorrectnessMetric, TaskCompletionMetric
 
 
 def get_expected_tool_calls(e: Dict[str, Any]) -> List[ToolCall]:
@@ -78,6 +78,7 @@ def get_test_cases(path: str = "./report/report.json") -> List[LLMTestCase]:
 metrics = [
     AnswerRelevancyMetric(threshold=0.5),
     # ContextualRelevancyMetric(threshold=0.7)
+    TaskCompletionMetric(threshold=0.7)
 ]
 
 # metrics.append(
@@ -102,6 +103,20 @@ metrics = [
 # ))
 
 metrics.append(GEval(
+    name="Goal Satisfaction",
+    evaluation_steps=[
+        "Analyze the user's INPUT to identify the explicit goal or request (e.g., create a calendar event, answer a question, retrieve information).",
+        "Evaluate whether the ACTUAL_OUTPUT directly addresses and fulfills the user's goal from INPUT.",
+        "If EXPECTED_TOOL_CALLS are provided, verify that the necessary actions/tools were executed to accomplish the goal.",
+        "Check that the ACTUAL_OUTPUT contains the expected result or confirmation of task completion (not just partial information or acknowledgments).",
+        "Penalize if: (1) the output doesn't directly answer the user's question, (2) the output is vague or incomplete, (3) expected tool calls were not executed when required, or (4) the output indicates failure or inability to complete the task.",
+        "Reward clear, complete responses that demonstrate successful goal completion with appropriate action execution.",
+    ],
+    evaluation_params=[LLMTestCaseParams.INPUT, LLMTestCaseParams.ACTUAL_OUTPUT, LLMTestCaseParams.EXPECTED_TOOLS, LLMTestCaseParams.TOOLS_CALLED],
+    threshold=0.7,
+))
+
+metrics.append(GEval(
     name="Faithfulness (to context)",
     evaluation_steps=[
         "Check that every non-trivial claim in ACTUAL_OUTPUT is supported by CONTEXT.",
@@ -109,6 +124,20 @@ metrics.append(GEval(
         "Minor surface differences are fine; focus on factual consistency.",
     ],
     evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT, LLMTestCaseParams.CONTEXT],
+    threshold=0.7,
+))
+
+metrics.append(GEval(
+    name="Format Compliance",
+    evaluation_steps=[
+        "Analyze the INPUT to determine if a specific format or structure is explicitly requested (e.g., Markdown sections, APA/MLA citation style, bulleted lists, deliverables list, JSON, etc.).",
+        "If no format is specified in INPUT, consider the response format compliant (score highly) as there is no format requirement to violate.",
+        "If the ACTUAL_OUTPUT appropriately acknowledges inability to fulfill the request (e.g., explains lack of tools, missing information, or capability limitations), consider it format compliant when no specific format was requested.",
+        "If a format IS specified in INPUT, verify that ACTUAL_OUTPUT respects that format (e.g., uses requested Markdown structure, follows citation style, adheres to list format, etc.).",
+        "Only penalize format violations when a specific format was explicitly requested in INPUT and the response fails to follow it.",
+        "Reward responses that follow requested formats and appropriately acknowledge limitations when no format is required.",
+    ],
+    evaluation_params=[LLMTestCaseParams.INPUT, LLMTestCaseParams.ACTUAL_OUTPUT],
     threshold=0.7,
 ))
 

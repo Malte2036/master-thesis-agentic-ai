@@ -39,14 +39,8 @@ export class A2AReActRouter extends ReActRouter {
     return Promise.resolve();
   }
 
-  private getAgentClient(functionName: string): AgentClient {
-    const agentClient = this.agentClients.find(
-      (agent) => agent.name === functionName,
-    );
-    if (!agentClient) {
-      throw new Error(`No agent found for function: ${functionName}`);
-    }
-    return agentClient;
+  private getAgentClient(functionName: string): AgentClient | undefined {
+    return this.agentClients.find((agent) => agent.name === functionName);
   }
 
   protected override async callClientInParallel(
@@ -74,6 +68,14 @@ export class A2AReActRouter extends ReActRouter {
     const results: AgentToolCallWithResult[] = await Promise.all(
       functionCalls.map(async (parsedDecision) => {
         const agentClient = this.getAgentClient(parsedDecision.function);
+
+        if (!agentClient) {
+          return {
+            ...parsedDecision,
+            type: 'agent',
+            result: `No agent found for function: ${parsedDecision.function}`,
+          } satisfies AgentToolCallWithResult;
+        }
 
         try {
           const result = await agentClient.call(

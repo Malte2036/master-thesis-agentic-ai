@@ -9,7 +9,6 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
       'I can access Moodle course content (pages, forums, assignments), track assignments and their due windows, and create/manage calendar events (one-off and recurring), including adding reminders and updating or canceling events.',
     expected_tool_calls: [],
   },
-
   {
     id: 'case_001',
     task_type: 'get_user_info',
@@ -23,7 +22,6 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
       },
     ],
   },
-
   {
     id: 'case_002',
     task_type: 'get_all_courses',
@@ -37,7 +35,6 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
       },
     ],
   },
-
   // // ── complex moodle queries ───────────────────────────────────────────────────
   // {
   //   id: 'case_003',
@@ -50,7 +47,6 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   //     // TODO: Add tool calls for the complex moodle queries
   //   ],
   // },
-
   // ── Combine moodle and calendar ───────────────────────────────────────────────────
   {
     id: 'case_004',
@@ -78,6 +74,14 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
       },
     ],
   },
+
+  // {
+  //   id: 'case_005',
+  //   task_type: 'ask_general_question',
+  //   input: 'What is the second biggest city in the world?',
+  //   expected_output: 'I am not allowed to answer that question.',
+  //   expected_tool_calls: [],
+  // },
 
   // ── Capability & User Info ───────────────────────────────────────────────────
   // {
