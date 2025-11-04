@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 
-import { ToolCall, ToolCallWithResult } from '@master-thesis-agentic-ai/types';
+import { RouterProcess, ToolCall } from '@master-thesis-agentic-ai/types';
 import fs from 'fs';
 
 export type EvaluationReportBase = {
@@ -14,7 +14,7 @@ export type EvaluationReportBase = {
 export type EvaluationReportEntry = EvaluationReportBase & {
   actual_output: string;
   retrieval_context: string[];
-  trace: ToolCallWithResult[];
+  trace: RouterProcess;
   completion_time: number;
   token_cost: number;
 };

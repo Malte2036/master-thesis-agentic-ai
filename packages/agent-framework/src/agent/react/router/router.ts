@@ -1,6 +1,7 @@
 import {
   addIterationToRouterProcess,
   RouterProcess,
+  StructuredThoughtResponseWithResults,
   ToolCall,
 } from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
@@ -88,7 +89,10 @@ export abstract class ReActRouter extends Router {
           routerProcess,
           currentIteration,
           naturalLanguageThought,
-          structuredThought,
+          {
+            isFinished: true,
+            functionCalls: [],
+          },
           'Finished',
         );
         return routerProcess;
@@ -139,6 +143,12 @@ export abstract class ReActRouter extends Router {
         JSON.stringify(agentResponses, null, 2),
       );
 
+      const structuredThoughtWithResults: StructuredThoughtResponseWithResults =
+        {
+          ...structuredThought,
+          functionCalls: agentResponses,
+        };
+
       // const response = await this.observeAndSummarizeAgentResponses(
       //   routerProcess.question,
       //   structuredThought.agentCalls,
@@ -163,7 +173,7 @@ export abstract class ReActRouter extends Router {
         routerProcess,
         currentIteration,
         naturalLanguageThought,
-        structuredThought,
+        structuredThoughtWithResults,
         JSON.stringify(agentResponses, null, 2),
       );
 

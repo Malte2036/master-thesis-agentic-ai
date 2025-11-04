@@ -36,7 +36,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           logger,
         );
 
-        const names = res.functionCalls.map((c) => c.function);
+        const names = res.functionCalls?.map((c) => c.function) ?? [];
         expect(names).toEqual(
           expect.arrayContaining([
             'search_flights',
@@ -46,7 +46,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         );
 
         // All calls should have valid args structure
-        for (const c of res.functionCalls) {
+        for (const c of res.functionCalls ?? []) {
           expect(c.args).toBeDefined();
         }
         expect(res.isFinished).toBe(false);
@@ -155,8 +155,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         );
         expect(argsSet.size).toBeGreaterThanOrEqual(2);
 
-        for (const c of flightCalls)
-          expect(c.args).toBeDefined();
+        for (const c of flightCalls) expect(c.args).toBeDefined();
       });
 
       it('Capabilities paragraph mentioning tools → descriptive only (final answer, no calls)', async () => {

@@ -26,7 +26,10 @@ export async function getStructuredThought(
       0.1,
     );
 
-  if (structuredResponse.functionCalls.length > 0) {
+  if (
+    structuredResponse.functionCalls &&
+    structuredResponse.functionCalls.length > 0
+  ) {
     structuredResponse.isFinished = false;
     logger.log(
       chalk.magenta('Structured thought:'),

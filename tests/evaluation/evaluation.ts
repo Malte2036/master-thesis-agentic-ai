@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-import { ToolCallWithResult } from '@master-thesis-agentic-ai/types';
 import {
   EvaluationReport,
   EvaluationReportEntry,
@@ -84,11 +83,6 @@ async function runEvaluationTests() {
               `✅ Test ${testData.id} completed in ${completionTime.toFixed(2)}s`,
             );
 
-            const trace: ToolCallWithResult[] =
-              process?.iterationHistory?.flatMap(
-                (iteration) => iteration.structuredThought.functionCalls,
-              );
-
             // console.log(
             //   `📝 Test ${testData.id} trace:`,
             //   JSON.stringify(trace, null, 2),
@@ -99,7 +93,7 @@ async function runEvaluationTests() {
               actual_output: finalResponse,
               retrieval_context: [],
               completion_time: completionTime,
-              trace: trace,
+              trace: process,
               token_cost: 0,
             } satisfies EvaluationReportEntry;
           } catch (error) {
@@ -115,7 +109,7 @@ async function runEvaluationTests() {
               actual_output: `ERROR: ${error}`,
               retrieval_context: [],
               completion_time: completionTime,
-              trace: [],
+              trace: undefined,
               token_cost: 0,
             } satisfies EvaluationReportEntry;
           }

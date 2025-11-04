@@ -1,4 +1,4 @@
-import { ToolCall } from '@master-thesis-agentic-ai/types';
+import { ToolCall, ToolCallWithResult } from '@master-thesis-agentic-ai/types';
 import { MCPClient } from '../../../adapters';
 import { getMcpClient } from '../../../adapters/mcp/mcp_client_utils';
 import { MCPName } from '../../../config';
@@ -42,7 +42,7 @@ export class MCPReActRouterRouter extends ReActRouter {
     functionCalls: ToolCall[],
     remainingCalls: number,
     contextId: string,
-  ): Promise<string[]> {
+  ): Promise<ToolCallWithResult[]> {
     if (remainingCalls < 0) {
       throw new Error(
         'Maximum number of LLM calls reached. Please try rephrasing your question.',
@@ -79,13 +79,21 @@ export class MCPReActRouterRouter extends ReActRouter {
             )}`,
           );
 
-          return resultString;
+          return {
+            ...functionCall,
+            type: 'mcp',
+            result: resultString,
+          };
         } catch (error) {
           this.logger.error(
             `Error calling tool ${functionCall.function}:`,
             error,
           );
-          return `Error while calling tool ${functionCall.function}: ${error instanceof Error ? error.message : 'Unknown error occurred'}`;
+          return {
+            ...functionCall,
+            type: 'mcp',
+            result: `Error while calling tool ${functionCall.function}: ${error instanceof Error ? error.message : 'Unknown error occurred'}`,
+          };
         }
       }),
     );

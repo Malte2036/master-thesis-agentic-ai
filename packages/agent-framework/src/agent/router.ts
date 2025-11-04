@@ -1,4 +1,9 @@
-import { RouterProcess, ToolCall } from '@master-thesis-agentic-ai/types';
+import {
+  AgentToolCallWithResult,
+  RouterProcess,
+  ToolCall,
+  ToolCallWithResult,
+} from '@master-thesis-agentic-ai/types';
 import { AIProvider } from '../services';
 
 export type RouterAIOptions = {
@@ -23,5 +28,5 @@ export abstract class Router {
     functionCalls: ToolCall[],
     remainingCalls: number,
     contextId: string,
-  ): Promise<string[]>;
+  ): Promise<ToolCallWithResult[] | AgentToolCallWithResult[]>;
 }

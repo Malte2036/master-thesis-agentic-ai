@@ -1,4 +1,7 @@
-import { ToolCall } from '@master-thesis-agentic-ai/types';
+import {
+  AgentToolCallWithResult,
+  ToolCall,
+} from '@master-thesis-agentic-ai/types';
 import { AgentClient } from '../../../adapters';
 import { Logger } from '../../../logger';
 import { RouterAIOptions, RouterSystemPromptOptions } from '../../router';
@@ -50,7 +53,7 @@ export class A2AReActRouter extends ReActRouter {
     functionCalls: ToolCall[],
     remainingCalls: number,
     contextId: string,
-  ): Promise<string[]> {
+  ): Promise<AgentToolCallWithResult[]> {
     if (remainingCalls < 0) {
       throw new Error(
         'Maximum number of LLM calls reached. Please try rephrasing your question.',
@@ -68,28 +71,39 @@ export class A2AReActRouter extends ReActRouter {
     );
 
     // Process all function calls in parallel
-    const agentPromises = functionCalls.map(async (parsedDecision) => {
-      const agentClient = this.getAgentClient(parsedDecision.function);
+    const results: AgentToolCallWithResult[] = await Promise.all(
+      functionCalls.map(async (parsedDecision) => {
+        const agentClient = this.getAgentClient(parsedDecision.function);
 
-      try {
-        return await agentClient.call(
-          `${parsedDecision.args['prompt']}; We want to call the agent because: ${parsedDecision.args['reason']}`,
-          contextId,
-        );
-      } catch (error) {
-        this.logger.log(
-          `Error calling agent ${parsedDecision.function}:`,
-          error,
-        );
-        return { message: `Error calling agent: ${error}`, process: undefined };
-      }
-    });
+        try {
+          const result = await agentClient.call(
+            `${parsedDecision.args['prompt']}; We want to call the agent because: ${parsedDecision.args['reason']}`,
+            contextId,
+          );
 
-    // Wait for all agent calls to complete
-    const results = await Promise.all(agentPromises);
+          return {
+            ...parsedDecision,
+            type: 'agent',
+            result: result.message,
+            internalRouterProcess: result.process ?? null,
+          } satisfies AgentToolCallWithResult;
+        } catch (error) {
+          this.logger.log(
+            `Error calling agent ${parsedDecision.function}:`,
+            error,
+          );
+          return {
+            ...parsedDecision,
+            type: 'agent',
+            result: `Error calling agent: ${error}`,
+            internalRouterProcess: null,
+          } satisfies AgentToolCallWithResult;
+        }
+      }),
+    );
 
     this.logger.log('All agent calls completed:', results);
 
-    return results.map((result) => result.message);
+    return results;
   }
 }
