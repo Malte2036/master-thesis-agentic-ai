@@ -76,7 +76,7 @@ def get_test_cases(path: str = "./report/report.json") -> List[LLMTestCase]:
     return tcs
 
 metrics = [
-    # AnswerRelevancyMetric(threshold=0.5),
+    AnswerRelevancyMetric(threshold=0.5),
     # ContextualRelevancyMetric(threshold=0.7)
 ]
 
