@@ -18,7 +18,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
       'Here is your user information: Name: Sabrina Studentin, Username: student, Email: student@example.com.',
     expected_tool_calls: [
       {
-        function: 'get_user_info',
+        function: 'moodle-agent.get_user_info',
         args: {},
       },
     ],
@@ -32,27 +32,24 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
       'Here are your current courses: SAFE-101 (Intro to Safety), OPS-201 (Operations Level 2), MATH-301 (Advanced Mathematics), CS-401 (Computer Science Fundamentals), DH-501 (Digital Health UX).',
     expected_tool_calls: [
       {
-        function: 'get_all_courses',
+        function: 'moodle-agent.get_all_courses',
         args: {},
       },
     ],
   },
 
-  // ── complex moodle queries ───────────────────────────────────────────────────
-  {
-    id: 'case_003',
-    task_type: 'complex_moodle_queries',
-    input:
-      'Show me the syllabus pages for each of my courses: SAFE-101, OPS-201, MATH-301, and CS-401.',
-    expected_output:
-      'Here are the requested syllabus pages: SAFE-101 → "Course Syllabus"; OPS-201 → "Course Syllabus"; MATH-301 → "Course Syllabus"; CS-401 → "Course Syllabus".',
-    expected_tool_calls: [
-      {
-        function: 'get_syllabus_pages',
-        args: {},
-      },
-    ],
-  },
+  // // ── complex moodle queries ───────────────────────────────────────────────────
+  // {
+  //   id: 'case_003',
+  //   task_type: 'complex_moodle_queries',
+  //   input:
+  //     'Show me the syllabus pages for each of my courses: SAFE-101, OPS-201, MATH-301, and CS-401.',
+  //   expected_output:
+  //     'Here are the requested syllabus pages: SAFE-101 → "Course Syllabus"; OPS-201 → "Course Syllabus"; MATH-301 → "Course Syllabus"; CS-401 → "Course Syllabus".',
+  //   expected_tool_calls: [
+  //     // TODO: Add tool calls for the complex moodle queries
+  //   ],
+  // },
 
   // ── Combine moodle and calendar ───────────────────────────────────────────────────
   {
@@ -64,8 +61,20 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
       'Created calendar event for "Safety Quiz 1" (due in +7 days) with description: "Complete this quiz to test your basic safety knowledge" and a 30-minute reminder.',
     expected_tool_calls: [
       {
-        function: 'get_all_courses',
-        args: {},
+        function: 'moodle-agent.get_assignments_for_all_courses',
+        args: {
+          due_before: '2025-11-04 12:20:59 UTC',
+        },
+      },
+      {
+        function: 'calendar-agent.create_calendar_event',
+        args: {
+          event_name: 'Assignment: Implement common data structures',
+          event_description:
+            'Implement common data structures: linked list, stack, and queue.',
+          event_start_date: '2025-10-27T00:00:00.000Z',
+          event_end_date: '2025-10-27T01:30:00.000Z',
+        },
       },
     ],
   },

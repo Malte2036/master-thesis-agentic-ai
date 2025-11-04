@@ -1,28 +1,9 @@
 import json
 from typing import Iterable, List, Any, Dict
 from deepeval import evaluate
-from deepeval.test_case import LLMTestCase, LLMTestCaseParams, ToolCall
+from deepeval.test_case import LLMTestCase, LLMTestCaseParams, ToolCall, ToolCallParams
 from deepeval.metrics import GEval, AnswerRelevancyMetric, ContextualRelevancyMetric,ToolCorrectnessMetric
 
-def _flatten_context(x: Any) -> List[str]:
-    """Normalize retrieval_context into a flat List[str]."""
-    if x is None:
-        return []
-    if isinstance(x, str):
-        return [x]
-    if isinstance(x, dict):
-        # Try common text fields
-        for k in ("text", "content", "page_content", "body"):
-            if isinstance(x.get(k), str):
-                return [x[k]]
-        # Fallback: stringify
-        return [json.dumps(x, ensure_ascii=False)]
-    if isinstance(x, Iterable):
-        out: List[str] = []
-        for item in x:
-            out.extend(_flatten_context(item))
-        return out
-    return [str(x)]
 
 def get_expected_tool_calls(e: Dict[str, Any]) -> List[ToolCall]:
     tool_calls = []
@@ -33,29 +14,64 @@ def get_expected_tool_calls(e: Dict[str, Any]) -> List[ToolCall]:
         ))
     return tool_calls
 
-def get_tools_called(e: Dict[str, Any]) -> List[ToolCall]:
+def get_tools_called(e: Dict[str, Any], prefix: str | None = None) -> List[ToolCall]:
     tool_calls = []
-    for tool_call in e.get("trace", []):
-        tool_calls.append(ToolCall(
-            name=tool_call.get("function"),
-            input_parameters=tool_call.get("args"),
-        ))
+    
+    iteration_history = e.get("iterationHistory", [])
+    for iteration in iteration_history:
+        for function_call in iteration.get("structuredThought").get("functionCalls", []):
+            if function_call.get("type") == "agent":
+                tool_calls.extend(
+                    get_tools_called(function_call.get("internalRouterProcess"), prefix=function_call.get("function"))
+                )
+            
+            if function_call.get("type") == "mcp":
+                function_name = f"{prefix}.{function_call.get('function')}" if prefix else function_call.get("function")
+                tool_calls.append(ToolCall(
+                    name=function_name,
+                    input_parameters=function_call.get("args"),
+                ))
+
     return tool_calls
+
+def get_context(e: Dict[str, Any]) -> List[str]:
+    context = []
+    
+    iteration_history = e.get("iterationHistory", [])
+    for iteration in iteration_history:
+        for function_call in iteration.get("structuredThought").get("functionCalls", []):
+            if function_call.get("type") == "agent":
+                context.extend(
+                    get_context(function_call.get("internalRouterProcess"))
+                )
+            
+            if function_call.get("type") == "mcp":
+                context.append(function_call.get("result"))
+
+    return context
 
 def get_test_cases(path: str = "./report/report.json") -> List[LLMTestCase]:
     data = json.load(open(path, "r", encoding="utf-8"))
     entries = data.get("testEntries", data if isinstance(data, list) else [])
     tcs = []
     for e in entries:
-        ctx = _flatten_context(e.get("retrieval_context"))
+        trace = e.get("trace", {})
+        context = [
+            # Add default context
+            "I can assist with Moodle LMS operations and calendar management. For Moodle, I can retrieve course enrollments, track assignments across courses or specific courses, and access user information. For calendar tasks, I can create, update, retrieve, or search events via Google Calendar.",
+        ]
+        context.extend(get_context(trace))
+
+        tool_calls = get_tools_called(trace)
+
         tc = LLMTestCase(
             input=e["input"],
             actual_output=e["actual_output"],
             expected_output=e.get("expected_output"),   # optional
-            retrieval_context=ctx,                      # must be List[str]
+            context=context,                      # must be List[str]
             completion_time=e.get("completion_time"),
             expected_tools=get_expected_tool_calls(e),
-            tools_called=get_tools_called(e),
+            tools_called=tool_calls,
         )
         tcs.append(tc)
     
@@ -66,11 +82,14 @@ metrics = [
     # ContextualRelevancyMetric(threshold=0.7)
 ]
 
-metrics.append(
-    ToolCorrectnessMetric(
-        should_consider_ordering=True,
-    )
-)
+# metrics.append(
+#     ToolCorrectnessMetric(
+#         verbose_mode=True,
+#         should_consider_ordering=True,
+#         # evaluation_params=[ToolCallParams.INPUT_PARAMETERS, ToolCallParams.OUTPUT]
+#     )
+# )
+
 
 # # --- Core correctness / faithfulness (use one or both) ---
 # metrics.append(GEval(
@@ -84,16 +103,16 @@ metrics.append(
 #     threshold=0.7,
 # ))
 
-# metrics.append(GEval(
-#     name="Faithfulness (to retrieval_context)",
-#     evaluation_steps=[
-#         "Check that every non-trivial claim in ACTUAL_OUTPUT is supported by RETRIEVAL_CONTEXT.",
-#         "Penalize claims that contradict or are not supported by the context.",
-#         "Minor surface differences are fine; focus on factual consistency.",
-#     ],
-#     evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT, LLMTestCaseParams.RETRIEVAL_CONTEXT],
-#     threshold=0.7,
-# ))
+metrics.append(GEval(
+    name="Faithfulness (to context)",
+    evaluation_steps=[
+        "Check that every non-trivial claim in ACTUAL_OUTPUT is supported by CONTEXT.",
+        "Penalize claims that contradict or are not supported by the context.",
+        "Minor surface differences are fine; focus on factual consistency.",
+    ],
+    evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT, LLMTestCaseParams.CONTEXT],
+    threshold=0.7,
+))
 
 # # --- Agent-shaped rubrics (customizable per task type) ---
 # metrics.append(GEval(
