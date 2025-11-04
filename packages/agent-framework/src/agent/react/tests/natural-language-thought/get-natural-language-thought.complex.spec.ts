@@ -160,26 +160,13 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
                                                                                                                                                                                                                      ║
   **Parameters:**                                                                                                                                                                                                    ║
   - No parameters required`,
-              response: JSON.stringify(
-                [
-                  {
-                    content: [
-                      {
-                        type: 'text',
-                        text: '{"username":"student","firstname":"Sabrina","lastname":"Studentin","siteurl":"http://localhost:8080","userpictureurl":"http://localhost:8080/theme/image.php/boost/core/1746531048/u/f1"}',
-                      },
-                    ],
-                  },
-                ],
-                null,
-                2,
-              ),
               structuredThought: {
                 functionCalls: [
                   {
                     function: 'get_user_info',
                     args: {},
-                    result: '',
+                    result:
+                      '{"username":"student","firstname":"Sabrina","lastname":"Studentin","siteurl":"http://localhost:8080","userpictureurl":"http://localhost:8080/theme/image.php/boost/core/1746531048/u/f1"}',
                     type: 'mcp',
                   },
                 ],
@@ -231,25 +218,12 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
                       reason:
                         'User requested to create a calendar entry for today',
                     },
-                    result: '',
+                    result: 'We successfully created the calendar event.',
                     type: 'mcp',
                   },
                 ],
                 isFinished: false,
               },
-              response:
-                '[\n' +
-                '  {\n' +
-                '    "content": [\n' +
-                '      {\n' +
-                '        "type": "text",\n' +
-                '        "text": {\n' +
-                '          "response": "We successfully created the calendar event."\n' +
-                '        }\n' +
-                '      }\n' +
-                '    ]\n' +
-                '  }\n' +
-                ']',
             },
           ],
         };

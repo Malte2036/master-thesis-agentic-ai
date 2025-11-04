@@ -93,7 +93,6 @@ export abstract class ReActRouter extends Router {
             isFinished: true,
             functionCalls: [],
           },
-          'Finished',
         );
         return routerProcess;
       }
@@ -174,7 +173,6 @@ export abstract class ReActRouter extends Router {
         currentIteration,
         naturalLanguageThought,
         structuredThoughtWithResults,
-        JSON.stringify(agentResponses, null, 2),
       );
 
       yield routerProcess;

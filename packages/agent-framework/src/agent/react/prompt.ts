@@ -1,4 +1,8 @@
-import { RouterProcess } from '@master-thesis-agentic-ai/types';
+import {
+  RouterProcess,
+  ToolCall,
+  ToolCallWithResult,
+} from '@master-thesis-agentic-ai/types';
 import { AIGenerateTextOptions } from '../../services';
 import { AgentTool } from './types';
 import { parseTimestampToISOString } from '../../utils';
@@ -41,7 +45,10 @@ Important rules:
 
     const state = {
       lastAction: lastIt?.structuredThought?.functionCalls ?? [],
-      lastObservation: lastIt?.response ?? null,
+      lastObservation:
+        lastIt?.structuredThought.functionCalls
+          .map((call: unknown) => (call as ToolCallWithResult).result)
+          .join(', ') ?? null,
       allCalls,
     };
 
@@ -54,7 +61,6 @@ Important rules:
             `Iteration ${it.iteration}
 - Thought which justifies the next step: ${it.naturalLanguageThought}
 - The function calls that were made: ${JSON.stringify(it.structuredThought.functionCalls)}
-- The response that was made after seeing the response of the function calls: ${it.response}
 `,
         )
         .join('\n') || '— none —';

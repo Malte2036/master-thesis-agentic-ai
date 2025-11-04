@@ -48,7 +48,6 @@ export const RouterIterationSchema = z.object({
   iteration: z.number(),
   naturalLanguageThought: z.string(),
   structuredThought: StructuredThoughtResponseWithResultsSchema,
-  response: z.string(),
 });
 
 export type RouterIteration = z.infer<typeof RouterIterationSchema>;
@@ -69,7 +68,6 @@ export const addIterationToRouterProcess = (
   iteration: number,
   naturalLanguageThought: string,
   structuredThought: StructuredThoughtResponseWithResults,
-  response: string,
 ): RouterProcess => {
   return {
     ...routerProcess,
@@ -79,7 +77,6 @@ export const addIterationToRouterProcess = (
         iteration,
         naturalLanguageThought,
         structuredThought,
-        response,
       },
     ],
   };
