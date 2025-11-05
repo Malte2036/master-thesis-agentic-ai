@@ -7,6 +7,7 @@ import chalk from 'chalk';
 import { Logger } from '../../logger';
 import { AIProvider } from '../../services';
 import { ReActPrompt } from './prompt';
+import { stripThoughts } from '../../utils/llm';
 
 export async function getStructuredThought(
   naturalLanguageThought: string,
@@ -17,6 +18,8 @@ export async function getStructuredThought(
   logger.log(chalk.magenta('Generating structured thought...'));
   const structuredSystemPrompt =
     ReActPrompt.getStructuredThoughtPrompt(agentTools);
+
+  naturalLanguageThought = stripThoughts(naturalLanguageThought);
 
   const structuredResponse =
     await structuredAiProvider.generateJson<StructuredThoughtResponse>(
