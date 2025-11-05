@@ -1,15 +1,34 @@
 'use client';
 
-import { RouterProcess } from '@master-thesis-agentic-ai/types';
+import {
+  AgentToolCallWithResult,
+  RouterProcess,
+  ToolCallWithResult,
+} from '@master-thesis-agentic-ai/types';
 import { useState } from 'react';
 
 type ProcessViewerProps = {
   process: RouterProcess | undefined;
   isLoading: boolean;
+  depth?: number;
 };
 
-export const ProcessViewer = ({ process, isLoading }: ProcessViewerProps) => {
+// Type guard to check if a call is an agent tool call
+const isAgentToolCall = (
+  call: ToolCallWithResult | AgentToolCallWithResult,
+): call is AgentToolCallWithResult => {
+  return 'type' in call && call.type === 'agent';
+};
+
+export const ProcessViewer = ({
+  process,
+  isLoading,
+  depth = 0,
+}: ProcessViewerProps) => {
   const [expandedSteps, setExpandedSteps] = useState<Set<number>>(new Set());
+  const [expandedNestedProcess, setExpandedNestedProcess] = useState<
+    Set<string>
+  >(new Set());
 
   if (!process && !isLoading) {
     return null;
@@ -23,6 +42,16 @@ export const ProcessViewer = ({ process, isLoading }: ProcessViewerProps) => {
       newExpanded.add(stepIndex);
     }
     setExpandedSteps(newExpanded);
+  };
+
+  const toggleNestedProcess = (nestedId: string) => {
+    const newExpanded = new Set(expandedNestedProcess);
+    if (newExpanded.has(nestedId)) {
+      newExpanded.delete(nestedId);
+    } else {
+      newExpanded.add(nestedId);
+    }
+    setExpandedNestedProcess(newExpanded);
   };
 
   const getStatusIcon = () => {
@@ -96,28 +125,42 @@ export const ProcessViewer = ({ process, isLoading }: ProcessViewerProps) => {
     return 'bg-green-100 text-green-800 border-green-200';
   };
 
+  const indentClass = depth > 0 ? 'ml-0' : '';
+
   return (
-    <div className="space-y-4 w-full mb-6">
-      {/* Status Header */}
-      <div className="rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
-        <div className="p-4">
-          <div className="flex items-center gap-2 text-base font-semibold">
-            {getStatusIcon()}
-            <span className="text-zinc-900 dark:text-zinc-100">
-              Student AI Agent
-            </span>
-            <span
-              className={`ml-auto rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusColor()}`}
-            >
-              {getStatusText()}
-            </span>
+    <div className={`space-y-4 w-full mb-6 ${indentClass}`}>
+      {depth === 0 && (
+        <div className="rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
+          <div className="p-4">
+            <div className="flex items-center gap-2 text-base font-semibold">
+              {getStatusIcon()}
+              <span className="text-zinc-900 dark:text-zinc-100">
+                Student AI Agent
+              </span>
+              <span
+                className={`ml-auto rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusColor()}`}
+              >
+                {getStatusText()}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Iteration Steps */}
       {process?.iterationHistory.map((iteration, index) => {
         const isExpanded = expandedSteps.has(index);
+        const minimisedStructuredThought = {
+          ...iteration.structuredThought,
+          functionCalls: (
+            iteration.structuredThought.functionCalls as (
+              | ToolCallWithResult
+              | AgentToolCallWithResult
+            )[]
+          ).map((call) => ({
+            ...call,
+            internalRouterProcess: undefined,
+          })),
+        };
         return (
           <div
             key={index}
@@ -226,8 +269,8 @@ export const ProcessViewer = ({ process, isLoading }: ProcessViewerProps) => {
                   </div>
                   <div className="rounded-md border-l-2 border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950/30">
                     <pre className="overflow-x-auto whitespace-pre-wrap text-xs text-zinc-700 dark:text-zinc-300">
-                      {iteration.structuredThought
-                        ? JSON.stringify(iteration.structuredThought, null, 2)
+                      {minimisedStructuredThought
+                        ? JSON.stringify(minimisedStructuredThought, null, 2)
                         : 'No structured thought available'}
                     </pre>
                   </div>
@@ -262,17 +305,112 @@ export const ProcessViewer = ({ process, isLoading }: ProcessViewerProps) => {
                         </h4>
                       </div>
                       <div className="space-y-2">
-                        {iteration.structuredThought.functionCalls.map(
-                          (call: any, callIndex: number) => (
+                        {(
+                          iteration.structuredThought.functionCalls as (
+                            | ToolCallWithResult
+                            | AgentToolCallWithResult
+                          )[]
+                        ).map((call, callIndex: number) => {
+                          const nestedId = `${index}-${callIndex}`;
+                          const isAgent = isAgentToolCall(call);
+                          const hasInternalProcess =
+                            (isAgent &&
+                              call.internalRouterProcess &&
+                              typeof call.internalRouterProcess === 'object') ||
+                            false;
+                          const isNestedExpanded =
+                            expandedNestedProcess.has(nestedId);
+
+                          return (
                             <div
                               key={callIndex}
-                              className="rounded-md border-l-2 border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-950/30"
+                              className={`rounded-md border-l-2 p-3 ${
+                                isAgent
+                                  ? 'border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-950/30'
+                                  : 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30'
+                              } ${
+                                hasInternalProcess
+                                  ? 'cursor-pointer transition-colors hover:bg-purple-100 dark:hover:bg-purple-950/50'
+                                  : ''
+                              }`}
+                              onClick={() =>
+                                hasInternalProcess &&
+                                toggleNestedProcess(nestedId)
+                              }
                             >
-                              <div className="mb-2 font-mono text-sm font-semibold text-green-800 dark:text-green-300">
-                                {call.name}
+                              <div className="mb-2 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  {isAgent && (
+                                    <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
+                                      🤖 AGENT
+                                    </span>
+                                  )}
+                                  <span
+                                    className={`font-mono text-sm font-semibold ${
+                                      isAgent
+                                        ? 'text-purple-800 dark:text-purple-300'
+                                        : 'text-green-800 dark:text-green-300'
+                                    }`}
+                                  >
+                                    {call.function}
+                                  </span>
+                                </div>
+                                {hasInternalProcess && (
+                                  <div className="text-purple-600 dark:text-purple-400">
+                                    {isNestedExpanded ? (
+                                      <svg
+                                        className="h-4 w-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M19 9l-7 7-7-7"
+                                        />
+                                      </svg>
+                                    ) : (
+                                      <svg
+                                        className="h-4 w-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M9 5l7 7-7 7"
+                                        />
+                                      </svg>
+                                    )}
+                                  </div>
+                                )}
                               </div>
-                              {call.result && (
-                                <div className="text-xs text-zinc-700 dark:text-zinc-300">
+
+                              {/* Arguments */}
+                              {call.args && (
+                                <div
+                                  className="mt-2 text-xs text-zinc-700 dark:text-zinc-300"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <strong>Arguments:</strong>
+                                  <pre className="mt-1 overflow-x-auto whitespace-pre-wrap">
+                                    {typeof call.args === 'string'
+                                      ? call.args
+                                      : JSON.stringify(call.args, null, 2)}
+                                  </pre>
+                                </div>
+                              )}
+
+                              {/* Result for non-agent calls */}
+                              {!isAgent && call.result && (
+                                <div
+                                  className="mt-2 text-xs text-zinc-700 dark:text-zinc-300"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
                                   <strong>Result:</strong>
                                   <pre className="mt-1 overflow-x-auto whitespace-pre-wrap">
                                     {typeof call.result === 'string'
@@ -281,9 +419,28 @@ export const ProcessViewer = ({ process, isLoading }: ProcessViewerProps) => {
                                   </pre>
                                 </div>
                               )}
+
+                              {/* Nested Internal Router Process for Agent Calls */}
+                              {hasInternalProcess && isNestedExpanded && (
+                                <div
+                                  className="mt-3 border-l-4 border-purple-300 pl-4 dark:border-purple-700"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <div className="mb-2 text-xs font-semibold text-purple-700 dark:text-purple-400">
+                                    Internal Agent Process:
+                                  </div>
+                                  <ProcessViewer
+                                    process={
+                                      call.internalRouterProcess as RouterProcess
+                                    }
+                                    isLoading={false}
+                                    depth={depth + 1}
+                                  />
+                                </div>
+                              )}
                             </div>
-                          ),
-                        )}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -353,4 +510,3 @@ export const ProcessViewer = ({ process, isLoading }: ProcessViewerProps) => {
     </div>
   );
 };
-

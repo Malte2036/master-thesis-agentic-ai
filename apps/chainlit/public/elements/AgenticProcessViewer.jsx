@@ -75,6 +75,14 @@ export default function AgenticProcessViewer(props) {
             {/* Iteration Steps */}
             {iterations.map((iteration, index) => {
                 const isExpanded = expandedSteps.has(index);
+                const minimisedStructuredThought = ({
+                    ...iteration.structuredThought,
+                    functionCalls: iteration.structuredThought.functionCalls.map((call) => ({
+                        ...call,
+                        internalRouterProcess: undefined,
+                    })),
+                });
+
                 return (
                     <Card key={index} className="border-l-4 border-l-blue-500">
                         <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => toggleStep(index)}>
@@ -122,8 +130,8 @@ export default function AgenticProcessViewer(props) {
                                     </div>
                                     <div className="bg-blue-50 p-3 rounded-md border-l-2 border-blue-200">
                                         <pre className="text-xs text-gray-700 overflow-x-auto whitespace-pre-wrap">
-                                            {iteration.structuredThought 
-                                                ? JSON.stringify(iteration.structuredThought, null, 2)
+                                            {minimisedStructuredThought 
+                                                ? JSON.stringify(minimisedStructuredThought, null, 2)
                                                 : "No structured thought available"
                                             }
                                         </pre>
