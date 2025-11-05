@@ -1,6 +1,8 @@
 import { askAgent } from '@/lib/api/agent';
 import { ChatInput } from './ChatInput';
 import { ChatParticipantBubble } from './ChatParticipantBubble';
+import { ProcessViewer } from './ProcessViewer';
+import { ProcessFlowDiagram } from './ProcessFlowDiagram';
 import { useState } from 'react';
 import { RouterProcess } from '@master-thesis-agentic-ai/types';
 
@@ -23,6 +25,7 @@ const initialState: ChatWindowState = {
 
 export const ChatWindow = () => {
   const [state, setState] = useState<ChatWindowState>(initialState);
+  const [showFlowView, setShowFlowView] = useState(true);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'agent',
@@ -59,6 +62,7 @@ export const ChatWindow = () => {
       },
       onUpdate: (update) => {
         console.log('Update:', update);
+        setState((state) => ({ ...state, process: update }));
       },
       onError: (error) => {
         console.error('Error:', error);
@@ -71,7 +75,7 @@ export const ChatWindow = () => {
     <div className="flex h-screen w-full flex-col">
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto px-4 py-6">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto">
           {messages.map((message, index) => (
             <ChatParticipantBubble
               key={index}
@@ -79,6 +83,52 @@ export const ChatWindow = () => {
               content={message.content}
             />
           ))}
+
+          {/* Show process viewer when there's a process or while loading */}
+          {(state.process || state.isLoading) && (
+            <div className="mt-6 space-y-4">
+              {/* Toggle between views */}
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                  Agent Process
+                </h3>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowFlowView(true)}
+                    className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                      showFlowView
+                        ? 'bg-red-600 text-white'
+                        : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700'
+                    }`}
+                  >
+                    Flow Diagram
+                  </button>
+                  <button
+                    onClick={() => setShowFlowView(false)}
+                    className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                      !showFlowView
+                        ? 'bg-red-600 text-white'
+                        : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700'
+                    }`}
+                  >
+                    List View
+                  </button>
+                </div>
+              </div>
+
+              {showFlowView ? (
+                <ProcessFlowDiagram
+                  process={state.process}
+                  isLoading={state.isLoading}
+                />
+              ) : (
+                <ProcessViewer
+                  process={state.process}
+                  isLoading={state.isLoading}
+                />
+              )}
+            </div>
+          )}
         </div>
       </div>
 
