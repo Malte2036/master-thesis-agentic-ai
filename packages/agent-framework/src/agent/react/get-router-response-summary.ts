@@ -3,6 +3,7 @@ import chalk from 'chalk';
 import { Logger } from '../../logger';
 import { AIProvider } from '../../services';
 import { ReActPrompt } from './prompt';
+import { stripThoughts } from '../../utils/llm';
 
 export async function getRouterResponseSummary(
   routerProcess: RouterProcess,
@@ -20,9 +21,7 @@ export async function getRouterResponseSummary(
     throw new Error('No response from AI provider');
   }
 
-  responseString = responseString
-    .slice(responseString.indexOf('</think>') + 8)
-    .trim();
+  responseString = stripThoughts(responseString);
 
   logger.log(chalk.magenta('Summary:'), responseString);
 

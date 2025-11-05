@@ -3,6 +3,7 @@ import chalk from 'chalk';
 import { Logger } from '../../logger';
 import { AIProvider } from '../../services';
 import { ReActPrompt } from './prompt';
+import { stripThoughts } from '../../utils/llm';
 
 export async function getFriendlyResponse(
   routerResponse: RouterProcess,
@@ -19,10 +20,7 @@ export async function getFriendlyResponse(
     throw new Error('No response from AI provider');
   }
 
-  responseString = responseString
-    .slice(responseString.indexOf('</think>') + 8)
-    .trim();
-
+  responseString = stripThoughts(responseString);
   logger.log(chalk.magenta('Friendly response:'), responseString);
 
   return responseString;

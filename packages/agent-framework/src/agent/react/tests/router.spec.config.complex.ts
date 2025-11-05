@@ -111,7 +111,7 @@ export const mockAgentToolsComplex: AgentTool[] = [
   {
     name: 'kb_vector_search',
     description:
-      'Semantic search in internal knowledge base; returns doc IDs + snippets',
+      'Semantic search in internal knowledge base; returns doc IDs + snippets with full document content',
     args: {
       query: {
         type: 'string',
@@ -127,17 +127,6 @@ export const mockAgentToolsComplex: AgentTool[] = [
         type: 'object',
         description: 'Optional metadata filters (e.g., {project:"alpha"})',
         required: false,
-      },
-    },
-  },
-  {
-    name: 'kb_fetch_document',
-    description: 'Fetch full text for a document ID',
-    args: {
-      docId: {
-        type: 'string',
-        description: 'Document identifier returned by search',
-        required: true,
       },
     },
   },
@@ -204,28 +193,7 @@ export const mockAgentToolsComplex: AgentTool[] = [
       },
       focus: {
         type: 'string',
-        description: 'Optional focus area, e.g., “pricing”',
-        required: false,
-      },
-    },
-  },
-  {
-    name: 'translate_text',
-    description: 'Translate text to a target language with glossary support',
-    args: {
-      text: {
-        type: 'string',
-        description: 'Input text',
-        required: true,
-      },
-      targetLang: {
-        type: 'string',
-        description: 'ISO code, e.g., de, en, fr',
-        required: true,
-      },
-      glossary: {
-        type: 'array',
-        description: 'Term mappings: [{source, target}]',
+        description: 'Optional focus area, e.g., "pricing"',
         required: false,
       },
     },

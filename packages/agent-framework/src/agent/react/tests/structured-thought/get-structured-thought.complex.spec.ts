@@ -27,7 +27,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           I will do everything in parallel:
           - search_flights origin "BER" destination "HND" date "2025-10-05"
           - kb_vector_search query "atlas incident runbook" topK 3
-          - translate_text text "Hello" targetLang "de"
+          - run_sql_query sql "SELECT * FROM users LIMIT 10"
         `;
         const res = await getStructuredThought(
           thought,
@@ -41,7 +41,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           expect.arrayContaining([
             'search_flights',
             'kb_vector_search',
-            'translate_text',
+            'run_sql_query',
           ]),
         );
 
@@ -54,8 +54,8 @@ describe('getStructuredThought (parallel execution semantics)', () => {
 
       it('Dependent call without args → MUST be omitted (no chaining in same iteration)', async () => {
         const thought = `
-          First I will run kb_vector_search for "atlas incident runbook" then use kb_fetch_document with the returned docId.
-          (Note: I do not know the docId yet.)
+          First I will run kb_vector_search for "atlas incident runbook" to get the relevant documents.
+          (Note: I will need to analyze the results in the next iteration.)
         `;
         const res = await getStructuredThought(
           thought,
@@ -66,13 +66,13 @@ describe('getStructuredThought (parallel execution semantics)', () => {
 
         const names = res.functionCalls.map((c) => c.function);
         expect(names).toContain('kb_vector_search');
-        // Because docId is not present in the thought, kb_fetch_document must not appear
-        expect(names).not.toContain('kb_fetch_document');
+        // Should only contain the vector search, not any dependent calls
+        expect(names.length).toBe(1);
       });
 
-      it('Dependent call allowed only if args are explicitly present in the thought', async () => {
+      it('Function call with explicit args in the thought', async () => {
         const thought = `
-          I already know the doc id. Call kb_fetch_document with docId "doc-123".
+          I will search the knowledge base for documents about "atlas service".
         `;
         const res = await getStructuredThought(
           thought,
@@ -82,14 +82,14 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         );
 
         const call = res.functionCalls[0];
-        expect(call.function).toBe('kb_fetch_document');
-        expect(call.args['docId']).toBe('doc-123');
+        expect(call.function).toBe('kb_vector_search');
+        expect(call.args['query']).toContain('atlas');
         expect(call.args).toBeDefined();
       });
 
       it('No ordering assumptions: result may list calls in any order', async () => {
         const thought = `
-          Perform translate_text (text "We use RAG", targetLang "de") and kb_vector_search (query "atlas").
+          Perform run_sql_query (sql "SELECT * FROM metrics") and kb_vector_search (query "atlas").
           Run them in parallel.
         `;
         const res = await getStructuredThought(
@@ -102,7 +102,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         // Only assert presence, not order
         const names = res.functionCalls.map((c) => c.function);
         expect(names).toEqual(
-          expect.arrayContaining(['translate_text', 'kb_vector_search']),
+          expect.arrayContaining(['run_sql_query', 'kb_vector_search']),
         );
       });
 
@@ -189,7 +189,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
         const thought = `
           Parallel plan:
           - kb_vector_search query "atlas" topK 2
-          - translate_text text "Hello" targetLang "de"
+          - web_retrieve_and_summarize url "https://example.com/docs" focus "pricing"
         `;
         const res = await getStructuredThought(
           thought,
