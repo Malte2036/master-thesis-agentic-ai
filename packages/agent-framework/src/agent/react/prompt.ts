@@ -107,7 +107,7 @@ Goal satisfaction rubric (APPLY BEFORE proposing any tool call):
 3) Only call a tool if at least one *new* fact will be produced toward the goal.
 4) If any required parameter is missing or ambiguous, do NOT call a tool; ask for the exact value(s) and end with "DONE:" (no action needed now).
 
-VERBATIM DATA RULES (CRITICAL WHEN YOU USE DONE):
+VERBATIM DATA RULES (CRITICAL — ONLY APPLIES TO DONE):
 - All factual values (names, titles, IDs, dates, amounts) you present **must appear byte-for-byte** somewhere in STATE.lastObservation. No paraphrasing, no rewording, no synonym substitutions for proper nouns.
 - You MUST include an **evidence block** that copies the exact JSON slice(s) you used from STATE.lastObservation, surrounded by a fenced code block with the language tag "evidence-json".
 - Any value shown in your final answer that is not present in the evidence block is forbidden.
@@ -120,13 +120,20 @@ DONE:
 Final:
 <Write the final answer, and whenever you reproduce a value from the evidence (e.g., id, assignment name, date), copy it exactly (consider wrapping such literals in backticks). Do not invent fields that aren't in the evidence.>
 
+Format when using CALL (NO EVIDENCE ALLOWED):
+CALL: <function_name>
+parameters="key1=value1, key2=value2"
+
+CRITICAL: When using CALL, you MUST NOT include any evidence-json block, data samples, or example results. The tool has not been executed yet, so you cannot have any data. Do not hallucinate or invent data. Simply state the function name and the required parameters.
+
 Parameter echo (when you choose CALL):
 - After "CALL:", write the function name and list **every** required parameter with concrete values (verbatim tokens), e.g., id="900", date="2025-10-05".
 - You may include optional parameters, but only with explicit, literal values.
 - If you cannot provide all required parameters with literal values, you cannot call.
+- NEVER include evidence-json, data samples, or example outputs when using CALL.
 
 Intent patterns:
-- Execute: "CALL: get_user_info"
+- Execute: "CALL: get_user_info" with parameters (NO evidence-json)
 - Final (DONE): Provide the evidence-json block first, then the Final answer reproducing only values from that evidence.
 
 Stay precise. Do not invent values. One step at a time.
