@@ -109,8 +109,6 @@ export class MyAgentExecutor implements AgentExecutor {
         results = value;
         break;
       }
-
-      this.logger.log('Step:', value);
     }
 
     const finalResponse = await getRouterResponseSummary(
