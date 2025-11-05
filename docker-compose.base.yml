@@ -106,3 +106,10 @@ services:
     depends_on:
       - moodle-agent
       - calendar-agent
+
+  frontend:
+    image: master-thesis-agentic-ai
+    build: *common-build
+    ports:
+      - '4200:4200'
+    entrypoint: ['sh', '-c', 'pnpm run dev:frontend']

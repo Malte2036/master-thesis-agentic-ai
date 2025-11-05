@@ -1,15 +1,1 @@
 name: master-thesis-agentic-ai-production
-
-services:
-  # ---- CHAINLIT ----
-  chainlit:
-    image: master-thesis-agentic-ai-chainlit
-    build:
-      context: apps/chainlit
-      dockerfile: Dockerfile
-    ports:
-      - '8000:8000'
-    environment:
-      - ROUTING_AGENT_URL=http://routing-agent:3000
-    # depends_on:
-    #   - routing-agent
