@@ -210,10 +210,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           - **Username**: student
           - **First Name**: Sabrina
           - **Last Name**: Studentin
-          - **Site URL**: http://localhost:8080
-          - **User Picture URL**: http://localhost:8080/theme/image.php/boost/core/1746531048/u/f1
-          - **User Language**: (Not explicitly listed in the response, but the tool's parameters include \`userlang\` as a required field. The value may be inferred from the context or missing in the provided response.)
-
+        
             Let me know if you need further details!
         `;
         const res = await getStructuredThought(

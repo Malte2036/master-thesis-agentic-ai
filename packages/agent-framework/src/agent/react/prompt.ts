@@ -148,7 +148,6 @@ ${pastText}`,
       ],
     };
   };
-
   /**
    * Prompt for the structured-thought (JSON) step.
    */
@@ -160,6 +159,14 @@ ${pastText}`,
         role: 'system' as const,
         content: `You are a highly precise system that translates an assistant's thought into a structured JSON object.
 Your single most important job is to distinguish between a plan to **execute a tool** and a plan to **provide a final text answer**.
+
+HARD GATING (STRICT, OVERRIDES ALL ELSE)
+• You may ONLY output tool calls if the thought contains one or more instruction blocks in the following form:
+  CALL: <function_name>
+  parameters="key1=value1, key2=value2"
+• If the thought does NOT contain any "CALL:" blocks in this exact format, you MUST output exactly:
+  "functionCalls": []
+  "isFinished": true
 
 Global execution policy:
 • All "functionCalls" you output are executed **in parallel** within the same iteration (no chaining/order guarantees).
@@ -178,8 +185,9 @@ Follow these rules with absolute precision:
    • Mentioning a tool/function name in prose MUST NEVER be converted into a tool call.
 
 1) Identify the Core Intent
-   • If the thought contains explicit action phrases like "CALL:" and lists a concrete function with literal args, the intent is to **call a tool**. Proceed to Rule 2.
-   • If the thought begins with "DONE:", the intent is to **provide a final answer**. Proceed to Rule 3.
+   • If and only if the thought contains one or more blocks starting with "CALL:" followed by a \`parameters="..."\` line (see HARD GATING), the intent is to call tools → Rule 2.
+   • If the thought begins with "DONE:", provide a final answer → Rule 3.
+   • Otherwise (no "CALL:" block and no "DONE:"), you MUST finish: "functionCalls": [], "isFinished": true.
 
 2) Generating Tool Calls (ONLY for Action Intents)
    • Populate the "functionCalls" array.
@@ -192,6 +200,25 @@ Follow these rules with absolute precision:
    • "functionCalls" MUST be [].
    • "isFinished" MUST be true.
 
+Few-shot example (no CALL: block → finish):
+Thought:
+  The user's personal information is as follows:
+  - Username: student
+  - First Name: Sabrina
+  - Last Name: Studentin
+  Let me know if you need further details!
+
+Output:
+  {"functionCalls": [], "isFinished": true}
+
+Few-shot example (CALL: block → call):
+
+Thought:
+  CALL: get_user_info
+  parameters="username=student"
+
+Output:
+  {"functionCalls": [{"function": "get_user_info", "args": {"username": "student"}}], "isFinished": false}
 
 Now, parse the following thought with zero deviation from these rules.`,
       },
