@@ -113,3 +113,5 @@ services:
     ports:
       - '4200:4200'
     entrypoint: ['sh', '-c', 'pnpm run dev:frontend']
+    volumes:
+      - ./evaluation/report:/app/evaluation/report

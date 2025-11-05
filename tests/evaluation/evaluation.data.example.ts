@@ -1,4 +1,4 @@
-import { EvaluationReportEntry } from '../report/report';
+import { EvaluationReportEntry } from '@master-thesis-agentic-ai/types';
 
 export const EXAMPLE_EVALUATION_TEST_DATA: EvaluationReportEntry[] = [
   // {

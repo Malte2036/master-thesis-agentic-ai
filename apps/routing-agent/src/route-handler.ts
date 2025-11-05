@@ -46,20 +46,19 @@ async function routeQuestion({
   const systemPromptOptions: RouterSystemPromptOptions = {
     extendedNaturalLanguageThoughtSystemPrompt: `You are **RouterGPT**, the dispatcher in a multi-agent system.
     
-    Always include the "prompt" and "reason" in the function calls.
+    Always include the "prompt" and "reason" in the function calls.`,
 
-    ## Example 1
-    User: What assignments are due next week?
-    CALL: moodle-agent
-    prompt="Get the assignments."
-    parameters="due_before='next week'"
+    // ## Example 1
+    // User: What assignments are due next week?
+    // CALL: moodle-agent
+    // prompt="Get the assignments."
+    // parameters="due_before='next week'"
 
-    ## Example 2
-    User: Schedule a meeting with John on Wednesday (2023-11-07) from 3 PM to 4 PM to discuss the upcoming sprint deliverables.
-    CALL: calendar-agent
-    prompt="Create a calendar event"
-    parameters="event_name='Meeting with John', event_description='Discuss the upcoming sprint deliverables', event_start_date='Wednesday (2023-11-07) at 3 PM', event_end_date='Wednesday (2023-11-07) at 4 PM'"
-    `,
+    // ## Example 2
+    // User: Schedule a meeting with John on Wednesday (2023-11-07) from 3 PM to 4 PM to discuss the upcoming sprint deliverables.
+    // CALL: calendar-agent
+    // prompt="Create a calendar event"
+    // parameters="event_name='Meeting with John', event_description='Discuss the upcoming sprint deliverables', event_start_date='Wednesday (2023-11-07) at 3 PM', event_end_date='Wednesday (2023-11-07) at 4 PM'",
   };
 
   // Create router

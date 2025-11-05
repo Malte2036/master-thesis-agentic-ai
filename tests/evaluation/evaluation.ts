@@ -2,11 +2,11 @@
 import {
   EvaluationReport,
   EvaluationReportEntry,
-  writeEvaluationReport,
-} from '../report/report';
+} from '@master-thesis-agentic-ai/types';
 import { RoutingAgentClient } from '../utils/routing-agent-client';
 import { waitForService } from '../utils/wait-for-service';
 import { E2E_EVALUATION_TEST_DATA } from './evaluation.data';
+import { writeEvaluationReport } from '../report/report';
 
 const ROUTING_AGENT_URL = 'http://localhost:3000';
 const MOODLE_AGENT_URL = 'http://localhost:1234';

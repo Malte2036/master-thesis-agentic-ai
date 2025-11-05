@@ -4,7 +4,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Logger } from '../../../../logger';
 import { AIProvider } from '../../../../services';
 import { getNaturalLanguageThought } from '../../get-natural-language-thought';
-import { mockAgentToolsSequentiel } from '../router.spec.config';
+import {
+  mockAgentToolsSequentialComplex,
+  mockAgentToolsSequentiel,
+} from '../router.spec.config';
 import { TEST_AI_PROVIDERS, TEST_CONFIG, setupTest } from '../spec.config';
 
 vi.setConfig(TEST_CONFIG);
@@ -49,6 +52,33 @@ describe('getNaturalLanguageThought (sequentiel)', () => {
 
         expect(strippedResult).toMatch(/get.?assignments/);
         expect(strippedResult).not.toMatch(/create.?calendar.?event/);
+
+        expect(strippedResult).not.toMatch(/evidence-json/);
+      });
+
+      it('should generate natural language with only the next action (complex)', async () => {
+        const routerProcess: RouterProcess = {
+          question:
+            'Get my last past assignment and create a calendar event for the date of the assignment and for 1.5hours. The Description of the calendar event should be the assignment intro.',
+          maxIterations: 3,
+          iterationHistory: [],
+          contextId: 'test-context-id',
+          agentTools: mockAgentToolsSequentialComplex,
+        };
+
+        const result = await getNaturalLanguageThought(
+          routerProcess,
+          aiProvider,
+          logger,
+          `You are **RouterGPT**, the dispatcher in a multi-agent system.
+    
+    Always include the "prompt" and "reason" in the function calls.`,
+        );
+
+        const strippedResult = stripThoughts(result).toLowerCase();
+
+        expect(strippedResult).toMatch(/moodle-agent/);
+        expect(strippedResult).not.toMatch(/calendar-agent/);
 
         expect(strippedResult).not.toMatch(/evidence-json/);
       });

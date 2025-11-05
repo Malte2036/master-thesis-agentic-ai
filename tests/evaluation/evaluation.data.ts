@@ -1,4 +1,4 @@
-import { EvaluationReportBase } from '../report/report';
+import { EvaluationReportBase } from '@master-thesis-agentic-ai/types';
 
 export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // {
