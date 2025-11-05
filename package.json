@@ -10,6 +10,7 @@
     "dev:calendar-agent": "node scripts/dev-session.js \"nx serve calendar-agent\"",
     "dev:calendar-mcp": "node scripts/dev-session.js \"nx serve calendar-mcp\"",
     "dev:chainlit": "node scripts/dev-session.js \"nx serve chainlit\"",
+    "dev:frontend": "node scripts/dev-session.js \"nx serve frontend\"",
     "build": "nx run-many -t build",
     "build:dist": "nx build types && nx build agent-framework",
     "build:routing-agent": "nx build routing-agent",
