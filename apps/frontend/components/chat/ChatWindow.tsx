@@ -188,6 +188,7 @@ export const ChatWindow = () => {
             <ProcessFlowDiagram
               process={state.process}
               isLoading={state.isLoading}
+              response={state.response}
             />
           ) : (
             <div className="h-full overflow-y-auto px-6 py-6">

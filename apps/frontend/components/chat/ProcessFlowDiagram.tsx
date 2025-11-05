@@ -28,6 +28,7 @@ import { ToolCallNode } from './ToolCallNode';
 type ProcessFlowDiagramProps = {
   process: RouterProcess | undefined;
   isLoading: boolean;
+  response?: string;
 };
 
 // Type guard to check if a call is an agent tool call (outside component to avoid re-creation)
@@ -47,6 +48,7 @@ const nodeTypes: NodeTypes = {
 const ProcessFlowDiagramInner = ({
   process,
   isLoading,
+  response,
 }: ProcessFlowDiagramProps) => {
   const { applyLayout } = useAutoLayout();
 
@@ -204,7 +206,7 @@ const ProcessFlowDiagramInner = ({
   );
 
   const buildFlowFromProcess = useCallback(
-    (process: RouterProcess | undefined) => {
+    (process: RouterProcess | undefined, response?: string) => {
       if (!process) return { nodes: [], edges: [] };
 
       const nodes: Node[] = [];
@@ -321,12 +323,12 @@ const ProcessFlowDiagramInner = ({
       processFunctionCallNodes(process, prefix);
 
       // Add response node if there's a response
-      if (process.response && process.iterationHistory.length > 0) {
+      if (response && process.iterationHistory.length > 0) {
         const lastIterationIndex = process.iterationHistory.length - 1;
         const lastIterationId = `${prefix}iteration-${lastIterationIndex}`;
         const responseId = `${prefix}response`;
 
-        nodes.push(createResponseNode(process.response, prefix));
+        nodes.push(createResponseNode(response, prefix));
 
         edges.push(createResponseEdge(lastIterationId, responseId, prefix));
       }
@@ -346,15 +348,18 @@ const ProcessFlowDiagramInner = ({
   );
 
   const { nodes: initialNodes, edges: initialEdges } = useMemo(
-    () => buildFlowFromProcess(process),
-    [process, buildFlowFromProcess],
+    () => buildFlowFromProcess(process, response),
+    [process, response, buildFlowFromProcess],
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   useEffect(() => {
-    const { nodes: newNodes, edges: newEdges } = buildFlowFromProcess(process);
+    const { nodes: newNodes, edges: newEdges } = buildFlowFromProcess(
+      process,
+      response,
+    );
     setNodes(newNodes);
     setEdges(newEdges);
 
@@ -364,7 +369,14 @@ const ProcessFlowDiagramInner = ({
         applyLayout({ direction: 'vertical' });
       }, 100);
     }
-  }, [process, buildFlowFromProcess, setNodes, setEdges, applyLayout]);
+  }, [
+    process,
+    response,
+    buildFlowFromProcess,
+    setNodes,
+    setEdges,
+    applyLayout,
+  ]);
 
   if (!process && !isLoading) {
     return null;
