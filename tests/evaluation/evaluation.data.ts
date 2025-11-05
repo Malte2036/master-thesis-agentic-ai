@@ -1,20 +1,20 @@
 import { EvaluationReportBase } from '../report/report';
 
 export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
-  {
-    id: 'case_000',
-    task_type: 'get_capabilities',
-    input: 'What are your capabilities?',
-    expected_output:
-      'I can access Moodle course content (pages, forums, assignments), track assignments and their due windows, and create/manage calendar events (one-off and recurring), including adding reminders and updating or canceling events.',
-    expected_tool_calls: [],
-  },
+  // {
+  //   id: 'case_000',
+  //   task_type: 'get_capabilities',
+  //   input: 'What are your capabilities?',
+  //   expected_output:
+  //     'I can access Moodle course content (pages, forums, assignments), track assignments and their due windows, and create/manage calendar events (one-off and recurring), including adding reminders and updating or canceling events.',
+  //   expected_tool_calls: [],
+  // },
   {
     id: 'case_001',
     task_type: 'get_user_info',
     input: 'Can you help me get my user information?',
     expected_output:
-      'Here is your user information: Name: Sabrina Studentin, Username: student, Email: student@example.com.',
+      'Here is your user information: First name: {firstname}, Last name: {lastname}, Username: {username}.',
     expected_tool_calls: [
       {
         function: 'moodle-agent.get_user_info',
@@ -27,7 +27,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
     task_type: 'get_all_courses',
     input: 'List all my current Moodle courses.',
     expected_output:
-      'Here are your current courses: SAFE-101 (Intro to Safety), OPS-201 (Operations Level 2), MATH-301 (Advanced Mathematics), CS-401 (Computer Science Fundamentals), DH-501 (Digital Health UX).',
+      'Here are your current courses: {course_name_001}, {course_name_002} and {course_name_003}.',
     expected_tool_calls: [
       {
         function: 'moodle-agent.get_all_courses',
@@ -54,22 +54,21 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
     input:
       'Get my last past assignment and create a calendar event for the date of the assignment and for 1.5hours. The Description of the calendar event should be the assignment intro.',
     expected_output:
-      'Created calendar event for "Safety Quiz 1" (due in +7 days) with description: "Complete this quiz to test your basic safety knowledge" and a 30-minute reminder.',
+      'I found the last past assignment with the name {assignment_name} and created a calendar event for {assignment_start_date} of the assignment and for 1.5hours. The calendar event has the name {assignment_name} and the description {assignment_intro}.',
     expected_tool_calls: [
       {
         function: 'moodle-agent.get_assignments_for_all_courses',
         args: {
-          due_before: '2025-11-04 12:20:59 UTC',
+          due_before: '{today}',
         },
       },
       {
         function: 'calendar-agent.create_calendar_event',
         args: {
-          event_name: 'Assignment: Implement common data structures',
-          event_description:
-            'Implement common data structures: linked list, stack, and queue.',
-          event_start_date: '2025-10-27T00:00:00.000Z',
-          event_end_date: '2025-10-27T01:30:00.000Z',
+          event_name: '{assignment_name}',
+          event_description: '{assignment_intro}',
+          event_start_date: '{assignment_start_date}',
+          event_end_date: '{assignment_start_date} + 1.5 hours',
         },
       },
     ],

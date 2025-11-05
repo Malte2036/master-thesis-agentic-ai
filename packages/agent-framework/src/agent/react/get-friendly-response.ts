@@ -14,6 +14,7 @@ export async function getFriendlyResponse(
   logger.log(chalk.magenta('Generating friendly response...'));
 
   let responseString = await aiProvider.generateText?.('', systemPrompt);
+  console.log(`FRIENDLY RESPONSE: ${responseString}`);
 
   if (!responseString) {
     throw new Error('No response from AI provider');

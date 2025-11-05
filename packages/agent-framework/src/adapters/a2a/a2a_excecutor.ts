@@ -10,6 +10,7 @@ import { Router } from '../../agent';
 import { Logger } from '../../logger';
 import { AIProvider } from '../../services';
 import { getRouterResponseSummary } from '../../agent/react/get-router-response-summary';
+import chalk from 'chalk';
 
 // 1. Define your agent's logic as a AgentExecutor
 export class MyAgentExecutor implements AgentExecutor {
@@ -118,7 +119,7 @@ export class MyAgentExecutor implements AgentExecutor {
       this.logger,
     );
 
-    this.logger.log('Final response:', finalResponse);
+    this.logger.log(chalk.magenta('Final response:'), finalResponse);
 
     // 4. Publish final status update
     const finalUpdate: TaskStatusUpdateEvent = {

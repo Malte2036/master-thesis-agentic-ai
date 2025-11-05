@@ -54,11 +54,6 @@ export class A2AReActRouter extends ReActRouter {
       );
     }
 
-    functionCalls = functionCalls.map((call) => ({
-      ...call,
-      function: call.function.split('/')[0],
-    }));
-
     this.logger.log(
       'Calling tools in parallel:',
       functionCalls.map((call) => call.function),
@@ -78,10 +73,20 @@ export class A2AReActRouter extends ReActRouter {
         }
 
         try {
-          const result = await agentClient.call(
-            `${parsedDecision.args['prompt']}; We want to call the agent because: ${parsedDecision.args['reason']}`,
-            contextId,
-          );
+          const prompt = parsedDecision.args['prompt'] as string;
+          if (!prompt) {
+            throw new Error('Prompt is required');
+          }
+
+          let message = prompt;
+          const parameters = parsedDecision.args['parameters'] as
+            | string
+            | undefined;
+          if (parameters) {
+            message += `\n\nAdditional parameters:\n${parameters}`;
+          }
+
+          const result = await agentClient.call(message, contextId);
 
           return {
             ...parsedDecision,

@@ -140,7 +140,16 @@ export abstract class ReActRouter extends Router {
 
       this.logger.debug(
         chalk.magenta('The response from calling the agent functions:'),
-        JSON.stringify(agentResponses, null, 2),
+        JSON.stringify(
+          agentResponses.map((response) => ({
+            type: response.type,
+            function: response.function,
+            args: response.args,
+            result: response.result,
+          })),
+          null,
+          2,
+        ),
       );
 
       const structuredThoughtWithResults: StructuredThoughtResponseWithResults =

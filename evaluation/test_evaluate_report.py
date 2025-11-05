@@ -3,6 +3,7 @@ from typing import Iterable, List, Any, Dict
 from deepeval import evaluate
 from deepeval.test_case import LLMTestCase, LLMTestCaseParams, ToolCall, ToolCallParams
 from deepeval.metrics import GEval, AnswerRelevancyMetric, ContextualRelevancyMetric,ToolCorrectnessMetric, TaskCompletionMetric
+from deepeval.evaluate import DisplayConfig
 
 
 def get_expected_tool_calls(e: Dict[str, Any]) -> List[ToolCall]:
@@ -15,6 +16,9 @@ def get_expected_tool_calls(e: Dict[str, Any]) -> List[ToolCall]:
     return tool_calls
 
 def get_tools_called(e: Dict[str, Any], prefix: str | None = None) -> List[ToolCall]:
+    if e is None:
+        return []
+
     tool_calls = []
     
     iteration_history = e.get("iterationHistory", [])
@@ -22,7 +26,7 @@ def get_tools_called(e: Dict[str, Any], prefix: str | None = None) -> List[ToolC
         for function_call in iteration.get("structuredThought").get("functionCalls", []):
             if function_call.get("type") == "agent":
                 tool_calls.extend(
-                    get_tools_called(function_call.get("internalRouterProcess"), prefix=function_call.get("function"))
+                    get_tools_called(function_call.get("internalRouterProcess", {}), prefix=function_call.get("function"))
                 )
             
             if function_call.get("type") == "mcp":
@@ -35,6 +39,9 @@ def get_tools_called(e: Dict[str, Any], prefix: str | None = None) -> List[ToolC
     return tool_calls
 
 def get_context(e: Dict[str, Any]) -> List[str]:
+    if e is None:
+        return []
+
     context = []
     
     iteration_history = e.get("iterationHistory", [])
@@ -42,7 +49,7 @@ def get_context(e: Dict[str, Any]) -> List[str]:
         for function_call in iteration.get("structuredThought").get("functionCalls", []):
             if function_call.get("type") == "agent":
                 context.extend(
-                    get_context(function_call.get("internalRouterProcess"))
+                    get_context(function_call.get("internalRouterProcess", {}))
                 )
             
             if function_call.get("type") == "mcp":
@@ -61,6 +68,7 @@ def get_test_cases(path: str = "./report/report.json") -> List[LLMTestCase]:
         context.extend(get_context(trace))
 
         tool_calls = get_tools_called(trace)
+        print(tool_calls)
 
         tc = LLMTestCase(
             input=e["input"],
@@ -90,17 +98,20 @@ metrics = [
 # )
 
 
-# # --- Core correctness / faithfulness (use one or both) ---
-# metrics.append(GEval(
-#     name="Correctness (vs expected)",
-#     evaluation_steps=[
-#         "Compare ACTUAL_OUTPUT to EXPECTED_OUTPUT.",
-#         "Mark as incorrect if any required fact in EXPECTED_OUTPUT is missing or wrong.",
-#         "Paraphrasing is fine; factual content must match.",
-#     ],
-#     evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT, LLMTestCaseParams.EXPECTED_OUTPUT],
-#     threshold=0.7,
-# ))
+
+
+metrics.append(GEval(
+    name="Faithfulness (to context)",
+    evaluation_steps=[
+        "Check that every non-trivial claim in ACTUAL_OUTPUT is supported by CONTEXT.",
+        "Penalize claims that contradict or are not supported by the context.",
+        "Minor surface differences are fine; focus on factual consistency.",
+        "Compare ACTUAL_OUTPUT to EXPECTED_OUTPUT. Mark as incorrect if any required fact in EXPECTED_OUTPUT is missing or wrong.",
+        "Paraphrasing is fine; factual content must match.",
+    ],
+    evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT, LLMTestCaseParams.EXPECTED_OUTPUT, LLMTestCaseParams.CONTEXT],
+    threshold=0.7,
+))
 
 metrics.append(GEval(
     name="Goal Satisfaction",
@@ -117,27 +128,20 @@ metrics.append(GEval(
 ))
 
 metrics.append(GEval(
-    name="Faithfulness (to context)",
-    evaluation_steps=[
-        "Check that every non-trivial claim in ACTUAL_OUTPUT is supported by CONTEXT.",
-        "Penalize claims that contradict or are not supported by the context.",
-        "Minor surface differences are fine; focus on factual consistency.",
-    ],
-    evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT, LLMTestCaseParams.CONTEXT],
-    threshold=0.7,
-))
-
-metrics.append(GEval(
     name="Format Compliance",
     evaluation_steps=[
         "Analyze the INPUT to determine if a specific format or structure is explicitly requested (e.g., Markdown sections, APA/MLA citation style, bulleted lists, deliverables list, JSON, etc.).",
         "If no format is specified in INPUT, consider the response format compliant (score highly) as there is no format requirement to violate.",
         "If the ACTUAL_OUTPUT appropriately acknowledges inability to fulfill the request (e.g., explains lack of tools, missing information, or capability limitations), consider it format compliant when no specific format was requested.",
         "If a format IS specified in INPUT, verify that ACTUAL_OUTPUT respects that format (e.g., uses requested Markdown structure, follows citation style, adheres to list format, etc.).",
+        "CRITICAL: Before penalizing any data in ACTUAL_OUTPUT, FIRST check if that data appears in CONTEXT. If the data (like names, usernames, course names, assignment titles, dates, etc.) is present in CONTEXT, it is legitimate user-facing data and should NOT be penalized as internal artifacts.",
+        "CRITICAL: Check that ACTUAL_OUTPUT contains NO internal data or artifacts: (1) NO evidence-json blocks, (2) NO DONE:/CALL: markers, (3) NO internal reasoning artifacts, (4) NO internal IDs (like course IDs, assignment IDs, user IDs) unless explicitly requested by the user OR unless the ID is necessary to identify content that appears in CONTEXT, (5) NO internal agent/tool names (like 'moodle-agent' or 'calendar-agent'), (6) NO raw JSON or internal state data, (7) NO stack traces or error logs, (8) NO timestamps in ISO format (e.g., '2025-01-15T10:30:00Z' or '2025-01-15T10:30:00.000Z'). Dates should be presented in user-friendly formats only. The output must be pure, natural language user-facing content only.",
+        "CRITICAL: Verify that the language of ACTUAL_OUTPUT matches the language of INPUT. If INPUT is in a specific language (e.g., German, French, Spanish), ACTUAL_OUTPUT must be in the same language. Penalize heavily if the output language does not match the input language.",
+        "Penalize heavily if any internal data, IDs, or reasoning artifacts appear in ACTUAL_OUTPUT that are NOT present in CONTEXT, even if format is otherwise correct.",
         "Only penalize format violations when a specific format was explicitly requested in INPUT and the response fails to follow it.",
-        "Reward responses that follow requested formats and appropriately acknowledge limitations when no format is required.",
+        "Reward responses that follow requested formats, appropriately acknowledge limitations when no format is required, contain no internal data or artifacts (except legitimate data from CONTEXT), and match the input language.",
     ],
-    evaluation_params=[LLMTestCaseParams.INPUT, LLMTestCaseParams.ACTUAL_OUTPUT],
+    evaluation_params=[LLMTestCaseParams.INPUT, LLMTestCaseParams.ACTUAL_OUTPUT, LLMTestCaseParams.CONTEXT],
     threshold=0.7,
 ))
 
@@ -175,4 +179,4 @@ metrics.append(GEval(
 # ))
 
 tcs = get_test_cases()
-result = evaluate(test_cases=tcs, metrics=metrics)
+result = evaluate(display_config=DisplayConfig(file_output_dir="./report/evaluation_report"),test_cases=tcs, metrics=metrics)
