@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^1.1.8",
     "@master-thesis-agentic-ai/types": "workspace:*",
     "@xyflow/react": "^12.9.2",
     "next": "16.0.1",

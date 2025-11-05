@@ -13,11 +13,13 @@ import {
   Node,
   NodeTypes,
   ReactFlow,
+  ReactFlowProvider,
   useEdgesState,
   useNodesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useCallback, useEffect, useMemo } from 'react';
+import { useAutoLayout } from '../../lib/layout/useAutoLayout';
 import { IterationNode } from './IterationNode';
 import { QuestionNode } from './QuestionNode';
 import { ResponseNode } from './ResponseNode';
@@ -42,22 +44,19 @@ const nodeTypes: NodeTypes = {
   response: ResponseNode,
 };
 
-export const ProcessFlowDiagram = ({
+const ProcessFlowDiagramInner = ({
   process,
   isLoading,
 }: ProcessFlowDiagramProps) => {
+  const { applyLayout } = useAutoLayout();
+
   const createQuestionNode = useCallback(
-    (
-      question: string,
-      prefix: string,
-      xOffset: number,
-      yOffset: number,
-    ): Node => {
+    (question: string, prefix: string): Node => {
       return {
         id: `${prefix}question`,
         type: 'question',
         data: { question },
-        position: { x: xOffset, y: yOffset },
+        position: { x: 0, y: 0 },
       };
     },
     [],
@@ -71,8 +70,6 @@ export const ProcessFlowDiagram = ({
       functionCallsCount: number,
       functionCalls: ToolCallWithResult[] | AgentToolCallWithResult[],
       prefix: string,
-      xOffset: number,
-      yOffset: number,
     ): Node => {
       return {
         id: `${prefix}iteration-${index}`,
@@ -84,7 +81,7 @@ export const ProcessFlowDiagram = ({
           functionCallsCount: functionCallsCount,
           functionCalls: functionCalls,
         },
-        position: { x: xOffset, y: yOffset + (index + 1) * 250 },
+        position: { x: 0, y: 0 },
       };
     },
     [],
@@ -120,8 +117,6 @@ export const ProcessFlowDiagram = ({
       callIndex: number,
       call: ToolCallWithResult,
       prefix: string,
-      xOffset: number,
-      yOffset: number,
     ): Node => {
       const funcNodeId = `${prefix}iteration-${iterationIndex}-func-${callIndex}`;
       return {
@@ -133,10 +128,7 @@ export const ProcessFlowDiagram = ({
           result: call.result,
           isAgent: false,
         },
-        position: {
-          x: xOffset + 450 + callIndex * 350,
-          y: yOffset + (iterationIndex + 1) * 250,
-        },
+        position: { x: 0, y: 0 },
       };
     },
     [],
@@ -148,8 +140,6 @@ export const ProcessFlowDiagram = ({
       callIndex: number,
       call: AgentToolCallWithResult,
       prefix: string,
-      xOffset: number,
-      yOffset: number,
     ): Node => {
       const funcNodeId = `${prefix}iteration-${iterationIndex}-func-${callIndex}`;
       return {
@@ -161,10 +151,7 @@ export const ProcessFlowDiagram = ({
           result: call.result,
           isAgent: true,
         },
-        position: {
-          x: xOffset + 450 + callIndex * 350,
-          y: yOffset + (iterationIndex + 1) * 250,
-        },
+        position: { x: 0, y: 0 },
       };
     },
     [],
@@ -189,20 +176,14 @@ export const ProcessFlowDiagram = ({
   );
 
   const createResponseNode = useCallback(
-    (
-      response: string,
-      iterationCount: number,
-      prefix: string,
-      xOffset: number,
-      yOffset: number,
-    ): Node => {
+    (response: string, prefix: string): Node => {
       return {
         id: `${prefix}response`,
         type: 'response',
         data: {
           response: response,
         },
-        position: { x: xOffset, y: yOffset + (iterationCount + 1) * 250 },
+        position: { x: 0, y: 0 },
       };
     },
     [],
@@ -230,12 +211,7 @@ export const ProcessFlowDiagram = ({
       const edges: Edge[] = [];
 
       // Helper function to process iteration nodes
-      const processIterationNodes = (
-        proc: RouterProcess,
-        prefix: string,
-        xOffset: number,
-        yOffset: number,
-      ) => {
+      const processIterationNodes = (proc: RouterProcess, prefix: string) => {
         proc.iterationHistory.forEach((iteration, index) => {
           const nodeId = `${prefix}iteration-${index}`;
 
@@ -251,8 +227,6 @@ export const ProcessFlowDiagram = ({
               functionCalls.length,
               functionCalls,
               prefix,
-              xOffset,
-              yOffset,
             ),
           );
           edges.push(createIterationEdge(index, nodeId, prefix));
@@ -263,9 +237,6 @@ export const ProcessFlowDiagram = ({
       const processFunctionCallNodes = (
         proc: RouterProcess,
         prefix: string,
-        xOffset: number,
-        yOffset: number,
-        depth: number,
       ): void => {
         proc.iterationHistory.forEach((iteration, index) => {
           const iterationNodeId = `${prefix}iteration-${index}`;
@@ -282,8 +253,6 @@ export const ProcessFlowDiagram = ({
                 callIdx,
                 call,
                 prefix,
-                xOffset,
-                yOffset,
               );
               nodes.push(funcNode);
               edges.push(
@@ -302,17 +271,10 @@ export const ProcessFlowDiagram = ({
                 'iterationHistory' in internalProcess
               ) {
                 const nestedPrefix = `${prefix}iter-${index}-func-${callIdx}-`;
-                const nestedXOffset = xOffset + 800 + depth * 600;
-                const nestedYOffset = yOffset + (index + 1) * 250;
 
                 // Add question node for nested process
                 nodes.push(
-                  createQuestionNode(
-                    internalProcess.question,
-                    nestedPrefix,
-                    nestedXOffset,
-                    nestedYOffset,
-                  ),
+                  createQuestionNode(internalProcess.question, nestedPrefix),
                 );
 
                 // Connect agent node to nested question
@@ -325,21 +287,10 @@ export const ProcessFlowDiagram = ({
                 });
 
                 // Process nested iterations
-                processIterationNodes(
-                  internalProcess,
-                  nestedPrefix,
-                  nestedXOffset,
-                  nestedYOffset,
-                );
+                processIterationNodes(internalProcess, nestedPrefix);
 
                 // Process nested function calls (recursive)
-                processFunctionCallNodes(
-                  internalProcess,
-                  nestedPrefix,
-                  nestedXOffset,
-                  nestedYOffset,
-                  depth + 1,
-                );
+                processFunctionCallNodes(internalProcess, nestedPrefix);
               }
             } else {
               // Create MCP function call node
@@ -348,8 +299,6 @@ export const ProcessFlowDiagram = ({
                 callIdx,
                 call,
                 prefix,
-                xOffset,
-                yOffset,
               );
               nodes.push(funcNode);
               edges.push(
@@ -361,20 +310,15 @@ export const ProcessFlowDiagram = ({
       };
 
       const prefix = '';
-      const xOffset = 0;
-      const yOffset = 0;
-      const depth = 0;
 
       // Add node for user question
-      nodes.push(
-        createQuestionNode(process.question, prefix, xOffset, yOffset),
-      );
+      nodes.push(createQuestionNode(process.question, prefix));
 
       // Process iteration nodes and edges
-      processIterationNodes(process, prefix, xOffset, yOffset);
+      processIterationNodes(process, prefix);
 
       // Process function call nodes and edges (including recursive agent calls)
-      processFunctionCallNodes(process, prefix, xOffset, yOffset, depth);
+      processFunctionCallNodes(process, prefix);
 
       // Add response node if there's a response
       if (process.response && process.iterationHistory.length > 0) {
@@ -382,15 +326,7 @@ export const ProcessFlowDiagram = ({
         const lastIterationId = `${prefix}iteration-${lastIterationIndex}`;
         const responseId = `${prefix}response`;
 
-        nodes.push(
-          createResponseNode(
-            process.response,
-            process.iterationHistory.length,
-            prefix,
-            xOffset,
-            yOffset,
-          ),
-        );
+        nodes.push(createResponseNode(process.response, prefix));
 
         edges.push(createResponseEdge(lastIterationId, responseId, prefix));
       }
@@ -421,7 +357,14 @@ export const ProcessFlowDiagram = ({
     const { nodes: newNodes, edges: newEdges } = buildFlowFromProcess(process);
     setNodes(newNodes);
     setEdges(newEdges);
-  }, [process, buildFlowFromProcess, setNodes, setEdges]);
+
+    // Apply auto-layout after nodes/edges are set
+    if (newNodes.length > 0) {
+      setTimeout(() => {
+        applyLayout({ direction: 'vertical' });
+      }, 100);
+    }
+  }, [process, buildFlowFromProcess, setNodes, setEdges, applyLayout]);
 
   if (!process && !isLoading) {
     return null;
@@ -453,5 +396,14 @@ export const ProcessFlowDiagram = ({
         <MiniMap className="bg-white! dark:bg-zinc-800!" />
       </ReactFlow>
     </div>
+  );
+};
+
+// Wrap with ReactFlowProvider for auto-layout
+export const ProcessFlowDiagram = (props: ProcessFlowDiagramProps) => {
+  return (
+    <ReactFlowProvider>
+      <ProcessFlowDiagramInner {...props} />
+    </ReactFlowProvider>
   );
 };
