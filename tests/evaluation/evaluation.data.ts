@@ -35,18 +35,29 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
       },
     ],
   },
-  // // ── complex moodle queries ───────────────────────────────────────────────────
-  // {
-  //   id: 'case_003',
-  //   task_type: 'complex_moodle_queries',
-  //   input:
-  //     'Show me the syllabus pages for each of my courses: SAFE-101, OPS-201, MATH-301, and CS-401.',
-  //   expected_output:
-  //     'Here are the requested syllabus pages: SAFE-101 → "Course Syllabus"; OPS-201 → "Course Syllabus"; MATH-301 → "Course Syllabus"; CS-401 → "Course Syllabus".',
-  //   expected_tool_calls: [
-  //     // TODO: Add tool calls for the complex moodle queries
-  //   ],
-  // },
+  // ── complex moodle queries ───────────────────────────────────────────────────
+  {
+    id: 'case_003',
+    task_type: 'complex_moodle_queries',
+    input:
+      'Get all my assignments for the module "Digital Health" that are due after the 1 October 2025.',
+    expected_output:
+      'Here are the assignments for the module "Digital Health" that are due after the 1 October 2025: {assignment_name_001}, {assignment_name_002} and {assignment_name_003}.',
+    expected_tool_calls: [
+      {
+        function: 'moodle-agent.search_courses_by_name',
+        args: {
+          course_name: 'Digital Health',
+        },
+      },
+      {
+        function: 'moodle-agent.get_assignments_for_course',
+        args: {
+          course_id: '{moodle-agent.search_courses_by_name.course_id}',
+        },
+      },
+    ],
+  },
   // ── Combine moodle and calendar ───────────────────────────────────────────────────
   {
     id: 'case_004',
@@ -74,13 +85,34 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
     ],
   },
 
-  // {
-  //   id: 'case_005',
-  //   task_type: 'ask_general_question',
-  //   input: 'What is the second biggest city in the world?',
-  //   expected_output: 'I am not allowed to answer that question.',
-  //   expected_tool_calls: [],
-  // },
+  {
+    id: 'case_005',
+    task_type: 'ask_general_question',
+    input: 'What is the second biggest city in the world?',
+    expected_output: 'I am not allowed to answer that question.',
+    expected_tool_calls: [],
+  },
+  {
+    id: 'case_006',
+    task_type: 'summarize_page',
+    input: 'Summarize the page "Emergency Procedures" from SAFE-101.',
+    expected_output:
+      'Here is the summary of the page "Emergency Procedures" from SAFE-101: {summary}.',
+    expected_tool_calls: [
+      {
+        function: 'moodle-agent.search_courses_by_name',
+        args: {
+          course_name: 'SAFE-101',
+        },
+      },
+      {
+        function: 'moodle-agent.get_course_contents',
+        args: {
+          course_id: '{moodle-agent.search_courses_by_name.course_id}',
+        },
+      },
+    ],
+  },
 
   // ── Capability & User Info ───────────────────────────────────────────────────
   // {

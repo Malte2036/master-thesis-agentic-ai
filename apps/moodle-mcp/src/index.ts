@@ -189,7 +189,7 @@ mcpServer.tool(
 
 mcpServer.tool(
   'get_course_contents',
-  'Get contents of a specific course. The course is identified by the course_id parameter. Maybe you need to call find_course_id_by_name first to get the course_id.',
+  'Get contents (modules + web service file urls) of a specific course. The course is identified by the course_id parameter.',
   {
     course_id: z.number().describe('ID of the course to get contents for'),
   },
