@@ -1,4 +1,5 @@
 import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 type ChatParticipantBubbleProps = {
   role: 'user' | 'agent';
@@ -65,9 +66,66 @@ export const ChatParticipantBubble = ({
               : 'bg-white text-zinc-800 border border-zinc-200 rounded-bl-sm dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-700'
           }`}
         >
-          <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">
-            <Markdown>{content}</Markdown>
-          </p>
+          <div className="text-[15px] leading-relaxed markdown-content">
+            <Markdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                table: ({ children }) => (
+                  <div className="overflow-x-auto my-4">
+                    <table className="min-w-full border-collapse border border-zinc-300 dark:border-zinc-600 rounded-lg">
+                      {children}
+                    </table>
+                  </div>
+                ),
+                thead: ({ children }) => (
+                  <thead className="bg-zinc-100 dark:bg-zinc-700">
+                    {children}
+                  </thead>
+                ),
+                tbody: ({ children }) => (
+                  <tbody className="divide-y divide-zinc-200 dark:divide-zinc-600">
+                    {children}
+                  </tbody>
+                ),
+                th: ({ children }) => (
+                  <th className="border border-zinc-300 dark:border-zinc-600 px-4 py-2 text-left text-sm font-semibold">
+                    {children}
+                  </th>
+                ),
+                td: ({ children }) => (
+                  <td className="border border-zinc-300 dark:border-zinc-600 px-4 py-2 text-sm">
+                    {children}
+                  </td>
+                ),
+                tr: ({ children }) => (
+                  <tr className="hover:bg-zinc-50 dark:hover:bg-zinc-700/50">
+                    {children}
+                  </tr>
+                ),
+                p: ({ children }) => (
+                  <p className="mb-3 last:mb-0">{children}</p>
+                ),
+                ul: ({ children }) => (
+                  <ul className="list-disc list-inside mb-3">{children}</ul>
+                ),
+                ol: ({ children }) => (
+                  <ol className="list-decimal list-inside mb-3">{children}</ol>
+                ),
+                code: ({ inline, children }) =>
+                  inline ? (
+                    <code className="bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded text-sm font-mono">
+                      {children}
+                    </code>
+                  ) : (
+                    <code className="block bg-zinc-100 dark:bg-zinc-700 p-3 rounded-lg text-sm font-mono overflow-x-auto">
+                      {children}
+                    </code>
+                  ),
+              }}
+            >
+              {content}
+            </Markdown>
+          </div>
         </div>
       </div>
     </div>
