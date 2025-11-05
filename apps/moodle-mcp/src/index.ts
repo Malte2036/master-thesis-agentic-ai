@@ -248,6 +248,7 @@ mcpServer.tool(
   {
     due_after: z
       .string()
+      .transform((value) => (value === 'null' ? null : value))
       .or(z.number())
       .nullish()
       .describe(
@@ -255,6 +256,7 @@ mcpServer.tool(
       ),
     due_before: z
       .string()
+      .transform((value) => (value === 'null' ? null : value))
       .or(z.number())
       .nullish()
       .describe(
