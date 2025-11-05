@@ -41,7 +41,7 @@ export const ChatInput = ({ onSubmit, chatWindowState }: Props) => {
   return (
     <div className="w-full max-w-3xl">
       <form onSubmit={handleSubmit} className="relative">
-        <div className="flex items-center gap-2 rounded-2xl border border-zinc-200 bg-white p-2 shadow-lg transition-all focus-within:border-red-500 dark:border-zinc-800 dark:bg-zinc-900 dark:focus-within:border-red-500">
+        <div className="flex items-center gap-2 rounded-2xl border border-zinc-200 bg-white p-2 shadow-lg transition-all focus-within:border-red-500">
           <textarea
             ref={textareaRef}
             value={message}
@@ -50,14 +50,14 @@ export const ChatInput = ({ onSubmit, chatWindowState }: Props) => {
             placeholder="Ask me anything..."
             rows={1}
             disabled={chatWindowState.isLoading}
-            className="flex-1 resize-none bg-transparent px-3 py-3 text-base text-zinc-900 placeholder-zinc-400 outline-none dark:text-zinc-100 dark:placeholder-zinc-500"
+            className="flex-1 resize-none bg-transparent px-3 py-3 text-base text-zinc-900 placeholder-zinc-400 outline-none"
             style={{ maxHeight: '200px' }}
           />
 
           <button
             type="submit"
             disabled={!message.trim() || chatWindowState.isLoading}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white transition-all hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-red-500 dark:hover:bg-red-600"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white transition-all hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {chatWindowState.isLoading ? (
               <svg
@@ -99,13 +99,13 @@ export const ChatInput = ({ onSubmit, chatWindowState }: Props) => {
           </button>
         </div>
 
-        <p className="mt-2 text-center text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="mt-2 text-center text-xs text-zinc-500">
           Press{' '}
-          <kbd className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-xs dark:bg-zinc-800">
+          <kbd className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-xs">
             Enter
           </kbd>{' '}
           to send,
-          <kbd className="ml-1 rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-xs dark:bg-zinc-800">
+          <kbd className="ml-1 rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-xs">
             Shift + Enter
           </kbd>{' '}
           for new line

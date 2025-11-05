@@ -24,7 +24,7 @@ export const ChatParticipantBubble = ({
           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full shadow-sm ${
             isUser
               ? 'bg-red-600 text-white'
-              : 'bg-white text-zinc-600 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700'
+              : 'bg-white text-zinc-600 border border-zinc-200'
           }`}
         >
           {isUser ? (
@@ -63,7 +63,7 @@ export const ChatParticipantBubble = ({
           className={`rounded-2xl px-4 py-3 shadow-sm ${
             isUser
               ? 'bg-red-600 text-white rounded-br-sm'
-              : 'bg-white text-zinc-800 border border-zinc-200 rounded-bl-sm dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-700'
+              : 'bg-white text-zinc-800 border border-zinc-200 rounded-bl-sm'
           }`}
         >
           <div className="text-[15px] leading-relaxed markdown-content">
@@ -72,33 +72,33 @@ export const ChatParticipantBubble = ({
               components={{
                 table: ({ children }) => (
                   <div className="overflow-x-auto my-4">
-                    <table className="min-w-full border-collapse border border-zinc-300 dark:border-zinc-600 rounded-lg">
+                    <table className="min-w-full border-collapse border border-zinc-300 rounded-lg">
                       {children}
                     </table>
                   </div>
                 ),
                 thead: ({ children }) => (
-                  <thead className="bg-zinc-100 dark:bg-zinc-700">
+                  <thead className="bg-zinc-100">
                     {children}
                   </thead>
                 ),
                 tbody: ({ children }) => (
-                  <tbody className="divide-y divide-zinc-200 dark:divide-zinc-600">
+                  <tbody className="divide-y divide-zinc-200">
                     {children}
                   </tbody>
                 ),
                 th: ({ children }) => (
-                  <th className="border border-zinc-300 dark:border-zinc-600 px-4 py-2 text-left text-sm font-semibold">
+                  <th className="border border-zinc-300 px-4 py-2 text-left text-sm font-semibold">
                     {children}
                   </th>
                 ),
                 td: ({ children }) => (
-                  <td className="border border-zinc-300 dark:border-zinc-600 px-4 py-2 text-sm">
+                  <td className="border border-zinc-300 px-4 py-2 text-sm">
                     {children}
                   </td>
                 ),
                 tr: ({ children }) => (
-                  <tr className="hover:bg-zinc-50 dark:hover:bg-zinc-700/50">
+                  <tr className="hover:bg-zinc-50">
                     {children}
                   </tr>
                 ),
@@ -113,11 +113,11 @@ export const ChatParticipantBubble = ({
                 ),
                 code: ({ inline, children }) =>
                   inline ? (
-                    <code className="bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded text-sm font-mono">
+                    <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-sm font-mono">
                       {children}
                     </code>
                   ) : (
-                    <code className="block bg-zinc-100 dark:bg-zinc-700 p-3 rounded-lg text-sm font-mono overflow-x-auto">
+                    <code className="block bg-zinc-100 p-3 rounded-lg text-sm font-mono overflow-x-auto">
                       {children}
                     </code>
                   ),

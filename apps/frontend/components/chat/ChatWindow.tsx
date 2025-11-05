@@ -80,14 +80,14 @@ export const ChatWindow = () => {
     <div className="flex h-screen w-full flex-col">
       {/* Top navigation tabs */}
       {hasProcess && (
-        <div className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="border-b border-zinc-200 bg-white">
           <div className="flex items-center gap-4 px-6 py-3">
             <button
               onClick={() => setViewMode('chat')}
               className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                 viewMode === 'chat'
                   ? 'bg-red-600 text-white'
-                  : 'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
+                  : 'text-zinc-700 hover:bg-zinc-100'
               }`}
             >
               <svg
@@ -110,7 +110,7 @@ export const ChatWindow = () => {
               className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                 viewMode === 'diagram'
                   ? 'bg-red-600 text-white'
-                  : 'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
+                  : 'text-zinc-700 hover:bg-zinc-100'
               }`}
             >
               <svg
@@ -135,7 +135,7 @@ export const ChatWindow = () => {
                   className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                     showFlowView
                       ? 'bg-red-600 text-white'
-                      : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700'
+                      : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
                   }`}
                 >
                   Flow
@@ -145,7 +145,7 @@ export const ChatWindow = () => {
                   className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                     !showFlowView
                       ? 'bg-red-600 text-white'
-                      : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700'
+                      : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
                   }`}
                 >
                   List
@@ -173,7 +173,7 @@ export const ChatWindow = () => {
           </div>
 
           {/* Input area */}
-          <div className="border-t border-zinc-200 bg-white px-4 py-6 dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="border-t border-zinc-200 bg-white px-4 py-6">
             <div className="mx-auto flex max-w-3xl items-center justify-center">
               <ChatInput onSubmit={handleSubmit} chatWindowState={state} />
             </div>
@@ -183,7 +183,7 @@ export const ChatWindow = () => {
 
       {/* Full Page Diagram View */}
       {viewMode === 'diagram' && hasProcess && (
-        <div className="flex-1 overflow-hidden bg-zinc-50 dark:bg-zinc-900">
+        <div className="flex-1 overflow-hidden bg-zinc-50">
           {showFlowView ? (
             <ProcessFlowDiagram
               process={state.process}

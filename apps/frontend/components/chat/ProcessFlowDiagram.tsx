@@ -383,7 +383,7 @@ const ProcessFlowDiagramInner = ({
   }
 
   return (
-    <div className="w-full h-full overflow-hidden bg-zinc-50 dark:bg-zinc-900">
+    <div className="w-full h-full overflow-hidden bg-zinc-50">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -405,7 +405,7 @@ const ProcessFlowDiagramInner = ({
       >
         <Background />
         <Controls />
-        <MiniMap className="bg-white! dark:bg-zinc-800!" />
+        <MiniMap className="bg-white!" />
       </ReactFlow>
     </div>
   );

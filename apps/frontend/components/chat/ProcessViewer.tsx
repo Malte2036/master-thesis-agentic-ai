@@ -130,11 +130,11 @@ export const ProcessViewer = ({
   return (
     <div className={`space-y-4 w-full mb-6 ${indentClass}`}>
       {depth === 0 && (
-        <div className="rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
+        <div className="rounded-lg border border-zinc-200 bg-white shadow-sm">
           <div className="p-4">
             <div className="flex items-center gap-2 text-base font-semibold">
               {getStatusIcon()}
-              <span className="text-zinc-900 dark:text-zinc-100">
+              <span className="text-zinc-900">
                 Student AI Agent
               </span>
               <span
@@ -164,10 +164,10 @@ export const ProcessViewer = ({
         return (
           <div
             key={index}
-            className="rounded-lg border-l-4 border-l-blue-500 border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-800"
+            className="rounded-lg border-l-4 border-l-blue-500 border border-zinc-200 bg-white shadow-sm"
           >
             <div
-              className="cursor-pointer p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-700/50"
+              className="cursor-pointer p-4 transition-colors hover:bg-zinc-50"
               onClick={() => toggleStep(index)}
             >
               <div className="flex items-center justify-between">
@@ -175,7 +175,7 @@ export const ProcessViewer = ({
                   <span className="rounded-full border-2 border-blue-200 bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-800">
                     {iteration.iteration}
                   </span>
-                  <span className="text-sm font-medium text-zinc-600 dark:text-zinc-300">
+                  <span className="text-sm font-medium text-zinc-600">
                     {iteration.naturalLanguageThought?.substring(0, 100)}
                     {iteration.naturalLanguageThought?.length > 100
                       ? '...'
@@ -218,7 +218,7 @@ export const ProcessViewer = ({
 
             {/* Collapsible Content */}
             {isExpanded && (
-              <div className="space-y-4 border-t border-zinc-200 p-4 pt-4 dark:border-zinc-700">
+              <div className="space-y-4 border-t border-zinc-200 p-4 pt-4">
                 {/* Natural Language Thought */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -235,12 +235,12 @@ export const ProcessViewer = ({
                         d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
                       />
                     </svg>
-                    <h4 className="text-sm font-semibold text-purple-700 dark:text-purple-400">
+                    <h4 className="text-sm font-semibold text-purple-700">
                       Natural Language Thought
                     </h4>
                   </div>
-                  <div className="rounded-md border-l-2 border-purple-200 bg-purple-50 p-3 dark:border-purple-800 dark:bg-purple-950/30">
-                    <p className="whitespace-pre-wrap text-sm text-zinc-700 dark:text-zinc-300">
+                  <div className="rounded-md border-l-2 border-purple-200 bg-purple-50 p-3">
+                    <p className="whitespace-pre-wrap text-sm text-zinc-700">
                       {iteration.naturalLanguageThought ||
                         'No thought available'}
                     </p>
@@ -263,12 +263,12 @@ export const ProcessViewer = ({
                         d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
                       />
                     </svg>
-                    <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-400">
+                    <h4 className="text-sm font-semibold text-blue-700">
                       Structured Thought (JSON)
                     </h4>
                   </div>
-                  <div className="rounded-md border-l-2 border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950/30">
-                    <pre className="overflow-x-auto whitespace-pre-wrap text-xs text-zinc-700 dark:text-zinc-300">
+                  <div className="rounded-md border-l-2 border-blue-200 bg-blue-50 p-3">
+                    <pre className="overflow-x-auto whitespace-pre-wrap text-xs text-zinc-700">
                       {minimisedStructuredThought
                         ? JSON.stringify(minimisedStructuredThought, null, 2)
                         : 'No structured thought available'}
@@ -300,7 +300,7 @@ export const ProcessViewer = ({
                             d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                           />
                         </svg>
-                        <h4 className="text-sm font-semibold text-green-700 dark:text-green-400">
+                        <h4 className="text-sm font-semibold text-green-700">
                           Function Calls
                         </h4>
                       </div>
@@ -326,11 +326,11 @@ export const ProcessViewer = ({
                               key={callIndex}
                               className={`rounded-md border-l-2 p-3 ${
                                 isAgent
-                                  ? 'border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-950/30'
-                                  : 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30'
+                                  ? 'border-purple-200 bg-purple-50'
+                                  : 'border-green-200 bg-green-50'
                               } ${
                                 hasInternalProcess
-                                  ? 'cursor-pointer transition-colors hover:bg-purple-100 dark:hover:bg-purple-950/50'
+                                  ? 'cursor-pointer transition-colors hover:bg-purple-100'
                                   : ''
                               }`}
                               onClick={() =>
@@ -341,22 +341,22 @@ export const ProcessViewer = ({
                               <div className="mb-2 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                   {isAgent && (
-                                    <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
+                                    <span className="text-xs font-semibold text-purple-600">
                                       🤖 AGENT
                                     </span>
                                   )}
                                   <span
                                     className={`font-mono text-sm font-semibold ${
                                       isAgent
-                                        ? 'text-purple-800 dark:text-purple-300'
-                                        : 'text-green-800 dark:text-green-300'
+                                        ? 'text-purple-800'
+                                        : 'text-green-800'
                                     }`}
                                   >
                                     {call.function}
                                   </span>
                                 </div>
                                 {hasInternalProcess && (
-                                  <div className="text-purple-600 dark:text-purple-400">
+                                  <div className="text-purple-600">
                                     {isNestedExpanded ? (
                                       <svg
                                         className="h-4 w-4"
@@ -393,7 +393,7 @@ export const ProcessViewer = ({
                               {/* Arguments */}
                               {call.args && (
                                 <div
-                                  className="mt-2 text-xs text-zinc-700 dark:text-zinc-300"
+                                  className="mt-2 text-xs text-zinc-700"
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   <strong>Arguments:</strong>
@@ -408,7 +408,7 @@ export const ProcessViewer = ({
                               {/* Result for non-agent calls */}
                               {!isAgent && call.result && (
                                 <div
-                                  className="mt-2 text-xs text-zinc-700 dark:text-zinc-300"
+                                  className="mt-2 text-xs text-zinc-700"
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   <strong>Result:</strong>
@@ -423,10 +423,10 @@ export const ProcessViewer = ({
                               {/* Nested Internal Router Process for Agent Calls */}
                               {hasInternalProcess && isNestedExpanded && (
                                 <div
-                                  className="mt-3 border-l-4 border-purple-300 pl-4 dark:border-purple-700"
+                                  className="mt-3 border-l-4 border-purple-300 pl-4"
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  <div className="mb-2 text-xs font-semibold text-purple-700 dark:text-purple-400">
+                                  <div className="mb-2 text-xs font-semibold text-purple-700">
                                     Internal Agent Process:
                                   </div>
                                   <ProcessViewer
@@ -452,7 +452,7 @@ export const ProcessViewer = ({
 
       {/* Error Display */}
       {process?.error && (
-        <div className="rounded-lg border-l-4 border-l-red-500 border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
+        <div className="rounded-lg border-l-4 border-l-red-500 border border-zinc-200 bg-white shadow-sm">
           <div className="p-4">
             <div className="mb-2 flex items-center gap-2 text-base font-semibold">
               <svg
@@ -468,10 +468,10 @@ export const ProcessViewer = ({
                   d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <span className="text-zinc-900 dark:text-zinc-100">Error</span>
+              <span className="text-zinc-900">Error</span>
             </div>
-            <div className="rounded-md border-l-2 border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950/30">
-              <p className="text-sm text-red-700 dark:text-red-300">
+            <div className="rounded-md border-l-2 border-red-200 bg-red-50 p-4">
+              <p className="text-sm text-red-700">
                 {process.error}
               </p>
             </div>
@@ -481,8 +481,8 @@ export const ProcessViewer = ({
 
       {/* Processing Indicator */}
       {isLoading && (!process || process.iterationHistory.length === 0) && (
-        <div className="rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
-          <div className="flex items-center justify-center gap-3 py-8 text-zinc-500 dark:text-zinc-400">
+        <div className="rounded-lg border border-zinc-200 bg-white shadow-sm">
+          <div className="flex items-center justify-center gap-3 py-8 text-zinc-500">
             <svg
               className="h-5 w-5 animate-spin"
               xmlns="http://www.w3.org/2000/svg"
