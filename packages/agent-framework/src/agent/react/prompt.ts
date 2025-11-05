@@ -30,7 +30,6 @@ Important rules:
    */
   public static getNaturalLanguageThoughtPrompt = (
     extendedSystemPrompt: string,
-    agentTools: AgentTool[],
     routerProcess: RouterProcess,
   ): AIGenerateTextOptions => {
     const iterationHistory = routerProcess.iterationHistory ?? [];
@@ -134,7 +133,7 @@ Stay precise. Do not invent values. One step at a time.
 
 TOOLS SNAPSHOT (read once as reference; do not regurgitate):
 <TOOLS_SNAPSHOT>
-${JSON.stringify(agentTools)}
+${JSON.stringify(routerProcess.agentTools)}
 </TOOLS_SNAPSHOT>
 `,
         },

@@ -5,7 +5,6 @@ import { AIProvider } from '../../services';
 import { ReActPrompt } from './prompt';
 
 export async function getNaturalLanguageThought(
-  agentTools: AgentTool[],
   routerProcess: RouterProcess,
   aiProvider: AIProvider,
   logger: Logger,
@@ -13,7 +12,6 @@ export async function getNaturalLanguageThought(
 ): Promise<string> {
   const systemPrompt = ReActPrompt.getNaturalLanguageThoughtPrompt(
     extendedNaturalLanguageThoughtSystemPrompt,
-    agentTools,
     routerProcess,
   );
 

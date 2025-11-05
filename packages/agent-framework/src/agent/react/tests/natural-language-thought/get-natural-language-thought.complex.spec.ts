@@ -120,7 +120,6 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
             };
 
             const thought = await getNaturalLanguageThought(
-              mockAgentToolsComplex,
               routerProcess,
               aiProvider,
               logger,
@@ -176,7 +175,6 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
         };
 
         const thought = await getNaturalLanguageThought(
-          moodleAgentToolsMock,
           routerProcess,
           aiProvider,
           logger,
@@ -227,7 +225,6 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
         };
 
         const thought = await getNaturalLanguageThought(
-          calendarAgentToolsMock,
           routerProcess,
           aiProvider,
           logger,

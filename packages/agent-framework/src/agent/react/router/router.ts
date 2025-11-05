@@ -69,7 +69,6 @@ export abstract class ReActRouter extends Router {
       this.logger.log(chalk.magenta('--------------------------------'));
 
       const naturalLanguageThought = await getNaturalLanguageThought(
-        this.agentTools,
         routerProcess,
         this.aiOptions.aiProvider,
         this.logger,
