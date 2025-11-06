@@ -3,6 +3,7 @@ import { ChatInput } from './ChatInput';
 import { ChatParticipantBubble } from './ChatParticipantBubble';
 import { ProcessViewer } from './ProcessViewer';
 import { ProcessFlowDiagram } from './ProcessFlowDiagram';
+import { StarterQuestions } from './StarterQuestions';
 import { useState } from 'react';
 import { RouterProcess } from '@master-thesis-agentic-ai/types';
 import { MessageCircle, Layers } from 'lucide-react';
@@ -28,22 +29,7 @@ export const ChatWindow = () => {
   const [state, setState] = useState<ChatWindowState>(initialState);
   const [showFlowView, setShowFlowView] = useState(true);
   const [viewMode, setViewMode] = useState<'chat' | 'diagram'>('chat');
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      role: 'agent',
-      content: 'Hello, how can I help you today?',
-    },
-    {
-      role: 'user',
-      content:
-        'What are my assignments for the course "Introduction to Computer Science"?',
-    },
-    {
-      role: 'agent',
-      content:
-        'You have 2 assignments due next week: "Hello World" and "Linear Algebra Assignment".',
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   const handleSubmit = async (message: string) => {
     setState({ ...initialState, isLoading: true });
@@ -139,13 +125,22 @@ export const ChatWindow = () => {
           {/* Messages area */}
           <div className="flex-1 overflow-y-auto px-4 py-6">
             <div className="mx-auto">
-              {messages.map((message, index) => (
-                <ChatParticipantBubble
-                  key={index}
-                  role={message.role}
-                  content={message.content}
-                />
-              ))}
+              {messages.length === 0 ? (
+                <div className="flex h-full items-center justify-center">
+                  <StarterQuestions
+                    onSelectQuestion={handleSubmit}
+                    disabled={state.isLoading}
+                  />
+                </div>
+              ) : (
+                messages.map((message, index) => (
+                  <ChatParticipantBubble
+                    key={index}
+                    role={message.role}
+                    content={message.content}
+                  />
+                ))
+              )}
             </div>
           </div>
 
