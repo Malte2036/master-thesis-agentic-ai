@@ -1,7 +1,7 @@
 'use client';
 
 import { ChatWindow } from '@/components/chat/ChatWindow';
-import { Navigation } from '@/components/Navigation';
+import { Navigation } from '@/components/navigation/Navigation';
 
 export default function Home() {
   return (

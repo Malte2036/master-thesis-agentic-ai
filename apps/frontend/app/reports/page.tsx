@@ -1,7 +1,7 @@
 'use client';
 
 import { ReportViewer } from '@/components/reports/ReportViewer';
-import { Navigation } from '@/components/Navigation';
+import { Navigation } from '@/components/navigation/Navigation';
 
 export default function ReportsPage() {
   return (

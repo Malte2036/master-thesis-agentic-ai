@@ -6,6 +6,7 @@ import {
   ToolCallWithResult,
 } from '@master-thesis-agentic-ai/types';
 import { useState } from 'react';
+import { Loader2, AlertCircle, CheckCircle, ChevronDown, ChevronRight, Lightbulb, Code, Eye } from 'lucide-react';
 
 type ProcessViewerProps = {
   process: RouterProcess | undefined;
@@ -56,61 +57,12 @@ export const ProcessViewer = ({
 
   const getStatusIcon = () => {
     if (isLoading) {
-      return (
-        <svg
-          className="h-4 w-4 animate-spin text-blue-500"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          />
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          />
-        </svg>
-      );
+      return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />;
     }
     if (process?.error) {
-      return (
-        <svg
-          className="h-4 w-4 text-red-500"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      );
+      return <AlertCircle className="h-4 w-4 text-red-500" />;
     }
-    return (
-      <svg
-        className="h-4 w-4 text-green-500"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-        />
-      </svg>
-    );
+    return <CheckCircle className="h-4 w-4 text-green-500" />;
   };
 
   const getStatusText = () => {
@@ -184,33 +136,9 @@ export const ProcessViewer = ({
                 </div>
                 <button className="p-1">
                   {isExpanded ? (
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
+                    <ChevronDown className="h-4 w-4" />
                   ) : (
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
+                    <ChevronRight className="h-4 w-4" />
                   )}
                 </button>
               </div>
@@ -222,19 +150,7 @@ export const ProcessViewer = ({
                 {/* Natural Language Thought */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <svg
-                      className="h-4 w-4 text-purple-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                      />
-                    </svg>
+                    <Lightbulb className="h-4 w-4 text-purple-500" />
                     <h4 className="text-sm font-semibold text-purple-700">
                       Natural Language Thought
                     </h4>
@@ -250,19 +166,7 @@ export const ProcessViewer = ({
                 {/* Structured Thought (JSON) */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <svg
-                      className="h-4 w-4 text-blue-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
-                      />
-                    </svg>
+                    <Code className="h-4 w-4 text-blue-500" />
                     <h4 className="text-sm font-semibold text-blue-700">
                       Structured Thought (JSON)
                     </h4>
@@ -281,25 +185,7 @@ export const ProcessViewer = ({
                   iteration.structuredThought.functionCalls.length > 0 && (
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <svg
-                          className="h-4 w-4 text-green-500"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                          />
-                        </svg>
+                        <Eye className="h-4 w-4 text-green-500" />
                         <h4 className="text-sm font-semibold text-green-700">
                           Function Calls
                         </h4>
@@ -358,33 +244,9 @@ export const ProcessViewer = ({
                                 {hasInternalProcess && (
                                   <div className="text-purple-600">
                                     {isNestedExpanded ? (
-                                      <svg
-                                        className="h-4 w-4"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M19 9l-7 7-7-7"
-                                        />
-                                      </svg>
+                                      <ChevronDown className="h-4 w-4" />
                                     ) : (
-                                      <svg
-                                        className="h-4 w-4"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M9 5l7 7-7 7"
-                                        />
-                                      </svg>
+                                      <ChevronRight className="h-4 w-4" />
                                     )}
                                   </div>
                                 )}
@@ -455,19 +317,7 @@ export const ProcessViewer = ({
         <div className="rounded-lg border-l-4 border-l-red-500 border border-zinc-200 bg-white shadow-sm">
           <div className="p-4">
             <div className="mb-2 flex items-center gap-2 text-base font-semibold">
-              <svg
-                className="h-4 w-4 text-red-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+              <AlertCircle className="h-4 w-4 text-red-500" />
               <span className="text-zinc-900">Error</span>
             </div>
             <div className="rounded-md border-l-2 border-red-200 bg-red-50 p-4">
@@ -483,26 +333,7 @@ export const ProcessViewer = ({
       {isLoading && (!process || process.iterationHistory.length === 0) && (
         <div className="rounded-lg border border-zinc-200 bg-white shadow-sm">
           <div className="flex items-center justify-center gap-3 py-8 text-zinc-500">
-            <svg
-              className="h-5 w-5 animate-spin"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
-            </svg>
+            <Loader2 className="h-5 w-5 animate-spin" />
             <span>Waiting for AI to start processing...</span>
           </div>
         </div>

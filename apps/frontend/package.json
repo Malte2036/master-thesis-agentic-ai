@@ -12,11 +12,13 @@
     "@dagrejs/dagre": "^1.1.8",
     "@master-thesis-agentic-ai/types": "workspace:*",
     "@xyflow/react": "^12.9.2",
+    "lucide-react": "^0.552.0",
     "next": "16.0.1",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-markdown": "^10.1.0",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

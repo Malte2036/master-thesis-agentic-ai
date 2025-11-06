@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { TestCaseCard } from './TestCaseCard';
 import { EvaluationReport } from '@master-thesis-agentic-ai/types';
+import { AlertCircle, RefreshCw, Clipboard } from 'lucide-react';
 
 export const ReportViewer = () => {
   const [report, setReport] = useState<EvaluationReport | null>(null);
@@ -55,19 +56,7 @@ export const ReportViewer = () => {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="rounded-lg bg-red-50 p-6 text-center">
-          <svg
-            className="mx-auto mb-4 h-12 w-12 text-red-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+          <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-600" />
           <h2 className="mb-2 text-xl font-semibold text-red-900">Error Loading Report</h2>
           <p className="mb-4 text-red-700">{error}</p>
           <button
@@ -104,19 +93,7 @@ export const ReportViewer = () => {
             onClick={loadReport}
             className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700"
           >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
+            <RefreshCw className="h-4 w-4" />
             Refresh
           </button>
         </div>
@@ -198,19 +175,7 @@ export const ReportViewer = () => {
           ) : (
             <div className="flex h-full items-center justify-center text-zinc-500">
               <div className="text-center">
-                <svg
-                  className="mx-auto mb-4 h-12 w-12 text-zinc-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                  />
-                </svg>
+                <Clipboard className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
                 <p className="text-lg">Select a test case to view details</p>
               </div>
             </div>
