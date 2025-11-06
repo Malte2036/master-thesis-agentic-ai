@@ -25,3 +25,26 @@ export const getMcpServiceAuthUrl = (provider: McpServiceName): URL => {
   url.searchParams.set('redirect_uri', redirectUri.toString());
   return url;
 };
+
+export const authenticateMoodle = async (
+  username: string,
+  password: string,
+): Promise<string> => {
+  const moodleMcpUrl = getMcpServiceUrl('moodle');
+
+  const response = await fetch(`${moodleMcpUrl}/auth`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ username, password }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Authentication failed');
+  }
+
+  const data = await response.json();
+  return data.token;
+};

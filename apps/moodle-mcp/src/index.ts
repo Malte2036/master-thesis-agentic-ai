@@ -16,6 +16,7 @@ import { CourseSchema } from './schemas/moodle/course';
 import { AssignmentSchema } from './schemas/moodle/assignment';
 import { CourseContentSchema } from './schemas/moodle/course_content';
 import { UserInfoSchema } from './schemas/moodle/user';
+import { moodleAuthRoutes } from './auth/moodle';
 
 dotenv.config();
 
@@ -38,7 +39,11 @@ if (!MOODLE_USERNAME || !MOODLE_PASSWORD) {
   throw new Error('MOODLE_USERNAME or MOODLE_PASSWORD is not set');
 }
 
-const mcpServerFramework = createMCPServerFramework(logger, 'moodle-mcp');
+const mcpServerFramework = createMCPServerFramework(
+  logger,
+  'moodle-mcp',
+  moodleAuthRoutes(logger, MOODLE_BASE_URL),
+);
 const mcpServer = mcpServerFramework.getServer();
 
 mcpServer.tool(

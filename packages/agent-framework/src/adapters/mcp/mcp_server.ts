@@ -1,5 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import cors from 'cors';
 import express, { Request, Response } from 'express';
 import { AgentConfig } from '../../config';
 import { Logger } from '../../logger';
@@ -28,6 +29,10 @@ export class McpServerAgentAdapter {
     );
 
     this.expressApp = express();
+
+    // Enable CORS for all routes
+    this.expressApp.use(cors());
+
     this.expressApp.use(express.json());
 
     // Handle MCP requests
@@ -108,6 +113,9 @@ export class McpServerAgentAdapter {
       res.send('OK');
     });
 
+    // Handle both GET and POST for /auth
+    // GET is used for OAuth redirects (calendar)
+    // POST is used for direct authentication (moodle)
     this.expressApp.get(
       '/auth',
       this.authRoutes?.authEndpoint ??
@@ -115,6 +123,14 @@ export class McpServerAgentAdapter {
           res.status(404).send('Not found');
         }),
     );
+    this.expressApp.post(
+      '/auth',
+      this.authRoutes?.authEndpoint ??
+        ((req, res) => {
+          res.status(404).send('Not found');
+        }),
+    );
+
     this.expressApp.get(
       '/auth/callback',
       this.authRoutes?.authCallbackEndpoint ??
