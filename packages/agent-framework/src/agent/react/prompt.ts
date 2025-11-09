@@ -133,7 +133,8 @@ Parameter echo (when you choose CALL):
 - NEVER include evidence-json, data samples, or example outputs when using CALL.
 
 Intent patterns:
-- Execute: "CALL: get_user_info" with parameters (NO evidence-json)
+- Execute: "CALL: <function_name> with parameters (NO evidence-json)
+  parameters="key1=value1, key2=value2"
 - Final (DONE): Provide the evidence-json block first, then the Final answer reproducing only values from that evidence.
 
 Stay precise. Do not invent values. One step at a time.
