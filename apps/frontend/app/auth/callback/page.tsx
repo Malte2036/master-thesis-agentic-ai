@@ -2,12 +2,12 @@
 
 import { Button } from '@/components/button/Button';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, Suspense } from 'react';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { useMcpStore } from '@/store/mcpStore';
 import { McpServiceName } from '@/lib/api/mcp';
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const searchParams = useSearchParams();
   const setRefreshToken = useMcpStore((state) => state.setRefreshToken);
 
@@ -95,5 +95,21 @@ export default function AuthCallbackPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-8">
+          <div className="bg-white rounded-lg shadow-sm p-8 max-w-md w-full text-center">
+            <p className="text-zinc-600">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <AuthCallbackContent />
+    </Suspense>
   );
 }

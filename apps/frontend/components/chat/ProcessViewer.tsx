@@ -6,7 +6,16 @@ import {
   ToolCallWithResult,
 } from '@master-thesis-agentic-ai/types';
 import { useState } from 'react';
-import { Loader2, AlertCircle, CheckCircle, ChevronDown, ChevronRight, Lightbulb, Code, Eye } from 'lucide-react';
+import {
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  ChevronDown,
+  ChevronRight,
+  Lightbulb,
+  Code,
+  Eye,
+} from 'lucide-react';
 
 type ProcessViewerProps = {
   process: RouterProcess | undefined;
@@ -86,9 +95,7 @@ export const ProcessViewer = ({
           <div className="p-4">
             <div className="flex items-center gap-2 text-base font-semibold">
               {getStatusIcon()}
-              <span className="text-zinc-900">
-                Student AI Agent
-              </span>
+              <span className="text-zinc-900">Student AI Agent</span>
               <span
                 className={`ml-auto rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusColor()}`}
               >
@@ -198,12 +205,7 @@ export const ProcessViewer = ({
                           )[]
                         ).map((call, callIndex: number) => {
                           const nestedId = `${index}-${callIndex}`;
-                          const isAgent = isAgentToolCall(call);
-                          const hasInternalProcess =
-                            (isAgent &&
-                              call.internalRouterProcess &&
-                              typeof call.internalRouterProcess === 'object') ||
-                            false;
+                          const isAgentCall = isAgentToolCall(call);
                           const isNestedExpanded =
                             expandedNestedProcess.has(nestedId);
 
@@ -211,29 +213,28 @@ export const ProcessViewer = ({
                             <div
                               key={callIndex}
                               className={`rounded-md border-l-2 p-3 ${
-                                isAgent
+                                isAgentCall
                                   ? 'border-purple-200 bg-purple-50'
                                   : 'border-green-200 bg-green-50'
                               } ${
-                                hasInternalProcess
+                                isAgentCall
                                   ? 'cursor-pointer transition-colors hover:bg-purple-100'
                                   : ''
                               }`}
                               onClick={() =>
-                                hasInternalProcess &&
-                                toggleNestedProcess(nestedId)
+                                isAgentCall && toggleNestedProcess(nestedId)
                               }
                             >
                               <div className="mb-2 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                  {isAgent && (
+                                  {isAgentCall && (
                                     <span className="text-xs font-semibold text-purple-600">
                                       🤖 AGENT
                                     </span>
                                   )}
                                   <span
                                     className={`font-mono text-sm font-semibold ${
-                                      isAgent
+                                      isAgentCall
                                         ? 'text-purple-800'
                                         : 'text-green-800'
                                     }`}
@@ -241,7 +242,7 @@ export const ProcessViewer = ({
                                     {call.function}
                                   </span>
                                 </div>
-                                {hasInternalProcess && (
+                                {isAgentCall && (
                                   <div className="text-purple-600">
                                     {isNestedExpanded ? (
                                       <ChevronDown className="h-4 w-4" />
@@ -268,7 +269,7 @@ export const ProcessViewer = ({
                               )}
 
                               {/* Result for non-agent calls */}
-                              {!isAgent && call.result && (
+                              {!isAgentCall && call.result && (
                                 <div
                                   className="mt-2 text-xs text-zinc-700"
                                   onClick={(e) => e.stopPropagation()}
@@ -283,23 +284,25 @@ export const ProcessViewer = ({
                               )}
 
                               {/* Nested Internal Router Process for Agent Calls */}
-                              {hasInternalProcess && isNestedExpanded && (
-                                <div
-                                  className="mt-3 border-l-4 border-purple-300 pl-4"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <div className="mb-2 text-xs font-semibold text-purple-700">
-                                    Internal Agent Process:
+                              {isAgentCall &&
+                                isNestedExpanded &&
+                                call.type === 'agent' && (
+                                  <div
+                                    className="mt-3 border-l-4 border-purple-300 pl-4"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <div className="mb-2 text-xs font-semibold text-purple-700">
+                                      Internal Agent Process:
+                                    </div>
+                                    <ProcessViewer
+                                      process={
+                                        call.internalRouterProcess as RouterProcess
+                                      }
+                                      isLoading={false}
+                                      depth={depth + 1}
+                                    />
                                   </div>
-                                  <ProcessViewer
-                                    process={
-                                      call.internalRouterProcess as RouterProcess
-                                    }
-                                    isLoading={false}
-                                    depth={depth + 1}
-                                  />
-                                </div>
-                              )}
+                                )}
                             </div>
                           );
                         })}
@@ -321,9 +324,7 @@ export const ProcessViewer = ({
               <span className="text-zinc-900">Error</span>
             </div>
             <div className="rounded-md border-l-2 border-red-200 bg-red-50 p-4">
-              <p className="text-sm text-red-700">
-                {process.error}
-              </p>
+              <p className="text-sm text-red-700">{process.error}</p>
             </div>
           </div>
         </div>

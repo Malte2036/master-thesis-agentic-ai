@@ -55,14 +55,10 @@ export const ChatParticipantBubble = ({
                   </div>
                 ),
                 thead: ({ children }) => (
-                  <thead className="bg-zinc-100">
-                    {children}
-                  </thead>
+                  <thead className="bg-zinc-100">{children}</thead>
                 ),
                 tbody: ({ children }) => (
-                  <tbody className="divide-y divide-zinc-200">
-                    {children}
-                  </tbody>
+                  <tbody className="divide-y divide-zinc-200">{children}</tbody>
                 ),
                 th: ({ children }) => (
                   <th className="border border-zinc-300 px-4 py-2 text-left text-sm font-semibold">
@@ -75,9 +71,7 @@ export const ChatParticipantBubble = ({
                   </td>
                 ),
                 tr: ({ children }) => (
-                  <tr className="hover:bg-zinc-50">
-                    {children}
-                  </tr>
+                  <tr className="hover:bg-zinc-50">{children}</tr>
                 ),
                 p: ({ children }) => (
                   <p className="mb-3 last:mb-0">{children}</p>
@@ -88,16 +82,11 @@ export const ChatParticipantBubble = ({
                 ol: ({ children }) => (
                   <ol className="list-decimal list-inside mb-3">{children}</ol>
                 ),
-                code: ({ inline, children }) =>
-                  inline ? (
-                    <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-sm font-mono">
-                      {children}
-                    </code>
-                  ) : (
-                    <code className="block bg-zinc-100 p-3 rounded-lg text-sm font-mono overflow-x-auto">
-                      {children}
-                    </code>
-                  ),
+                code: ({ children }) => (
+                  <code className="block bg-zinc-100 p-3 rounded-lg text-sm font-mono overflow-x-auto">
+                    {children}
+                  </code>
+                ),
               }}
             >
               {content}
