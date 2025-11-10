@@ -194,8 +194,8 @@ mcpServer.tool(
 );
 
 mcpServer.tool(
-  'get_course_contents',
-  'Get contents (modules + web service file urls) of a specific course. The course is identified by the course_id parameter.',
+  'get_course_details',
+  'Retrieve the full structure and learning materials of a Moodle course, including its sections and activities (pages, assignments, forums, URLs). Returns file URLs, page HTML content, and assignment intros for detailed exploration or summarization.',
   {
     course_id: z.number().describe('ID of the course to get contents for'),
   },
@@ -212,7 +212,7 @@ mcpServer.tool(
       MOODLE_PASSWORD,
     );
 
-    const courseContents = await moodleProvider.getCourseContents(
+    const courseContents = await moodleProvider.getCourseContentsEnriched(
       moodleToken,
       course_id,
     );
@@ -226,12 +226,14 @@ mcpServer.tool(
           maxLengths: {
             name: 80,
             summary: 150,
+            inlineContent: 180,
+            intro: 180,
           },
         }),
         serializeOptions: {
           observation: {
             source: 'moodle_api',
-            endpoint: 'get_course_contents',
+            endpoint: 'get_course_details',
             course_id: course_id,
             total_contents: courseContents.length,
             generated_at: getCurrentTimestamp().toISOString(),
@@ -240,7 +242,7 @@ mcpServer.tool(
       },
     )}`;
 
-    logger.log(`get_course_contents: \n${humanReadableResponse}`);
+    logger.log(`get_course_details: \n${humanReadableResponse}`);
 
     return {
       content: [{ type: 'text', text: humanReadableResponse }],

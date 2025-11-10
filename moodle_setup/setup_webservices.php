@@ -101,6 +101,7 @@ $functions = array(
     'core_user_get_users',
     'core_webservice_get_site_info',
     'core_course_search_courses',
+    'mod_page_get_pages_by_courses',
 );
 
 foreach ($functions as $functionname) {

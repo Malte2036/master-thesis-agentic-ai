@@ -8,7 +8,7 @@ export const mockAgentToolsComplex: AgentTool[] = [
     args: {},
   },
   {
-    name: 'get_course_contents',
+    name: 'get_course_details',
     description: 'Get the contents of a course',
     args: {
       course_id: {

@@ -15,11 +15,23 @@ export async function getStructuredThought(
   structuredAiProvider: AIProvider,
   logger: Logger,
 ): Promise<StructuredThoughtResponse> {
+  naturalLanguageThought = stripThoughts(naturalLanguageThought);
+
+  if (!naturalLanguageThought.includes('CALL:')) {
+    logger.info(
+      chalk.magenta(
+        'No agent calls found (no CALL: block). Setting isFinished to true.',
+      ),
+    );
+    return {
+      functionCalls: [],
+      isFinished: true,
+    };
+  }
+
   logger.log(chalk.magenta('Generating structured thought...'));
   const structuredSystemPrompt =
     ReActPrompt.getStructuredThoughtPrompt(agentTools);
-
-  naturalLanguageThought = stripThoughts(naturalLanguageThought);
 
   const structuredResponse =
     await structuredAiProvider.generateJson<StructuredThoughtResponse>(

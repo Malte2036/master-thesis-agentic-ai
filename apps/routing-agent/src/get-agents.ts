@@ -45,8 +45,7 @@ export async function getAgents(
     Structured or natural language parameters that provide additional context or control input for the agent.
     Prefer structured data (e.g., JSON) when possible — e.g.:
     {
-      "courseId": 9621,
-      "includePastAssignments": false
+      "courseId": {the_specific_course_id},
     }
     If you don't know all exact parameters, describe them naturally in text (the agent will infer them).`,
               required: false,

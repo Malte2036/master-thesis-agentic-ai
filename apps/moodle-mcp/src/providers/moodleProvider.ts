@@ -208,4 +208,57 @@ export class MoodleProvider {
     const response = await this.getAssignments(token, [courseid]);
     return response.courses[0];
   }
+
+  public async getPagesByCourse(
+    token: string,
+    courseId: number,
+  ): Promise<any> {
+    const data = await this.callMoodleFunction<unknown>(
+      token,
+      'mod_page_get_pages_by_courses',
+      { 'courseids[0]': String(courseId) },
+    );
+    return data;
+  }
+
+  public async getCourseContentsEnriched(
+    token: string,
+    courseid: number,
+  ): Promise<CourseContentsResponse> {
+    const [courseContents, pagesWS, assignsCourse] = await Promise.all([
+      this.getCourseContents(token, courseid),
+      this.getPagesByCourse(token, courseid),
+      this.getAssignmentsForCourse(token, courseid),
+    ]);
+
+    const pageById = new Map<number, any>(
+      ((pagesWS as any)?.pages ?? []).map((p: any) => [Number(p.id), p]),
+    );
+    const assignById = new Map<number, any>(
+      (assignsCourse?.assignments ?? []).map((a: any) => [Number(a.id), a]),
+    );
+
+    for (const section of courseContents) {
+      for (const mod of section.modules ?? []) {
+        if (!mod.instance) continue;
+
+        if (mod.modname === 'page') {
+          const p = pageById.get(mod.instance);
+          if (p) {
+            mod.inlineContent = p.content;
+            mod.inlineContentFormat = p.contentformat ?? 1;
+          }
+        } else if (mod.modname === 'assign') {
+          const a = assignById.get(mod.instance);
+          if (a) {
+            mod.intro = a.intro;
+            mod.introformat = a.introformat ?? 1;
+            mod.duedate = a.duedate;
+          }
+        }
+      }
+    }
+
+    return courseContents;
+  }
 }

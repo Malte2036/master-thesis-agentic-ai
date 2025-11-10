@@ -96,7 +96,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
         args: { course_name: 'Intro to Safety' },
       },
       {
-        function: 'moodle-agent.get_course_contents',
+        function: 'moodle-agent.get_course_details',
         args: { course_id: '{moodle-agent.search_courses_by_name.course_id}' },
       },
     ],
@@ -172,7 +172,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── course contents enumeration (files/sections) ────────────────────────────
   {
     id: 'case_011',
-    task_type: 'get_course_contents',
+    task_type: 'get_course_details',
     input: 'List all sections and pages for "Intro to Safety".',
     expected_output:
       'Here are the sections and pages for "Intro to Safety": {sections_and_pages}.',
@@ -182,7 +182,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
         args: { course_name: 'Intro to Safety' },
       },
       {
-        function: 'moodle-agent.get_course_contents',
+        function: 'moodle-agent.get_course_details',
         args: { course_id: '{moodle-agent.search_courses_by_name.course_id}' },
       },
     ],

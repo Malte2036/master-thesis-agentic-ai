@@ -42,7 +42,7 @@ const agentFramework = createA2AFramework(
   {
     name: 'moodle-agent',
     description:
-      'The Moodle Agent is a specialized AI assistant for Moodle Learning Management System (LMS) operations. It can help you view your enrolled courses, search for courses, see course details, check assignments across all courses or filter by specific courses and dates, and access your personal user information. It is an essential tool for students and educators navigating their Moodle environment.',
+      'The Moodle Agent is a specialized AI assistant for Moodle Learning Management System (LMS) operations. It provides comprehensive access to course management, assignment tracking, and user information through a set of powerful MCP tools. The agent can retrieve all enrolled courses, search for specific courses by name, inspect detailed course contents, view assignments across all courses or for specific courses with optional date filtering, and access personal user information. It uses ReAct reasoning to intelligently route user requests to the appropriate Moodle API functions, making it an essential tool for students and educators navigating their Moodle environment.',
     version: '1.1.0',
     skills: [],
   },

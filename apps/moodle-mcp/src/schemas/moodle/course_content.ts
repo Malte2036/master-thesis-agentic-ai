@@ -8,7 +8,8 @@ export const CourseContentSchema = z.object({
   modules: z
     .array(
       z.object({
-        // id: z.number().describe('Module ID'),
+        id: z.number().describe('Module ID'),
+        instance: z.number().describe('Module instance ID'),
         name: z.string().describe('Module Name'),
         description: z.string().optional().describe('Description'),
         modname: z.string().describe('Module Type'),
@@ -24,6 +25,16 @@ export const CourseContentSchema = z.object({
           )
           .optional()
           .describe('Contents'),
+        // Enrichment fields for Page modules
+        inlineContent: z.string().optional().describe('Page HTML content'),
+        inlineContentFormat: z
+          .number()
+          .optional()
+          .describe('Content format (1 = HTML)'),
+        // Enrichment fields for Assignment modules
+        intro: z.string().optional().describe('Assignment intro HTML'),
+        introformat: z.number().optional().describe('Intro format (1 = HTML)'),
+        duedate: z.number().optional().describe('Due date (epoch seconds)'),
       }),
     )
     .describe('Modules'),

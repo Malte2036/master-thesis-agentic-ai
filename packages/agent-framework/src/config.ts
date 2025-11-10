@@ -47,7 +47,7 @@ const MCP_CONFIGS: Record<'moodle-mcp' | 'calendar-mcp', AgentConfig> = {
       //     parameters: {},
       //   },
       //   {
-      //     name: 'get_course_contents',
+      //     name: 'get_course_details',
       //     description:
       //       'Get contents of a specific course. The course is identified by the course_id parameter. Maybe you need to call find_course_id_by_name first to get the course_id.',
       //     parameters: {

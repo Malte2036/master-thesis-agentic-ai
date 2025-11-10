@@ -140,4 +140,4 @@ docker_data.bak
 logs/
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
-moodle
+./moodle/

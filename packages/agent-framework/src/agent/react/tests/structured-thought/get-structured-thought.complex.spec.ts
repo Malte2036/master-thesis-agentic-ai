@@ -227,7 +227,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
 
       it('should set isFinished to true when agent cannot execute function due to missing parameters', async () => {
         const result = await getStructuredThought(
-          'I cannot execute **get_course_contents** yet. **Missing required parameters**: - course_id (e.g., 12345) Please provide the exact course ID or the course name to proceed. I will call **search_courses_by_name** if you share the course name.',
+          'I cannot execute **get_course_details** yet. **Missing required parameters**: - course_id (e.g., 12345) Please provide the exact course ID or the course name to proceed. I will call **search_courses_by_name** if you share the course name.',
           mockAgentToolsComplex,
           aiProvider,
           logger,
