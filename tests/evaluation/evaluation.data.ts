@@ -156,6 +156,8 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
     id: 'case_010',
     task_type: 'list_calendar_events',
     input: 'List my calendar events for the next 7 days.',
+    extended_evaluation_input:
+      'The current date is 2025-09-29T10:11:19.193+02:00.',
     expected_output:
       'Here are your events for the next 7 days: {event_list_or_none}.',
     expected_tool_calls: [

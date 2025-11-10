@@ -6,6 +6,12 @@ export const EvaluationReportBaseSchema = z.object({
   id: z.string(),
   task_type: z.string(),
   input: z.string(),
+  extended_evaluation_input: z
+    .string()
+    .describe(
+      'Additional input for the evaluation. This is used to provide additional context for the evaluation.',
+    )
+    .optional(),
   expected_output: z.string(),
   expected_tool_calls: z.array(ToolCallSchema),
 });

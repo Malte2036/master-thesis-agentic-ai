@@ -68,10 +68,13 @@ def get_test_cases(path: str = "./report/report.json") -> List[LLMTestCase]:
         context.extend(get_context(trace))
 
         tool_calls = get_tools_called(trace)
-        print(tool_calls)
+        
+        input = e["input"]
+        if e.get("extended_evaluation_input"):
+            input += f"\n\n{e.get('extended_evaluation_input')}"
 
         tc = LLMTestCase(
-            input=e["input"],
+            input=input,
             actual_output=e["actual_output"],
             expected_output=e.get("expected_output"),   # optional
             context=context,                      # must be List[str]
