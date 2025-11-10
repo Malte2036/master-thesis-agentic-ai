@@ -95,14 +95,14 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   {
     id: 'case_006',
     task_type: 'summarize_page',
-    input: 'Summarize the page "Emergency Procedures" from SAFE-101.',
+    input: 'Summarize the page "Emergency Procedures" from Intro to Safety.',
     expected_output:
-      'Here is the summary of the page "Emergency Procedures" from SAFE-101: {summary}.',
+      'Here is the summary of the page "Emergency Procedures" from Intro to Safety: {summary}.',
     expected_tool_calls: [
       {
         function: 'moodle-agent.search_courses_by_name',
         args: {
-          course_name: 'SAFE-101',
+          course_name: 'Intro to Safety',
         },
       },
       {
@@ -135,15 +135,15 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   //   task_type: 'list_courses',
   //   input: 'List all my current Moodle courses.',
   //   expected_output:
-  //     'Here are your current courses: SAFE-101 (Intro to Safety), OPS-201 (Operations Level 2), MATH-301 (Advanced Mathematics), CS-401 (Computer Science Fundamentals), DH-501 (Digital Health UX).',
+  //     'Here are your current courses: Intro to Safety, OPS-201 (Operations Level 2), MATH-301 (Advanced Mathematics), CS-401 (Computer Science Fundamentals), DH-501 (Digital Health UX).',
   // },
   // {
   //   id: 'case_003',
   //   task_type: 'get_syllabus_pages',
   //   input:
-  //     'Show me the syllabus pages for each of my courses: SAFE-101, OPS-201, MATH-301, and CS-401.',
+  //     'Show me the syllabus pages for each of my courses: Intro to Safety, OPS-201, MATH-301, and CS-401.',
   //   expected_output:
-  //     'Here are the requested syllabus pages: SAFE-101 → "Course Syllabus"; OPS-201 → "Course Syllabus"; MATH-301 → "Course Syllabus"; CS-401 → "Course Syllabus".',
+  //     'Here are the requested syllabus pages: Intro to Safety → "Course Syllabus"; OPS-201 → "Course Syllabus"; MATH-301 → "Course Syllabus"; CS-401 → "Course Syllabus".',
   // },
   // // ── Global deadline queries (relative windows) ───────────────────────────────
   // {
@@ -151,7 +151,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   //   task_type: 'list_assignments_due_in_window',
   //   input: 'Show all assignments due in the next 7 days.',
   //   expected_output:
-  //     'Assignments due in the next 7 days: CS-401 → "Hello World Program" (due in +3 days; submission types: file upload and online text). SAFE-101 → "Safety Quiz 1" (due in +7 days; submission type: online text). MATH-301 → "Calculus Problem Set 1" (due in +7 days; submission type: file; points: 50).',
+  //     'Assignments due in the next 7 days: CS-401 → "Hello World Program" (due in +3 days; submission types: file upload and online text). Intro to Safety → "Safety Quiz 1" (due in +7 days; submission type: online text). MATH-301 → "Calculus Problem Set 1" (due in +7 days; submission type: file; points: 50).',
   // },
   // {
   //   id: 'case_005',
@@ -159,16 +159,16 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   //   input:
   //     'Add all assignments due in the next 14 days to my calendar with 2-hour blocks and a reminder 24 hours before.',
   //   expected_output:
-  //     'Added calendar events (2-hour duration, 24-hour reminder) for: CS-401 → "Hello World Program" (due in +3 days); SAFE-101 → "Safety Quiz 1" (due in +7 days); MATH-301 → "Calculus Problem Set 1" (due in +7 days); OPS-201 → "Operations Analysis" (due in +10 days); SAFE-101 → "Safety Equipment Essay" (due in +14 days); MATH-301 → "Linear Algebra Assignment" (due in +14 days).',
+  //     'Added calendar events (2-hour duration, 24-hour reminder) for: CS-401 → "Hello World Program" (due in +3 days); Intro to Safety → "Safety Quiz 1" (due in +7 days); MATH-301 → "Calculus Problem Set 1" (due in +7 days); OPS-201 → "Operations Analysis" (due in +10 days); Intro to Safety → "Safety Equipment Essay" (due in +14 days); MATH-301 → "Linear Algebra Assignment" (due in +14 days).',
   // },
   // // ── Course-scoped queries ────────────────────────────────────────────────────
   // {
   //   id: 'case_006',
   //   task_type: 'list_course_assignments',
   //   input:
-  //     'For SAFE-101 (Intro to Safety), list all assignments with their due windows and submission types.',
+  //     'For Intro to Safety, list all assignments with their due windows and submission types.',
   //   expected_output:
-  //     'SAFE-101 assignments: "Safety Quiz 1" (due in +7 days; submission: online text). "Safety Equipment Essay" (due in +14 days; submission: file upload).',
+  //     'Intro to Safety assignments: "Safety Quiz 1" (due in +7 days; submission: online text). "Safety Equipment Essay" (due in +14 days; submission: file upload).',
   // },
   // {
   //   id: 'case_007',
@@ -250,7 +250,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   //   input:
   //     'Show me assignments that require a file upload across all my courses and add them to my calendar.',
   //   expected_output:
-  //     'Assignments requiring file upload have been listed and scheduled: SAFE-101 → "Safety Equipment Essay" (due +14). OPS-201 → "Operations Analysis" (due +10). MATH-301 → "Calculus Problem Set 1" (due +7). MATH-301 → "Linear Algebra Assignment" (due +14). CS-401 → "Hello World Program" (due +3). CS-401 → "Data Structures Project" (due +21).',
+  //     'Assignments requiring file upload have been listed and scheduled: Intro to Safety → "Safety Equipment Essay" (due +14). OPS-201 → "Operations Analysis" (due +10). MATH-301 → "Calculus Problem Set 1" (due +7). MATH-301 → "Linear Algebra Assignment" (due +14). CS-401 → "Hello World Program" (due +3). CS-401 → "Data Structures Project" (due +21).',
   // },
   // {
   //   id: 'case_017',
@@ -258,7 +258,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   //   input:
   //     'Find assignments that allow online text submissions and list their due windows.',
   //   expected_output:
-  //     'Assignments that allow online text submissions: SAFE-101 → "Safety Quiz 1" (due in +7 days). OPS-201 → "Operations Analysis" (due in +10 days). CS-401 → "Hello World Program" (due in +3 days).',
+  //     'Assignments that allow online text submissions: Intro to Safety → "Safety Quiz 1" (due in +7 days). OPS-201 → "Operations Analysis" (due in +10 days). CS-401 → "Hello World Program" (due in +3 days).',
   // },
   // // ── Prep/derived planning from deadlines ─────────────────────────────────────
   // {
@@ -267,7 +267,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   //   input:
   //     'For each assignment due next week, create a preparation event 48 hours earlier titled "Prep: <Assignment Name>".',
   //   expected_output:
-  //     'Created preparation events 48 hours before the next-week deadlines for: CS-401 → "Hello World Program" (+3); SAFE-101 → "Safety Quiz 1" (+7); MATH-301 → "Calculus Problem Set 1" (+7).',
+  //     'Created preparation events 48 hours before the next-week deadlines for: CS-401 → "Hello World Program" (+3); Intro to Safety → "Safety Quiz 1" (+7); MATH-301 → "Calculus Problem Set 1" (+7).',
   // },
   // {
   //   id: 'case_019',
@@ -282,7 +282,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   //   id: 'case_020',
   //   task_type: 'summarize_page_and_schedule_study_event',
   //   input:
-  //     'Summarize the page "Emergency Procedures" from SAFE-101 and add a study event tomorrow at 18:00 with that summary in the description.',
+  //     'Summarize the page "Emergency Procedures" from Intro to Safety and add a study event tomorrow at 18:00 with that summary in the description.',
   //   expected_output:
   //     'Summary of "Emergency Procedures": Fire Emergency — pull alarm, evacuate, assemble, report. Medical Emergency — call ext. 5555, administer first aid only if trained, do not move injured person, file incident report. Chemical Spill — evacuate area, alert authorities, contact hazmat, do not clean unless trained. A study event for tomorrow at 18:00 has been created with this summary in the description.',
   // },
@@ -290,9 +290,9 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   //   id: 'case_021',
   //   task_type: 'add_external_links_to_next_deadline_events',
   //   input:
-  //     'List external resource links from SAFE-101 and CS-401 and add them to the event descriptions for their next deadlines.',
+  //     'List external resource links from Intro to Safety and CS-401 and add them to the event descriptions for their next deadlines.',
   //   expected_output:
-  //     'External links added to the next-deadline event descriptions. SAFE-101 (next deadline: "Safety Quiz 1" in +7 days) ⇒ URLs: OSHA Safety Standards (https://www.osha.gov/laws-regs/regulations/standardnumber), Safety Training Videos (YouTube playlist placeholder). CS-401 (next deadline: "Hello World Program" in +3 days) ⇒ URLs: Python Official Documentation (https://docs.python.org/3/), Python Tutor (http://pythontutor.com), LeetCode (https://leetcode.com), Course GitHub Repository (https://github.com/university/cs401-fall2025).',
+  //     'External links added to the next-deadline event descriptions. Intro to Safety (next deadline: "Safety Quiz 1" in +7 days) ⇒ URLs: OSHA Safety Standards (https://www.osha.gov/laws-regs/regulations/standardnumber), Safety Training Videos (YouTube playlist placeholder). CS-401 (next deadline: "Hello World Program" in +3 days) ⇒ URLs: Python Official Documentation (https://docs.python.org/3/), Python Tutor (http://pythontutor.com), LeetCode (https://leetcode.com), Course GitHub Repository (https://github.com/university/cs401-fall2025).',
   // },
   // {
   //   id: 'case_022',
@@ -300,7 +300,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   //   input:
   //     'Show new announcements or forum topics created this week across my courses.',
   //   expected_output:
-  //     "Here are this week's new forums available per course (timestamps not provided in dataset): SAFE-101 → 'Course Announcements', 'General Discussion', 'Safety Incident Reports'. OPS-201 → 'Announcements', 'Operations Q&A'. MATH-301 → 'Course Announcements', 'Problem Set Help', 'Study Groups'. CS-401 → 'Course News', 'General Discussion', 'Help with Code', 'Project Showcase'.",
+  //     "Here are this week's new forums available per course (timestamps not provided in dataset): Intro to Safety → 'Course Announcements', 'General Discussion', 'Safety Incident Reports'. OPS-201 → 'Announcements', 'Operations Q&A'. MATH-301 → 'Course Announcements', 'Problem Set Help', 'Study Groups'. CS-401 → 'Course News', 'General Discussion', 'Help with Code', 'Project Showcase'.",
   // },
   // // ── Calendar ops (edits, recurring, cancellation) ────────────────────────────
   // {
@@ -343,6 +343,6 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   //   input:
   //     'What do I need to do this week? Summarize all deadlines and add any missing events to my calendar.',
   //   expected_output:
-  //     'This week (≤ +7 days): CS-401 → "Hello World Program" (due +3). SAFE-101 → "Safety Quiz 1" (due +7). MATH-301 → "Calculus Problem Set 1" (due +7). Missing calendar events (if any) have been created. Also upcoming within 14 days: OPS-201 → "Operations Analysis" (due +10), SAFE-101 → "Safety Equipment Essay" (due +14), MATH-301 → "Linear Algebra Assignment" (due +14).',
+  //     'This week (≤ +7 days): CS-401 → "Hello World Program" (due +3). Intro to Safety → "Safety Quiz 1" (due +7). MATH-301 → "Calculus Problem Set 1" (due +7). Missing calendar events (if any) have been created. Also upcoming within 14 days: OPS-201 → "Operations Analysis" (due +10), Intro to Safety → "Safety Equipment Essay" (due +14), MATH-301 → "Linear Algebra Assignment" (due +14).',
   // },
 ];

@@ -323,7 +323,7 @@ ${JSON.stringify(agentTools)}
          - Field names (case-insensitive): id, _id, uid, guid, uuid, ulid, rid, sid, pid, kid, key, pk, sk, ref, reference, identifier, external_id, user_id, course_id, assignment_id, enrollment_id.
          - Formats/patterns: UUID/GUID (8-4-4-4-12 hex), ULID (26-char base32), Mongo/ObjectId (24 hex), long hex strings (≥12), base64-like tokens, snowflake/flake IDs, long numeric strings (≥6 digits) that are not dates or amounts.
          - Prefix-based tokens: strings starting with common service prefixes (e.g., "cus_", "evt_", "prod_", "sess_", "tok_", "sk_", "pk_").
-     3b) If a value mixes name + id (e.g., "SAFE-101 (id: 12345)"), include only the human-readable name/code and omit the id part.
+     3b) If a value mixes name + id (e.g., "Intro to Safety (id: 12345)"), include only the human-readable name/code and omit the id part.
      3c) If unsure whether a token is an ID or a name, default to **omitting** it. Exception: common human-readable course codes (e.g., "SAFE-101") are allowed as names if the user asked for courses.
      3d) Do not leak IDs embedded in URLs or query parameters; if links are requested, avoid including ID-like parameters or omit the link.
   

@@ -91,12 +91,16 @@ export class AgentClient {
       if (result.kind === 'task') {
         // The agent created a task.
         const taskResult = result as Task;
-        this.logger.log('Send Message Result (Task):', taskResult);
+        // this.logger.log('Send Message Result (Task):', taskResult);
+        this.logger.debug('Send Message Result (Task):', taskResult.id);
         taskId = taskResult.id; // Save the task ID for the next call
       } else if (result.kind === 'message') {
         // The agent responded with a direct message.
         const messageResult = result as Message;
-        this.logger.log('Send Message Result (Direct Message):', messageResult);
+        this.logger.debug(
+          'Send Message Result (Direct Message):',
+          messageResult.messageId,
+        );
         // No task was created, so we can't get task status.
       }
 

@@ -42,3 +42,5 @@ docker*
 Docker*
 scripts
 !scripts/dev-session.js
+moodle
+docker_data
