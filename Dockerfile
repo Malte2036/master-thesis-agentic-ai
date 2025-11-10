@@ -29,6 +29,9 @@ COPY apps/ ./apps/
 ARG NEXT_PUBLIC_MOODLE_MCP_URL
 ARG NEXT_PUBLIC_CALENDAR_MCP_URL
 
+ARG EVAL_FREEZE_DATE
+ENV EVAL_FREEZE_DATE=${EVAL_FREEZE_DATE}
+
 # Build the project
 RUN pnpm run build:types
 RUN pnpm run build:agent-framework & pnpm run build:frontend & wait

@@ -1,6 +1,7 @@
 import {
   createMCPServerFramework,
   getContextIdFromMcpServerRequestHandlerExtra,
+  getCurrentTimestamp,
   Logger,
   objectsToHumanReadableString,
 } from '@master-thesis-agentic-ai/agent-framework';
@@ -90,7 +91,7 @@ mcpServer.tool(
           observation: {
             source: 'google_calendar_api',
             total_items: 1,
-            generated_at: new Date().toISOString(),
+            generated_at: getCurrentTimestamp().toISOString(),
           },
         },
       },
@@ -157,7 +158,7 @@ mcpServer.tool(
           observation: {
             source: 'google_calendar_api',
             total_items: 1,
-            generated_at: new Date().toISOString(),
+            generated_at: getCurrentTimestamp().toISOString(),
           },
         },
       },
@@ -206,7 +207,7 @@ mcpServer.tool(
           observation: {
             source: 'google_calendar_api',
             total_items: calendarEvents.length,
-            generated_at: new Date().toISOString(),
+            generated_at: getCurrentTimestamp().toISOString(),
           },
         },
       },
@@ -245,7 +246,7 @@ mcpServer.tool(
           observation: {
             source: 'google_calendar_api',
             total_items: calendarEvents.length,
-            generated_at: new Date().toISOString(),
+            generated_at: getCurrentTimestamp().toISOString(),
           },
         },
       },

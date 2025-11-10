@@ -4,8 +4,8 @@ export const getContextIdFromMcpServerRequestHandlerExtra = (extra: {
   const contextId = (extra._meta as { contextId: string })?.contextId;
   if (!contextId) {
     // eslint-disable-next-line no-console
-    console.error('Context ID is required', JSON.stringify(extra, null, 2));
-    throw new Error('Context ID is required');
+    console.error('No context ID found in MCP server request handler extra');
+    return 'no-context-id';
   }
   return contextId;
 };

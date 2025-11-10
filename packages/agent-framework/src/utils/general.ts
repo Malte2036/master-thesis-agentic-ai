@@ -2,7 +2,7 @@
 // TYPES
 // ============================================================================
 
-import { parseTimestampToISOString } from './time';
+import { getCurrentTimestamp, parseTimestampToISOString } from './time';
 
 export type ColumnSpec<T> = {
   /** Property path on the row object (dot notation allowed), e.g. "course.id" */
@@ -311,7 +311,7 @@ export const objectsToHumanReadableString = <T extends object>(
     observation: {
       source: 'api',
       total_items: objs.length,
-      generated_at: new Date().toISOString(),
+      generated_at: getCurrentTimestamp().toISOString(),
     },
     ...options?.serializeOptions,
   });

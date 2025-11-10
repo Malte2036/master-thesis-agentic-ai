@@ -1,5 +1,12 @@
 import { fromUnixTime, parseISO } from 'date-fns';
 
+export function getCurrentTimestamp(): Date {
+  if (process.env['EVAL_FREEZE_DATE']) {
+    return parseISO(process.env['EVAL_FREEZE_DATE']);
+  }
+  return new Date();
+}
+
 function isUnixTimestamp(value: string | number): boolean {
   return /^\d{10}$/.test(String(value)); // naive check: 10-digit seconds-based timestamp
 }

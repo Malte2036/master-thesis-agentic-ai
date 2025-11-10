@@ -104,6 +104,14 @@
               "assignsubmission_file_enabled": 1,
               "duedate": "2025-09-29",
               "grade": 100
+            },
+            {
+              "name": "PPE Checklist Submission",
+              "intro": "Upload your completed PPE inspection checklist.",
+              "assignsubmission_file_enabled": 1,
+              "assignsubmission_onlinetext_enabled": 1,
+              "duedate": "2025-10-02",
+              "grade": 100
             }
           ],
           "forums": [
@@ -647,7 +655,7 @@
           "pages": [
             {
               "name": "Accessibility Guidelines",
-              "content": "<h2>Designing for Accessibility</h2><h3>WCAG 2.1 Level AA Requirements</h3><ul><li><strong>Perceivable:</strong> Text alternatives, captions, adaptable content</li><li><strong>Operable:</strong> Keyboard accessible, enough time, navigable</li><li><strong>Understandable:</strong> Readable, predictable, input assistance</li><li><strong>Robust:</strong> Compatible with assistive technologies</li></ul><h3>Healthcare-Specific Considerations</h3><ul><li>Large touch targets for users with tremors</li><li>High contrast for low vision</li><li>Plain language for health literacy</li><li>Screen reader support for blind users</li><li>Cognitive accessibility for elderly users</li></ul><h3>Testing Tools</h3><ul><li>WAVE (Web Accessibility Evaluation Tool)</li><li>axe DevTools</li><li>Screen readers (NVDA, JAWS, VoiceOver)</li></ul>"
+              "content": "<h2>Designing for Accessibility</h2><h3>WCAG 2.1 Level AA Requirements</h3><ul><li><strong>Perceivable:</strong> Text alternatives, captions, adaptable content</li><li><strong>Operable:</strong> Keyboard accessible, enough time, navigable</li><li><strong>Understandable:</strong> Readable, predictable, input assistance</li><li><strong>Robust:</strong> Compatible with assistive technologies</li></ul><h3>Healthcare-Specific Considerations</h3><ul><li>Large touch targets for users with tremors</li><li>High contrast for low vision</li><li>Plain language for health literacy</li><li>Screen reader support for blind users</li><li>Cognitive accessibility for elderly users</li></ul>"
             }
           ]
         },

@@ -6,6 +6,7 @@ x-common-build: &common-build
   args:
     - NEXT_PUBLIC_MOODLE_MCP_URL=http://localhost:3003
     - NEXT_PUBLIC_CALENDAR_MCP_URL=http://localhost:3004
+    - EVAL_FREEZE_DATE=2025-09-29T10:11:19.193+02:00
 
 services:
   # ---- MCPs ---- #

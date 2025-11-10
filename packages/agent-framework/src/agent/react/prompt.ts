@@ -4,7 +4,7 @@ import {
   ToolCallWithResult,
 } from '@master-thesis-agentic-ai/types';
 import { AIGenerateTextOptions } from '../../services';
-import { parseTimestampToISOString } from '../../utils';
+import { getCurrentTimestamp } from '../../utils';
 
 /**
  * ReActPrompt with compact STATE injection, strict DONE/CALL enforcement,
@@ -13,7 +13,7 @@ import { parseTimestampToISOString } from '../../utils';
 export class ReActPrompt {
   public static readonly BASE_PROMPTS: string[] = [
     `Some important information for you:
-    - Current date and time: ${parseTimestampToISOString(Math.floor(Date.now() / 1000))}
+    - Current date and time: ${getCurrentTimestamp().toISOString()}
     - Current timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
 
 Important rules:
