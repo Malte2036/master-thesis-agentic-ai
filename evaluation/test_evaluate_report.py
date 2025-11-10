@@ -183,3 +183,56 @@ metrics.append(GEval(
 
 tcs = get_test_cases()
 result = evaluate(display_config=DisplayConfig(file_output_dir="./report/evaluation_report"),test_cases=tcs, metrics=metrics)
+
+# Print metrics table
+print("\n" + "╔" + "═"*98 + "╗")
+print("║" + " "*35 + "EVALUATION METRICS SUMMARY" + " "*37 + "║")
+print("╚" + "═"*98 + "╝")
+
+# Collect metric scores
+metric_scores = {}
+for test_result in result.test_results:
+    for metric_result in test_result.metrics_data:
+        metric_name = metric_result.name
+        if metric_name not in metric_scores:
+            metric_scores[metric_name] = []
+        metric_scores[metric_name].append(metric_result.score)
+
+# Create a mapping of metric names to thresholds
+metric_thresholds = {}
+for metric in metrics:
+    metric_name = getattr(metric, 'name', metric.__class__.__name__)
+    metric_thresholds[metric_name] = metric.threshold
+
+# Calculate statistics
+print(f"\n{'Metric':<45} {'Average':>10} {'Min':>8} {'Max':>8} {'Threshold':>10} {'Pass Rate':>12}")
+print("─" * 100)
+
+for metric_name, scores in metric_scores.items():
+    # Clean up metric name (remove [GEval] tag)
+    clean_name = metric_name.replace(" [GEval]", "")
+    
+    avg_score = sum(scores) / len(scores)
+    min_score = min(scores)
+    max_score = max(scores)
+    threshold = metric_thresholds.get(metric_name, 0.5)
+    pass_rate = sum(1 for s in scores if s >= threshold) / len(scores) * 100
+    
+    # Add visual indicator for pass/fail
+    indicator = "✓" if pass_rate >= 70 else "✗"
+    
+    print(f"{clean_name:<45} {avg_score:>10.3f} {min_score:>8.3f} {max_score:>8.3f} {threshold:>10.2f} {pass_rate:>11.1f}% {indicator}")
+
+print("─" * 100)
+
+# Calculate overall statistics
+total_tests = len(tcs)
+passed_tests = sum(1 for tr in result.test_results if tr.success)
+overall_pass_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
+
+print(f"\n{'Test Cases:':<30} {total_tests:>5}")
+print(f"{'Passed:':<30} {passed_tests:>5}")
+print(f"{'Failed:':<30} {total_tests - passed_tests:>5}")
+print(f"{'Overall Pass Rate:':<30} {overall_pass_rate:>5.1f}%")
+print("\n" + "═"*100 + "\n")
+

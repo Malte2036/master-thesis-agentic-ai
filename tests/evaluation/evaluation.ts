@@ -13,6 +13,9 @@ const MOODLE_AGENT_URL = 'http://localhost:1234';
 const CALENDAR_AGENT_URL = 'http://localhost:1235';
 
 const TIMEOUT = 360000;
+// Run tests in batches to prevent SSE timeout issues
+const BATCH_SIZE = 5;
+const BATCH_DELAY = 2000; // 2 seconds between batches
 
 const report: EvaluationReport = {
   testEntries: [],
@@ -42,9 +45,6 @@ async function runEvaluationTests() {
 
     console.log('🔄 Running evaluation tests in batches...');
 
-    // Run tests in batches to prevent SSE timeout issues
-    const BATCH_SIZE = 30;
-    const BATCH_DELAY = 2000; // 2 seconds between batches
     const results: EvaluationReportEntry[] = [];
 
     for (let i = 0; i < E2E_EVALUATION_TEST_DATA.length; i += BATCH_SIZE) {
