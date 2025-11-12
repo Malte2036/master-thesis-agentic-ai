@@ -10,6 +10,7 @@ import dotenv from 'dotenv';
 import { z } from 'zod/v3';
 import { googleAuthRoutes } from './auth/google';
 import { CalendarEvent, CalendarProvider } from './providers/calendarProvider';
+import { normalizeRRule } from './utils/rrule';
 
 dotenv.config();
 
@@ -45,10 +46,7 @@ mcpServer.tool(
     recurrence_rules: z
       .string()
       .describe(
-        'Recurrence rule for the event in RFC5545 format (e.g., "FREQ=WEEKLY;BYDAY=MO,WE,FR", "FREQ=DAILY;COUNT=10"). Leave empty for one-time events.',
-      )
-      .transform((val) =>
-        val ? [`RRULE:${val.replace(/\s/g, '')}`] : undefined,
+        'Recurrence rule for the event in RFC5545 format (e.g., "FREQ=WEEKLY;BYDAY=MO,WE;COUNT=8", "FREQ=DAILY;COUNT=10"). MUST include COUNT or UNTIL to avoid infinite recurrences. Leave empty for one-time events.',
       )
       .nullish(),
   },
@@ -66,6 +64,23 @@ mcpServer.tool(
     const contextId = getContextIdFromMcpServerRequestHandlerExtra(extra);
     const calendarProvider = new CalendarProvider(logger, contextId);
 
+    // Normalize and validate RRULE if provided
+    let normalizedRecurrence: string[] | undefined;
+    if (recurrence_rules) {
+      try {
+        const normalized = normalizeRRule(recurrence_rules, {
+          event_start_date,
+        });
+        normalizedRecurrence = [`RRULE:${normalized}`];
+      } catch (error) {
+        logger.error('Invalid recurrence rule:', error);
+        throw createResponseError(
+          `Invalid recurrence rule. ${error instanceof Error ? error.message : 'Unknown error'}`,
+          400,
+        );
+      }
+    }
+
     let createdEvent: CalendarEvent;
     try {
       createdEvent = await calendarProvider.createCalendarEvent(
@@ -74,14 +89,14 @@ mcpServer.tool(
         event_start_date,
         event_end_date,
         location ?? undefined,
-        recurrence_rules ?? undefined,
+        normalizedRecurrence ?? undefined,
       );
     } catch (error) {
       logger.error('Failed to create calendar event:', error);
       throw createResponseError('Failed to create calendar event', 500);
     }
 
-    const eventType = recurrence_rules
+    const eventType = normalizedRecurrence
       ? 'recurring calendar event'
       : 'calendar event';
     const humanReadableResponse = `We successfully created the ${eventType}:  \n\n${objectsToHumanReadableString(
