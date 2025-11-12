@@ -10,6 +10,7 @@ type ModelOptions = {
   top_p?: number;
   top_k?: number;
   min_p?: number;
+  seed?: number;
 };
 
 const DEFAULT_OPTIONS: ModelOptions = {
@@ -17,6 +18,8 @@ const DEFAULT_OPTIONS: ModelOptions = {
   top_p: 0.8,
   top_k: 20,
   min_p: 0,
+  // This seed is used to reproduce the results
+  seed: 42,
 };
 
 // Use SDK's message param type for compatibility with .create()
@@ -148,6 +151,7 @@ export class OpenAIProvider implements AIProvider {
       messages: openAIMessages,
       temperature: opts?.temperature,
       top_p: opts?.top_p,
+      seed: opts?.seed,
       // vLLM-specific sampling options — harmlessly ignored by OpenAI
       ...(opts?.top_k !== undefined ? { top_k: opts.top_k } : {}),
       ...(opts?.min_p !== undefined ? { min_p: opts.min_p } : {}),
