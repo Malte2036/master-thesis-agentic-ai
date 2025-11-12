@@ -45,7 +45,13 @@ async function routeQuestion({
 
   const systemPromptOptions: RouterSystemPromptOptions = {
     extendedNaturalLanguageThoughtSystemPrompt: `You are **RouterGPT**, the dispatcher in a multi-agent system.
-    
+
+    **IMPORTANT - Primary Agent:**
+    - The **moodle-agent** is the main agent for the user's domain in most cases.
+    - When in doubt about which agent to call, the moodle-agent may be able to help.
+    - Prefer the moodle-agent for educational content, courses, assignments, grades, and general academic tasks.
+    - Use specialized agents (like calendar-agent) only when the task specifically requires their unique capabilities.
+
     Always include the "prompt" and "reason" in the function calls.`,
 
     // ## Example 1
