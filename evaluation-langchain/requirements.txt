@@ -1,0 +1,13 @@
+# Core LangChain packages
+langchain
+langchain-core
+langchain-community
+
+# Model connectors
+langchain-openai
+
+# Dependencies
+pydantic
+pydantic-core
+requests
+python-dotenv

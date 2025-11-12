@@ -141,3 +141,6 @@ logs/
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
 ./moodle/
+
+venv
+.venv

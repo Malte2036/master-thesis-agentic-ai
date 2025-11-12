@@ -1,12 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# Parse command line arguments
-NO_UI=false
-if [[ "$*" == *"--no-ui"* ]]; then
-  NO_UI=true
-fi
-
 ### 1) Kill existing processes
 echo "🔪 Killing old dev processes..."
 pkill -f "scripts/dev-session.js" || true
@@ -149,25 +143,6 @@ tell application "System Events"
 end tell
 APPLESCRIPT
 
-# Start chainlit only if not in --no-ui mode
-if [ "$NO_UI" = false ]; then
-  echo "🔄 Starting chainlit..."
-  osascript <<'APPLESCRIPT'
-tell application id "com.mitchellh.ghostty" to activate
-delay 0.05
-
-tell application "System Events"
-  keystroke "t" using {command down}
-  delay 0.15
-  keystroke "printf '\\e]2;chainlit\\a'; pnpm run dev:chainlit"
-  key code 36
-  delay 0.2
-end tell
-APPLESCRIPT
-else
-  echo "⏭️  Skipping chainlit (--no-ui mode)"
-fi
-
 echo "✅ All services started in separate Ghostty tabs!"
 echo ""
 echo "Services running:"
@@ -176,9 +151,6 @@ echo "  - calendar-mcp (second tab)"
 echo "  - routing-agent (third tab)"
 echo "  - moodle-agent (fourth tab)"
 echo "  - calendar-agent (fifth tab)"
-if [ "$NO_UI" = false ]; then
-  echo "  - chainlit (sixth tab)"
-fi
 echo ""
 echo "💡 Each service runs in its own tab with live output"
 echo "🛑 To stop services, use Ctrl+C in each tab or close the tabs"

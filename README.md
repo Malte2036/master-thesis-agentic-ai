@@ -32,11 +32,11 @@ Communication between the central orchestrator and the tool agents is handled by
 
 The project is a polyglot monorepo (TypeScript/Node.js and Python) containing the following main components:
 
-- **User Interface (`apps/chainlit`):**
+- **User Interface (`apps/frontend`):**
 
-  - **Technology:** Python with the Chainlit framework.
-  - **Function:** Provides a web-based chat interface for the user. It communicates with the backend via HTTP and Server-Sent Events (SSE) for real-time updates.
-  - **Key Feature:** It includes a custom React component (`AgenticProcessViewer`) that visualizes the agent's step-by-step reasoning process (Thought -> Action -> Observation) as it happens.
+  - **Technology:** Next.js (React/TypeScript) with Tailwind CSS.
+  - **Function:** Provides a modern web-based chat interface for the user. It communicates with the backend via HTTP and Server-Sent Events (SSE) for real-time updates.
+  - **Key Feature:** It includes a custom `ProcessViewer` component that visualizes the agent's step-by-step reasoning process (Thought -> Action -> Observation) as it happens, providing transparency into the agent's decision-making.
 
 - **Autonomous Orchestrator Agent (`apps/routing-agent`):**
 
