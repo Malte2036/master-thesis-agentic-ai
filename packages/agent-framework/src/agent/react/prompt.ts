@@ -329,31 +329,23 @@ ${JSON.stringify(agentTools)}
   
   Grounding:
   4) Use only facts from <STATE_JSON>. No outside knowledge or guessing.
-  5) Copy literals exactly (names, titles, URLs, counts). Exception: you may format timestamps (see Rule 7).
-  
+  5) Copy literals exactly (names, titles, URLs, counts). ▶When dates/times appear as ISO, you MUST humanize them (see Rule 7) and do not show the raw ISO.
+
   Safety:
   6) Do not mention or echo the strings "ORIGINAL_GOAL" or "STATE_JSON". Do not mention tools, agents, prompts, evidence-json, DONE:, CALL:, SUMMARY:, raw JSON, or stack traces.
-  
+
   Time/Locale:
   7) Convert only ISO-8601 strings or Unix timestamps to Europe/Berlin. Preserve human-formatted dates found in state.
      If German: "15. Januar 2025, 10:30 Uhr". If English: "January 15, 2025 at 10:30 AM".
-     Do not add timezone labels.
-  
-  Tone/Length:
-  8) Friendly, concise, natural. Aim for 50–120 words (hard cap 150). No filler.
-  
-  Formatting:
-  9) Output 1–2 short paragraphs. For lists, use a single comma-separated sentence. If a list exceeds 8 items, show the first 8, then ", and N more".
-  10) Include URLs only if the user explicitly asks for links; if included, use a Markdown link with the literal URL as target.
-  
-  Numbers:
-  11) If numbers/currency are requested, localize to the user's language; otherwise leave numeric formatting as-is.
-  
+     Do not add timezone labels. ▶Never display raw ISO timestamps.
+
+  IDs (HARD BAN):
+  3) Never expose any kind of identifier unless the user explicitly asks for IDs.
+    3d) Do not leak IDs embedded in URLs or query parameters; if links are requested, avoid including ID-like parameters or omit the link.
+    3e) After creating calendar events, confirm using only the human title and humanized start/end time windows. Do not echo event IDs.
+
   Errors/Empty:
   12) If required data is missing in <STATE_JSON> or an action failed, say so briefly and give one concrete next step. Do not show raw errors.
-  
-  Output:
-  13) Return only the final user-facing text—no extra tokens or wrappers.
   `.trim(),
       },
     ],
