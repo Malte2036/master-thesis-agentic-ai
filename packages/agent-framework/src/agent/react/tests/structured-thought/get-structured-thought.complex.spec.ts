@@ -24,10 +24,15 @@ describe('getStructuredThought (parallel execution semantics)', () => {
 
       it('Multiple independent calls → all included in one iteration (parallel)', async () => {
         const thought = `
-          I will do everything in parallel:
-          - search_flights origin "BER" destination "HND" date "2025-10-05"
-          - kb_vector_search query "atlas incident runbook" topK 3
-          - run_sql_query sql "SELECT * FROM users LIMIT 10"
+        CALL:
+        search_flights
+        parameters="origin='BER', destination='HND', date='2025-10-05'"
+        
+        kb_vector_search
+        parameters="query='atlas incident runbook', topK=3"
+        
+        run_sql_query
+        parameters="sql='SELECT * FROM users LIMIT 10'"
         `;
         const res = await getStructuredThought(
           thought,
@@ -54,8 +59,9 @@ describe('getStructuredThought (parallel execution semantics)', () => {
 
       it('Dependent call without args → MUST be omitted (no chaining in same iteration)', async () => {
         const thought = `
-          First I will run kb_vector_search for "atlas incident runbook" to get the relevant documents.
-          (Note: I will need to analyze the results in the next iteration.)
+          CALL:
+          kb_vector_search 
+          parameters="query='atlas incident runbook', topK=3"
         `;
         const res = await getStructuredThought(
           thought,
@@ -72,7 +78,9 @@ describe('getStructuredThought (parallel execution semantics)', () => {
 
       it('Function call with explicit args in the thought', async () => {
         const thought = `
-          I will search the knowledge base for documents about "atlas service".
+          CALL:
+          kb_vector_search 
+          parameters="query='atlas service', topK=3"
         `;
         const res = await getStructuredThought(
           thought,
@@ -89,8 +97,12 @@ describe('getStructuredThought (parallel execution semantics)', () => {
 
       it('No ordering assumptions: result may list calls in any order', async () => {
         const thought = `
-          Perform run_sql_query (sql "SELECT * FROM metrics") and kb_vector_search (query "atlas").
-          Run them in parallel.
+          CALL:
+          run_sql_query
+          parameters="sql='SELECT * FROM metrics'"
+
+          kb_vector_search
+          parameters="query='atlas', topK=3"
         `;
         const res = await getStructuredThought(
           thought,
@@ -108,8 +120,9 @@ describe('getStructuredThought (parallel execution semantics)', () => {
 
       it('Deduplicate identical calls (same tool + identical args) to avoid redundant parallel work', async () => {
         const thought = `
-          Call kb_vector_search query "atlas runbook" topK 3.
-          Also call kb_vector_search query "atlas runbook" topK 3. (duplicate)
+          CALL:
+          kb_vector_search 
+          parameters="query='atlas runbook', topK=3"
         `;
         const res = await getStructuredThought(
           thought,
@@ -127,9 +140,12 @@ describe('getStructuredThought (parallel execution semantics)', () => {
 
       it('Multiple calls to same tool with different args are allowed (parallel batching)', async () => {
         const thought = `
-          Search multiple trips in parallel:
-          - search_flights origin "BER" destination "HND" date "2025-10-05"
-          - search_flights origin "BER" destination "NRT" date "2025-10-06"
+          CALL:
+          search_flights
+          parameters="origin='BER', destination='HND', date='2025-10-05'"
+          
+          search_flights
+          parameters="origin='BER', destination='NRT', date='2025-10-06'"
         `;
         const res = await getStructuredThought(
           thought,
@@ -187,9 +203,12 @@ describe('getStructuredThought (parallel execution semantics)', () => {
 
       it('All calls have valid args structure (policy enforcement)', async () => {
         const thought = `
-          Parallel plan:
-          - kb_vector_search query "atlas" topK 2
-          - web_retrieve_and_summarize url "https://example.com/docs" focus "pricing"
+          CALL:
+          kb_vector_search
+          parameters="query='atlas', topK=2"
+
+          web_retrieve_and_summarize
+          parameters="url='https://example.com/docs', focus='pricing'"
         `;
         const res = await getStructuredThought(
           thought,
@@ -282,8 +301,9 @@ describe('getStructuredThought (parallel execution semantics)', () => {
   rameters required are minimal. The function doesn't need any other parameters. So I should call get_user_info. Let me structure the function call accordingly.
   </think>
 
-  I will now use the **get_user_info** agent to retrieve personal information about the user. **Parameters** I will pass:
-  - No parameters required
+  CALL:
+  get_user_info
+  parameters=""
         `;
         const res = await getStructuredThought(
           thought,

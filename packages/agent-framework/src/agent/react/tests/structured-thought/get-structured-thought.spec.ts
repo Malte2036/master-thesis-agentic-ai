@@ -24,7 +24,7 @@ describe('getStructuredThought', () => {
 
       it('should generate structured thought containing relevant keywords', async () => {
         const result = await getStructuredThought(
-          'I need to find get the weather in Tokyo. For this, I will use the `get_weather` function with the location "Tokyo".',
+          'CALL: get_weather\nparameters="location=Tokyo"',
           mockAgentTools,
           aiProvider,
           logger,
