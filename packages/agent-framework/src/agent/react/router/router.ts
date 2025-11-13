@@ -12,6 +12,7 @@ import {
   Router,
   RouterAIOptions,
   RouterSystemPromptOptions,
+  GeneratedThoughtsResponse,
 } from '../../router';
 import { getNaturalLanguageThought } from '../get-natural-language-thought';
 import { getStructuredThought } from '../get-structured-thought';
@@ -68,19 +69,8 @@ export abstract class ReActRouter extends Router {
       );
       this.logger.log(chalk.magenta('--------------------------------'));
 
-      const naturalLanguageThought = await getNaturalLanguageThought(
-        routerProcess,
-        this.aiOptions.aiProvider,
-        this.logger,
-        this.systemPromptOptions.extendedNaturalLanguageThoughtSystemPrompt,
-      );
-
-      const structuredThought = await getStructuredThought(
-        naturalLanguageThought,
-        this.agentTools,
-        this.aiOptions.structuredAiProvider,
-        this.logger,
-      );
+      const { naturalLanguageThought, structuredThought } =
+        await this.generateThoughts(routerProcess);
 
       if (structuredThought.isFinished) {
         this.logger.log(chalk.magenta('Finished'));
@@ -192,6 +182,26 @@ export abstract class ReActRouter extends Router {
       routerProcess,
       'Maximum number of iterations reached.',
     );
+  }
+
+  protected async generateThoughts(
+    routerProcess: RouterProcess,
+  ): Promise<GeneratedThoughtsResponse> {
+    const naturalLanguageThought = await getNaturalLanguageThought(
+      routerProcess,
+      this.aiOptions.aiProvider,
+      this.logger,
+      this.systemPromptOptions.extendedNaturalLanguageThoughtSystemPrompt,
+    );
+
+    const structuredThought = await getStructuredThought(
+      naturalLanguageThought,
+      this.agentTools,
+      this.aiOptions.structuredAiProvider,
+      this.logger,
+    );
+
+    return { naturalLanguageThought, structuredThought };
   }
 
   private logFunctionCalls(functionCalls: ToolCall[]) {

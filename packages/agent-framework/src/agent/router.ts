@@ -1,6 +1,7 @@
 import {
   AgentToolCallWithResult,
   RouterProcess,
+  StructuredThoughtResponse,
   ToolCall,
   ToolCallWithResult,
 } from '@master-thesis-agentic-ai/types';
@@ -13,6 +14,11 @@ export type RouterAIOptions = {
 
 export type RouterSystemPromptOptions = {
   extendedNaturalLanguageThoughtSystemPrompt: string;
+};
+
+export type GeneratedThoughtsResponse = {
+  naturalLanguageThought: string;
+  structuredThought: StructuredThoughtResponse;
 };
 
 export abstract class Router {
@@ -29,4 +35,8 @@ export abstract class Router {
     remainingCalls: number,
     contextId: string,
   ): Promise<ToolCallWithResult[] | AgentToolCallWithResult[]>;
+
+  protected abstract generateThoughts(
+    routerProcess: RouterProcess,
+  ): Promise<GeneratedThoughtsResponse>;
 }
