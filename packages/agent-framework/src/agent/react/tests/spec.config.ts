@@ -34,7 +34,12 @@ export const TEST_AI_PROVIDERS: {
   // { provider: 'groq', model: 'deepseek-r1:1.5b' },
   // openai models
   // { provider: 'openai', model: 'gpt-5-nano' },
+
   { provider: 'openai', model: 'Qwen/Qwen3-4B' },
+  // { provider: 'openai', model: 'Qwen/Qwen3-1.7B' },
+  // { provider: 'openai', model: 'Qwen/Qwen3-0.6B' },
+  // { provider: 'openai', model: 'microsoft/phi-2' },
+  // { provider: 'openai', model: 'google/gemma-2-2b-it' },
 ];
 
 export const setupTest = (
