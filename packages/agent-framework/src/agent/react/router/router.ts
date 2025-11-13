@@ -1,6 +1,7 @@
 import {
   addIterationToRouterProcess,
   AgentTool,
+  PreviousContext,
   RouterProcess,
   StructuredThoughtResponseWithResults,
   ToolCall,
@@ -29,12 +30,14 @@ export abstract class ReActRouter extends Router {
 
   async *routeQuestion(
     question: string,
+    previousContext: PreviousContext[],
     maxIterations: number,
     contextId: string,
   ): AsyncGenerator<RouterProcess, RouterProcess, unknown> {
     const routerProcess: RouterProcess = {
       contextId,
       question,
+      previousContext,
       maxIterations,
       iterationHistory: [],
       agentTools: this.agentTools,

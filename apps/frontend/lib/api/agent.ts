@@ -27,6 +27,7 @@ export const askAgent = async (
   message: string,
   callbacks: SSECallbacks,
   maxIterations = 5,
+  previousContext?: Array<{ role: 'user' | 'assistant'; content: string }>,
 ): Promise<() => void> => {
   // Step 1: Send the message and get session ID
   const response = await fetch(`${ROUTING_AGENT_URL}/ask`, {
@@ -37,6 +38,7 @@ export const askAgent = async (
     body: JSON.stringify({
       prompt: message,
       max_iterations: maxIterations,
+      previous_context: previousContext || [],
     }),
   });
 

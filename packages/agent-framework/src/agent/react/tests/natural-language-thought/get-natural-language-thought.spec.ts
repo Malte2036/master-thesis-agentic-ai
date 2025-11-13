@@ -27,6 +27,7 @@ describe('getNaturalLanguageThought', () => {
       it('should generate natural language thought containing relevant keywords', async () => {
         const routerProcess: RouterProcess = {
           question: 'What is the weather in Tokyo?',
+          previousContext: [],
           maxIterations: 3,
           iterationHistory: [],
           contextId: 'test-context-id',
@@ -53,6 +54,7 @@ describe('getNaturalLanguageThought', () => {
       it('should only references tools, which are available in the router process', async () => {
         const routerProcess: RouterProcess = {
           question: 'Get the assignments for the user',
+          previousContext: [],
           maxIterations: 3,
           iterationHistory: [],
           contextId: 'test-context-id',
@@ -71,6 +73,46 @@ describe('getNaturalLanguageThought', () => {
 
         expect(strippedResult).not.toMatch(/get.?assignments/);
         expect(strippedResult).not.toMatch(/CALL/);
+      });
+
+      it.only('should respect previous context and not duplicate already executed calls', async () => {
+        const routerProcess: RouterProcess = {
+          question: 'What is the weather in Tokyo?',
+          previousContext: [
+            {
+              role: 'user',
+              content: 'What is the weather in Tokyo?',
+            },
+            {
+              role: 'assistant',
+              content: 'I checked the weather for Tokyo. It is sunny and 25°C.',
+            },
+          ],
+          maxIterations: 3,
+          iterationHistory: [],
+          contextId: 'test-context-id',
+          agentTools: mockAgentTools,
+        };
+
+        console.log('ROUTER PROCESS', JSON.stringify(routerProcess, null, 2));
+
+        const result = await getNaturalLanguageThought(
+          routerProcess,
+          aiProvider,
+          logger,
+          '',
+        );
+
+        expect(result).toBeDefined();
+        expect(typeof result).toBe('string');
+        expect(result.length).toBeGreaterThan(0);
+
+        const strippedResult = stripThoughts(result).toLowerCase();
+
+        expect(strippedResult).not.toContain('CALL:');
+
+        expect(strippedResult).toMatch(/tokyo/);
+        expect(strippedResult).toContain('25');
       });
     });
   }

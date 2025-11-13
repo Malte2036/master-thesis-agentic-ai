@@ -32,6 +32,7 @@ Important rules:
     extendedSystemPrompt: string,
     routerProcess: RouterProcess,
   ): AIGenerateTextOptions => {
+
     const iterationHistory = routerProcess.iterationHistory ?? [];
     const lastIt =
       iterationHistory.length > 0
@@ -146,6 +147,10 @@ ${JSON.stringify(routerProcess.agentTools)}
 `,
         },
 
+        {
+          role: 'assistant' as const,
+          content: `Previous context: ${routerProcess.previousContext.map((context) => `${context.role}: "${context.content}"`).join('\n')}`,
+        },
         // Short, human-readable history to aid reasoning
         {
           role: 'assistant' as const,

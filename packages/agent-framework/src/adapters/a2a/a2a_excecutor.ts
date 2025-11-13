@@ -101,7 +101,7 @@ export class MyAgentExecutor implements AgentExecutor {
     eventBus.publish(workingStatusUpdate);
 
     const router = await this.getRouter();
-    const generator = router.routeQuestion(userMessageText, 5, contextId);
+    const generator = router.routeQuestion(userMessageText, [], 5, contextId);
     let results: RouterProcess;
     while (true) {
       const { done, value } = await generator.next();

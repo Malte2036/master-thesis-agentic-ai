@@ -1,5 +1,6 @@
 import {
   AgentToolCallWithResult,
+  PreviousContext,
   RouterProcess,
   StructuredThoughtResponse,
   ToolCall,
@@ -24,6 +25,7 @@ export type GeneratedThoughtsResponse = {
 export abstract class Router {
   abstract routeQuestion(
     question: string,
+    previousContext: PreviousContext[],
     maxIterations: number,
     contextId: string,
   ): AsyncGenerator<RouterProcess, RouterProcess, unknown>;

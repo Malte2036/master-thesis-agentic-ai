@@ -114,6 +114,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
             const routerProcess: RouterProcess = {
               contextId: 'test-context-id',
               question: c.question,
+              previousContext: [],
               maxIterations: 3,
               iterationHistory: [],
               agentTools: mockAgentToolsComplex,
@@ -148,6 +149,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
         const routerProcess: RouterProcess = {
           contextId: 'test-context-id',
           question: 'get user info',
+          previousContext: [],
           maxIterations: 3,
           iterationHistory: [
             {
@@ -189,6 +191,7 @@ describe('getNaturalLanguageThought (complex scenarios)', () => {
         const routerProcess: RouterProcess = {
           contextId: 'test-context-id',
           question: 'Create a calendar entry for today',
+          previousContext: [],
           maxIterations: 5,
           iterationHistory: [
             {

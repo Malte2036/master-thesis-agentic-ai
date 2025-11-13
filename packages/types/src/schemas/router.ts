@@ -53,9 +53,17 @@ export const RouterIterationSchema = z.object({
 
 export type RouterIteration = z.infer<typeof RouterIterationSchema>;
 
+export const PreviousContextSchema = z.object({
+  role: z.enum(['user', 'assistant']),
+  content: z.string(),
+});
+
+export type PreviousContext = z.infer<typeof PreviousContextSchema>;
+
 export const RouterProcessSchema = z.object({
   contextId: z.string(),
   question: z.string(),
+  previousContext: z.array(PreviousContextSchema),
   maxIterations: z.number(),
   response: z.string().optional(),
   iterationHistory: z.array(RouterIterationSchema),

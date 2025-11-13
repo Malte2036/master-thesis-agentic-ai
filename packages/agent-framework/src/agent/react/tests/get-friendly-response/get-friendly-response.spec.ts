@@ -2,11 +2,9 @@ import { RouterProcess } from '@master-thesis-agentic-ai/types';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Logger } from '../../../../logger';
 import { AIProvider } from '../../../../services';
-import { getNaturalLanguageThought } from '../../get-natural-language-thought';
+import { getFriendlyResponse } from '../../get-friendly-response';
 import { mockAgentTools } from '../router.spec.config';
 import { TEST_AI_PROVIDERS, TEST_CONFIG, setupTest } from '../spec.config';
-import { stripThoughts } from '../../../../utils/llm';
-import { getFriendlyResponse } from '../../get-friendly-response';
 
 vi.setConfig(TEST_CONFIG);
 
@@ -28,6 +26,7 @@ describe('getFriendlyResponse', () => {
       it('should generate a friendly response', async () => {
         const routerProcess: RouterProcess = {
           question: 'Can you help me get my user information?',
+          previousContext: [],
           maxIterations: 3,
           iterationHistory: [
             {

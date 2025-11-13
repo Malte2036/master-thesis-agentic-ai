@@ -65,26 +65,40 @@ export const ChatWindow = () => {
     // Auto-switch to diagram view
     setViewMode('diagram');
 
-    await askAgent(message, {
-      onFinalResponse: (response, process) => {
-        setState({ response, process, isLoading: false });
-        addMessage(conversationId, {
-          role: 'agent',
-          content: response,
-          process,
-        });
+    // Prepare previous context from existing messages (excluding the current message)
+    // Map 'agent' role to 'assistant' for API compatibility
+    const previousContext = messages.map((msg) => ({
+      role: (msg.role === 'agent' ? 'assistant' : 'user') as
+        | 'user'
+        | 'assistant',
+      content: msg.content,
+    }));
+
+    await askAgent(
+      message,
+      {
+        onFinalResponse: (response, process) => {
+          setState({ response, process, isLoading: false });
+          addMessage(conversationId, {
+            role: 'agent',
+            content: response,
+            process,
+          });
+        },
+        onUpdate: (update) => {
+          setState((state) => ({ ...state, process: update }));
+        },
+        onError: (error) => {
+          setState((state) => ({ ...state, isLoading: false }));
+          addMessage(conversationId, {
+            role: 'agent',
+            content: `Error: ${error}`,
+          });
+        },
       },
-      onUpdate: (update) => {
-        setState((state) => ({ ...state, process: update }));
-      },
-      onError: (error) => {
-        setState((state) => ({ ...state, isLoading: false }));
-        addMessage(conversationId, {
-          role: 'agent',
-          content: `Error: ${error}`,
-        });
-      },
-    });
+      5,
+      previousContext,
+    );
   };
 
   const hasProcess = displayProcess || state.isLoading;

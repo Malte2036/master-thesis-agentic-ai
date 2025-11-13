@@ -24,6 +24,15 @@ if (AGENT_URLS.length === 0) {
 const RequestBodySchema = z.object({
   prompt: z.string(),
   max_iterations: z.number().optional().default(5),
+  previous_context: z
+    .array(
+      z.object({
+        role: z.enum(['user', 'assistant']),
+        content: z.string(),
+      }),
+    )
+    .optional()
+    .default([]),
 });
 
 type RequestBody = z.infer<typeof RequestBodySchema>;
@@ -89,6 +98,7 @@ expressApp.post('/ask', async (req, res) => {
       aiProvider,
       agentUrls: AGENT_URLS,
       prompt: body.prompt,
+      previousContext: body.previous_context,
       maxIterations: body.max_iterations,
       contextId,
       sessionId: id,

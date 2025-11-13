@@ -31,6 +31,7 @@ describe('getNaturalLanguageThought (sequentiel)', () => {
         const routerProcess: RouterProcess = {
           question:
             'Get my assignments for the next week. And create a calendar event for the next assignment. The title of the calendar event should be the name of the assignment. The start date of the calendar event should be the due date of the assignment. The end date of the calendar event should be the due date of the assignment.',
+          previousContext: [],
           maxIterations: 3,
           iterationHistory: [],
           contextId: 'test-context-id',
@@ -60,6 +61,7 @@ describe('getNaturalLanguageThought (sequentiel)', () => {
         const routerProcess: RouterProcess = {
           question:
             'Get my last past assignment and create a calendar event for the date of the assignment and for 1.5hours. The Description of the calendar event should be the assignment intro.',
+          previousContext: [],
           maxIterations: 3,
           iterationHistory: [],
           contextId: 'test-context-id',

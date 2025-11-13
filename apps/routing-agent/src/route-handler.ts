@@ -6,7 +6,10 @@ import {
   RouterSystemPromptOptions,
   getFriendlyResponse,
 } from '@master-thesis-agentic-ai/agent-framework';
-import { RouterProcess } from '@master-thesis-agentic-ai/types';
+import {
+  PreviousContext,
+  RouterProcess,
+} from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
 import { getAgents } from './get-agents';
 import { sendSSEUpdate } from './sse-handler';
@@ -16,6 +19,7 @@ type RouteQuestionParams = {
   aiProvider: AIProvider;
   agentUrls: string[];
   prompt: string;
+  previousContext?: PreviousContext[];
   maxIterations: number;
   contextId: string;
   sessionId: string;
@@ -29,6 +33,7 @@ async function routeQuestion({
   aiProvider,
   agentUrls,
   prompt,
+  previousContext = [],
   maxIterations,
   contextId,
   sessionId,
@@ -77,7 +82,12 @@ async function routeQuestion({
   );
 
   // Route the question
-  const generator = agentRouter.routeQuestion(prompt, maxIterations, contextId);
+  const generator = agentRouter.routeQuestion(
+    prompt,
+    previousContext,
+    maxIterations,
+    contextId,
+  );
 
   // Process the generator and send SSE updates
   let results: RouterProcess;
