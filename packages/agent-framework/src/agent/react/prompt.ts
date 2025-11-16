@@ -64,7 +64,7 @@ Important rules:
   /**
    * Prompt for the natural-language "thought" step.
    * Adds ORIGINAL_GOAL and a compact STATE block, incorporates the current TODO_LIST,
-   * enforces a leading DONE:/CALL: decision, and requires an evidence-json block on DONE
+   * enforces a leading DONE/CALL decision, and requires an evidence-json block on DONE
    * to avoid data drift.
    */
   public static getNaturalLanguageThoughtPrompt = (
@@ -94,7 +94,9 @@ Important rules:
           (it) =>
             `Iteration ${it.iteration}
 - Thought which justifies the next step: ${it.naturalLanguageThought}
-- The function calls that were made: ${JSON.stringify(it.structuredThought.functionCalls)}
+- The function calls that were made: ${JSON.stringify(
+              it.structuredThought.functionCalls,
+            )}
 `,
         )
         .join('\n') || '— none —';
@@ -356,15 +358,32 @@ ${JSON.stringify(agentTools)}
   Grounding & Truthfulness (apply to every sentence):
   1) Use ONLY facts present inside <STATE_JSON>. No invention, no guessing, no external knowledge.
   2) Prefer the most recent observation when describing the outcome.
-  3) Copy concrete literals exactly (IDs, titles, dates, URLs, counts) and wrap them in backticks.
-  4) Do not include raw JSON, stack traces, or tool noise.
+  3) Copy concrete literals exactly (titles, dates, URLs, counts) and wrap them in backticks.
+  4) Do not include raw JSON, stack traces, or low-level logs.
   
-  Coverage requirements (include all of these, in flowing prose):
-  • State the original goal in your own words and the current overall status as one of: success, partial, or failure.
-  • Report the concrete results available now using exact literals from state (names, IDs, dates, URLs, counts).
+  Redaction of internal machinery (CRITICAL):
+  5) You MUST NOT mention or allude to:
+     - Tool, function, method, API, or agent names (for example: \`search_courses_by_name\`, \`get_course_details\`, "Moodle Agent").
+     - The words "tool", "function", "API", "endpoint", "agent", "prompt", or "ReAct".
+     - Any identifier-like strings with underscores, parentheses, or obvious code style.
+     Instead, describe what happened in human/domain terms, such as:
+     - "The system looked up the course in the learning platform."
+     - "The system retrieved the detailed course contents."
+  
+  6) Do NOT narrate internal step-by-step reasoning or retries using phrases like "First, the system called...", "Then it tried...", "Wait...", "however the tool failed".
+     - Summarize the overall process and outcome at a high level instead:
+       - GOOD: "The system first identified the course in the learning platform and then retrieved its detailed contents."
+       - BAD:  "It first called \`search_courses_by_name\`, then \`get_course_details\`, then retried after an error."
+  
+  Coverage requirements (in flowing prose):
+  • Restate the original goal in your own words and state the current overall status as one of: success, partial, or failure.
+  • Report the concrete results available now using exact literals from state (names, titles, dates, URLs, counts), expressed in domain language.
+  • If intermediate attempts or failures are important for understanding the final status, describe them briefly and generically (e.g. "An earlier attempt to retrieve details from the platform failed, but a later attempt succeeded.").
   
   Failure handling:
-  - If <STATE_JSON> contains strings like "error", "failed", "not implemented", "unauthorized", "forbidden", "not found", acknowledge the failure explicitly and clarify its impact on the goal.
+  - If <STATE_JSON> contains signals like "error", "failed", "not implemented", "unauthorized", "forbidden", "not found":
+    - Acknowledge the failure explicitly in high-level language (no error codes, no stack traces).
+    - Clarify how this affects the ability to reach the goal (e.g. "As a result, detailed course sections could not be retrieved.").
   
   Output format (exactly):
   SUMMARY: <multi-paragraph prose in the user's language, using backticks for any exact literals from state and covering all sections above>`.trim(),
@@ -382,11 +401,15 @@ ${JSON.stringify(agentTools)}
       })),
       {
         role: 'system',
-        content: `ORIGINAL_GOAL: ${String(routerResponse.question ?? '(missing)')}`,
+        content: `ORIGINAL_GOAL: ${String(
+          routerResponse.question ?? '(missing)',
+        )}`,
       },
       {
         role: 'system',
-        content: `<STATE_JSON>\n${JSON.stringify(routerResponse)}\n</STATE_JSON>`,
+        content: `<STATE_JSON>\n${JSON.stringify(
+          routerResponse,
+        )}\n</STATE_JSON>`,
       },
       {
         role: 'system',
@@ -501,89 +524,97 @@ ${JSON.stringify(agentTools)}
         {
           role: 'system' as const,
           content: `
-          You are an internal planning module.
+        You are an internal planning module.
         
-          Context:
-          - ORIGINAL_GOAL describes what the user ultimately wants.
-          - PREVIOUS_TODO_LIST is the current plan.
-          - LATEST_OBSERVATION contains the most recent tool results.
-          - TOOLS_SNAPSHOT lists the tools you can use. **Each tool in TOOLS_SNAPSHOT represents one domain of work** (for example, one agent or one API surface).
+        Inputs:
+        - ORIGINAL_GOAL: what the user ultimately wants.
+        - PREVIOUS_TODO_LIST: the current plan.
+        - LATEST_OBSERVATION: most recent tool results.
+        - TOOLS_SNAPSHOT: available domains (each entry = one domain of work, e.g. one agent/API).
         
-          Your job:
-          - Maintain a TODO list that tracks the steps needed to achieve ORIGINAL_GOAL.
-          - Update the TODO list based on PREVIOUS_TODO_LIST and LATEST_OBSERVATION.
-          - Break the goal into a small number of concrete steps that can realistically be advanced using the domains in TOOLS_SNAPSHOT.
-          ${
-            isRoutingAgent
-              ? `  - For routing/orchestration:
-            - Think at the level of domains, not individual low-level calls.
-            - Prefer one task per domain or phase (e.g. "collect all Moodle data needed for the goal", "update the calendar") instead of many tiny steps.
-            - Only split tasks when it clearly improves understanding or marks a new phase.`
-              : `  - For single-domain / non-routing agents:
-            - You may create several tasks, but avoid unnecessary micro-steps.
-            - Group closely related actions into a single task when they naturally belong together.`
-          }
+        Your job:
+        - Keep a TODO list that leads to ORIGINAL_GOAL.
+        - Start from PREVIOUS_TODO_LIST and update it using LATEST_OBSERVATION.
+        - Use only a small number of clear steps that can realistically be advanced using the domains in TOOLS_SNAPSHOT.
+        ${
+          isRoutingAgent
+            ? `- For routing/orchestration (multi-domain):
+          - Think in domains/phases, not low-level function calls.
+          - Prefer 1–7 big steps like "collect all Moodle data needed for the goal" or "update the calendar with the needed events".
+          - Only split into smaller tasks if it clearly improves understanding.
+          - HARD LANGUAGE RULE:
+            - Tasks MUST be plain human language.
+            - NEVER use code-style names (e.g. "search_courses_by_name", "get_course_details").
+            - NEVER use underscores (_), dots (.), parentheses "()", or words like "tool", "agent", "API", "endpoint", "function" inside tasks.
+          - HARD DOMAIN RULE:
+            - Each task line MUST refer to at most ONE domain from TOOLS_SNAPSHOT (e.g. learning platform vs calendar).
+            - If a logical step needs both domains (e.g. "use Moodle dates to create calendar events"), you MUST split it into two tasks:
+              1) One task for collecting data from the learning platform,
+              2) One task for creating or updating events in the calendar.
+            - Do NOT mention both domains in the same task line.
+          - ABSOLUTE LANGUAGE BAN:
+            - Tasks MUST NOT contain:
+              • any string that looks like code (includes "()", "::", backticks, or quotes around function names),
+              • exact tool names from TOOLS_SNAPSHOT,
+              • field/parameter names like course_id, user_id, assignment_id, or similar.
+            - If PREVIOUS_TODO_LIST contains such items, you MUST rewrite them into plain human language and remove the code-like parts.`
+            : `- For single-domain / non-routing agents:
+          - You may break work into several steps, but avoid micro-steps.
+          - Group closely related actions into one task when possible.
+          - You MAY mention the agent/tool in plain language (e.g. "via the Moodle agent"), but NEVER in code form or with arguments.`
+        }
         
-          Parameter / dependency rule:
-          - Do NOT create a task that assumes parameters you don't have yet.
-            - BAD: "Fetch course details by ID" when no course_id is known.
-            - GOOD: first "Identify the course and obtain its ID", then "Fetch course details for that course".
+        Dependencies:
+        - Do not write a task that assumes parameters you don’t have yet.
+          - First "find the course and get its title or identifier", then "fetch its details".
         
-          When to mark tasks as done:
-          - Mark a task as done ("- [x]") only when the specific outcome in that line has clearly happened according to LATEST_OBSERVATION.
-          - Pure data fetching completes fetching tasks only.
-            - It does NOT complete analysis/output tasks like "extract", "list", "summarize", "compile", or "answer the question".
+        Evolution rules:
+        ${
+          isRoutingAgent
+            ? `- Use PREVIOUS_TODO_LIST only as a hint for what has been attempted so far.
+        - You MAY rewrite, merge, or delete tasks to keep the list:
+          • short,
+          • domain-based (each task mapped to exactly one domain),
+          • and free of tool names or code-like text.
+        - Ensure the resulting TODO list has at most 3–7 tasks, each referring to exactly one domain.`
+            : `- Treat PREVIOUS_TODO_LIST as append-only.
+        - You MUST NOT delete tasks, reorder tasks, or change their wording.
+        - The ONLY allowed change to existing lines is:
+          - "- [ ]" → "- [x]" when that line is fully done.
+        - To refine the plan, append NEW tasks at the end (or as indented subtasks).`
+        }
         
-          Evolution rules (append-only):
-          - Treat PREVIOUS_TODO_LIST as an append-only log.
-          - You MUST NOT:
-            - delete any existing task line,
-            - reorder existing tasks,
-            - change the wording of any existing task.
-          - The ONLY allowed change to existing lines is:
-            - "- [ ]" → "- [x]" when that task is clearly completed.
-          - To refine or add detail, append NEW tasks at the end (or as indented subtasks) instead of editing existing ones.
+        Marking done:
+        - Turn "- [ ]" into "- [x]" only when the **whole** outcome of that line is clearly complete in LATEST_OBSERVATION.
+        - Fetching data alone does NOT finish tasks that say "extract", "summarize", "list", "compile", or "answer the question".
         
-          Content rules:
-          - Each task MUST be a short, single-line action description, e.g. "Extract pages and forums for Intro to Safety".
-          - Do NOT include:
-            - JSON,
-            - raw IDs, long URLs, query parameters,
-            - long content excerpts.
-          - You may summarize what happened, but keep it short and high-level.
+        Content rules:
+        - Each task is one short, single-line action description, e.g. "Ask the learning platform to collect all assignments due this week".
+        - Do NOT include JSON, raw IDs, long URLs, query parameters, or long text excerpts.
+        - New tasks MUST be relevant to the current ORIGINAL_GOAL (no unrelated courses/topics).
+        - Avoid creating near-duplicate tasks; if a step is already present, reuse that line and only mark it done when appropriate.
         
-          Tool naming:
-          ${
-            isRoutingAgent
-              ? `  - Do NOT mention concrete tool or agent names in the TODO list.
-          - Use human/domain language like "gather all relevant Moodle course data" or "update the calendar with the needed events".`
-              : `  - You MAY mention tool or agent names when it improves clarity (e.g. "Fetch all current Moodle courses via moodle-agent").
-          - Even then, do NOT write actual "CALL:" blocks or argument lists.`
-          }
+        Scope:
+        - Do not decide DONE/CALL here; another module executes tools.
+        - Your only output is the updated plan.
         
-          Scope:
-          - Do not decide DONE/CALL here; another module will execute tools.
-          - Your only output is the updated plan.
+        Output format (STRICT):
+        <TODO_LIST>
+        - [x] First task
+        - [ ] Second task
+        - [ ] Third task
+        </TODO_LIST>
         
-          Output format (STRICT):
-          - Output ONLY a TODO list wrapped exactly like this:
-        
-          <TODO_LIST>
-          - [x] First task
-          - [ ] Second task
-          - [ ] Third task
-          </TODO_LIST>
-        
-          Formatting rules:
-          - One task per line, starting with "- [ ]" or "- [x]".
-          - Optional subtasks are indented by two spaces: "  - [ ] Subtask".
-          - Do NOT output anything before <TODO_LIST> or after </TODO_LIST>.
-          - Do NOT add explanations or markdown outside of the list.
-          `.trim(),
+        Formatting rules:
+        - One task per line, starting with "- [ ]" or "- [x]".
+        - Optional subtasks are indented by two spaces: "  - [ ] Subtask".
+        - Output nothing before <TODO_LIST> or after </TODO_LIST>.
+        `.trim(),
         },
         {
           role: 'assistant',
-          content: `Recent iterations (oldest → newest, max 3):\n${pastText}`,
+          content: `Recent iterations (oldest → newest, max 3):
+${pastText}`,
         },
       ],
     };
