@@ -16,6 +16,7 @@ import {
 } from '../../router';
 import { getNaturalLanguageThought } from '../get-natural-language-thought';
 import { getStructuredThought } from '../get-structured-thought';
+import { getTodoThought } from '../get-todo-thought';
 
 export abstract class ReActRouter extends Router {
   protected constructor(
@@ -69,7 +70,7 @@ export abstract class ReActRouter extends Router {
       );
       this.logger.log(chalk.magenta('--------------------------------'));
 
-      const { naturalLanguageThought, structuredThought } =
+      const { naturalLanguageThought, todoThought, structuredThought } =
         await this.generateThoughts(routerProcess);
 
       if (structuredThought.isFinished) {
@@ -79,6 +80,7 @@ export abstract class ReActRouter extends Router {
           routerProcess,
           currentIteration,
           naturalLanguageThought,
+          todoThought,
           {
             isFinished: true,
             functionCalls: [],
@@ -171,6 +173,7 @@ export abstract class ReActRouter extends Router {
         routerProcess,
         currentIteration,
         naturalLanguageThought,
+        todoThought,
         structuredThoughtWithResults,
       );
 
@@ -187,11 +190,18 @@ export abstract class ReActRouter extends Router {
   protected async generateThoughts(
     routerProcess: RouterProcess,
   ): Promise<GeneratedThoughtsResponse> {
+    const todoThought = await getTodoThought(
+      routerProcess,
+      this.aiOptions.aiProvider,
+      this.logger,
+    );
+
     const naturalLanguageThought = await getNaturalLanguageThought(
       routerProcess,
       this.aiOptions.aiProvider,
       this.logger,
       this.systemPromptOptions.extendedNaturalLanguageThoughtSystemPrompt,
+      todoThought,
     );
 
     const structuredThought = await getStructuredThought(
@@ -201,7 +211,7 @@ export abstract class ReActRouter extends Router {
       this.logger,
     );
 
-    return { naturalLanguageThought, structuredThought };
+    return { naturalLanguageThought, todoThought, structuredThought };
   }
 
   private logFunctionCalls(functionCalls: ToolCall[]) {

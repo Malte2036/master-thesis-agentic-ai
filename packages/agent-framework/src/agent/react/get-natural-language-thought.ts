@@ -1,4 +1,4 @@
-import { AgentTool, RouterProcess } from '@master-thesis-agentic-ai/types';
+import { RouterProcess } from '@master-thesis-agentic-ai/types';
 import chalk from 'chalk';
 import { Logger } from '../../logger';
 import { AIProvider } from '../../services';
@@ -9,10 +9,12 @@ export async function getNaturalLanguageThought(
   aiProvider: AIProvider,
   logger: Logger,
   extendedNaturalLanguageThoughtSystemPrompt: string,
+  todoThought?: string,
 ): Promise<string> {
   const systemPrompt = ReActPrompt.getNaturalLanguageThoughtPrompt(
     extendedNaturalLanguageThoughtSystemPrompt,
     routerProcess,
+    todoThought,
   );
 
   logger.log(chalk.magenta('Generating natural language thought...'));

@@ -170,6 +170,23 @@ export const ProcessViewer = ({
                   </div>
                 </div>
 
+                {/* Todo List */}
+                {iteration.todoThought && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">✅</span>
+                      <h4 className="text-sm font-semibold text-orange-700">
+                        Todo List
+                      </h4>
+                    </div>
+                    <div className="rounded-md border-l-2 border-orange-200 bg-orange-50 p-3">
+                      <p className="whitespace-pre-wrap text-sm text-zinc-700">
+                        {iteration.todoThought}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Structured Thought (JSON) */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">

@@ -18,6 +18,7 @@ export type RouterSystemPromptOptions = {
 
 export type GeneratedThoughtsResponse = {
   naturalLanguageThought: string;
+  todoThought: string | undefined;
   structuredThought: StructuredThoughtResponse;
 };
 

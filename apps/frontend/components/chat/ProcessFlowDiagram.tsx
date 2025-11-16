@@ -68,6 +68,7 @@ const ProcessFlowDiagramInner = ({
     (
       index: number,
       thought: string,
+      todoThought: string | undefined,
       isFinished: boolean,
       functionCallsCount: number,
       functionCalls: ToolCallWithResult[] | AgentToolCallWithResult[],
@@ -79,6 +80,7 @@ const ProcessFlowDiagramInner = ({
         data: {
           iterationNumber: index,
           thought: thought,
+          todoThought: todoThought,
           isFinished: isFinished,
           functionCallsCount: functionCallsCount,
           functionCalls: functionCalls,
@@ -225,6 +227,7 @@ const ProcessFlowDiagramInner = ({
             createIterationNode(
               index,
               iteration.naturalLanguageThought,
+              iteration.todoThought,
               iteration.structuredThought.isFinished,
               functionCalls.length,
               functionCalls,
