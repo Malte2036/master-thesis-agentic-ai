@@ -4,6 +4,72 @@
  */
 
 /**
+ * Valid weekday abbreviations for RRULE BYDAY parameter.
+ */
+const VALID_WEEKDAYS = new Set(['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA']);
+
+/**
+ * Mapping of common invalid day abbreviations to correct ones.
+ */
+const DAY_NORMALIZATION_MAP: Record<string, string> = {
+  TW: 'TU', // Tuesday (common mistake)
+  TUESDAY: 'TU',
+  WEDNESDAY: 'WE',
+  THURSDAY: 'TH',
+  FRIDAY: 'FR',
+  SATURDAY: 'SA',
+  SUNDAY: 'SU',
+  MONDAY: 'MO',
+};
+
+/**
+ * Validates and normalizes BYDAY values in RRULE format.
+ * Handles both simple day abbreviations (MO, TU) and ordinal day abbreviations (1MO, -1FR).
+ * @param bydayValue - BYDAY value (e.g., "MO,WE" or "1MO,-1FR" or "TW,TH")
+ * @returns Normalized BYDAY value with valid day abbreviations
+ * @throws Error if invalid day abbreviations are found
+ */
+function normalizeBYDAY(bydayValue: string): string {
+  const days = bydayValue.split(',');
+  const normalizedDays: string[] = [];
+
+  for (const day of days) {
+    // Check if this is an ordinal day abbreviation (e.g., "1MO", "-1FR", "2TU")
+    const ordinalMatch = day.match(/^([+-]?\d+)([A-Z]+)$/i);
+    if (ordinalMatch) {
+      const ordinal = ordinalMatch[1];
+      const dayAbbr = ordinalMatch[2].toUpperCase();
+
+      // Normalize common mistakes
+      const normalizedDay = DAY_NORMALIZATION_MAP[dayAbbr] || dayAbbr;
+
+      // Validate the day abbreviation
+      if (!VALID_WEEKDAYS.has(normalizedDay)) {
+        throw new Error(
+          `Invalid day abbreviation in BYDAY: ${dayAbbr}. Valid values are: SU, MO, TU, WE, TH, FR, SA`,
+        );
+      }
+
+      normalizedDays.push(`${ordinal}${normalizedDay}`);
+    } else {
+      // Simple day abbreviation (e.g., "MO", "TU", "TW")
+      const normalizedDay =
+        DAY_NORMALIZATION_MAP[day.toUpperCase()] || day.toUpperCase();
+
+      if (!VALID_WEEKDAYS.has(normalizedDay)) {
+        throw new Error(
+          `Invalid day abbreviation in BYDAY: ${day}. Valid values are: SU, MO, TU, WE, TH, FR, SA`,
+        );
+      }
+
+      normalizedDays.push(normalizedDay);
+    }
+  }
+
+  return normalizedDays.join(',');
+}
+
+/**
  * Derives the weekday abbreviation (SU, MO, TU, WE, TH, FR, SA) from an ISO date string.
  * @param iso - ISO date string (e.g., "2025-10-22T13:00:00Z")
  * @returns Weekday abbreviation (e.g., "MO")
@@ -72,6 +138,19 @@ export function normalizeRRule(
     opts?.event_start_date
   ) {
     kv.set('BYDAY', weekdayFromISO(opts.event_start_date));
+  }
+
+  // Validate and normalize BYDAY if present
+  const bydayValue = kv.get('BYDAY');
+  if (bydayValue) {
+    try {
+      const normalizedBYDAY = normalizeBYDAY(bydayValue);
+      kv.set('BYDAY', normalizedBYDAY);
+    } catch (error) {
+      throw new Error(
+        `Invalid BYDAY value: ${bydayValue}. ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   }
 
   // Rebuild in a stable, predictable order
