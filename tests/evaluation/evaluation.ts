@@ -117,6 +117,11 @@ async function runEvaluationTests() {
       );
 
       results.push(...batchResults);
+      report.testEntries.push(...batchResults);
+
+      // Write report after each batch to ensure progress is saved
+      console.log('📊 Writing evaluation report...');
+      writeEvaluationReport(report);
 
       // Add delay between batches (except for the last batch)
       if (i + BATCH_SIZE < E2E_EVALUATION_TEST_DATA.length) {
@@ -124,10 +129,6 @@ async function runEvaluationTests() {
         await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY));
       }
     }
-    report.testEntries.push(...results);
-
-    console.log('📊 Writing evaluation report...');
-    writeEvaluationReport(report);
 
     console.log('🎉 All evaluation tests completed successfully!');
 

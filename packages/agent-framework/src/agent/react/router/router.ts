@@ -190,10 +190,15 @@ export abstract class ReActRouter extends Router {
   protected async generateThoughts(
     routerProcess: RouterProcess,
   ): Promise<GeneratedThoughtsResponse> {
+    const isRoutingAgent = routerProcess.agentTools.some(
+      (t) => t.name === 'router-agent',
+    );
+
     const todoThought = await getTodoThought(
       routerProcess,
       this.aiOptions.aiProvider,
       this.logger,
+      isRoutingAgent,
     );
 
     const naturalLanguageThought = await getNaturalLanguageThought(

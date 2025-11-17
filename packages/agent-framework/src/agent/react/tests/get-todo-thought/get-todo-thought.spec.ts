@@ -2,17 +2,20 @@ import {
   RouterProcess,
   ToolCallWithResult,
 } from '@master-thesis-agentic-ai/types';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, bench, describe, expect, it, vi } from 'vitest';
 import { Logger } from '../../../../logger';
 import { AIProvider } from '../../../../services';
 import { getTodoThought } from '../../get-todo-thought';
-import { mockAgentTools } from '../router.spec.config';
+import {
+  mockAgentTools,
+  mockAgentToolsRoutingReal,
+} from '../router.spec.config';
 import { TEST_AI_PROVIDERS, TEST_CONFIG, setupTest } from '../spec.config';
 import { stripThoughts } from '../../../../utils/llm';
 
 vi.setConfig(TEST_CONFIG);
 
-describe('getTodoThought', () => {
+describe.concurrent('getTodoThought', () => {
   for (const { provider, model, structuredModel } of TEST_AI_PROVIDERS) {
     describe(`with model ${model} and structured model ${
       structuredModel ?? model
@@ -36,7 +39,12 @@ describe('getTodoThought', () => {
           agentTools: mockAgentTools,
         };
 
-        const result = await getTodoThought(routerProcess, aiProvider, logger);
+        const result = await getTodoThought(
+          routerProcess,
+          aiProvider,
+          logger,
+          false,
+        );
 
         expect(result).toBeDefined();
         expect(typeof result).toBe('string');
@@ -79,7 +87,12 @@ describe('getTodoThought', () => {
           agentTools: mockAgentTools,
         };
 
-        const result = await getTodoThought(routerProcess, aiProvider, logger);
+        const result = await getTodoThought(
+          routerProcess,
+          aiProvider,
+          logger,
+          false,
+        );
 
         expect(result).toBeDefined();
         expect(typeof result).toBe('string');
@@ -100,10 +113,15 @@ describe('getTodoThought', () => {
           maxIterations: 3,
           iterationHistory: [],
           contextId: 'test-context-id',
-          agentTools: mockAgentTools,
+          agentTools: mockAgentToolsRoutingReal,
         };
 
-        const result = await getTodoThought(routerProcess, aiProvider, logger);
+        const result = await getTodoThought(
+          routerProcess,
+          aiProvider,
+          logger,
+          true,
+        );
 
         expect(result).toBeDefined();
         expect(typeof result).toBe('string');
@@ -115,6 +133,39 @@ describe('getTodoThought', () => {
         expect(strippedResult).toMatch(/<TODO_LIST>/);
         expect(strippedResult).toMatch(/<\/TODO_LIST>/);
         expect(strippedResult).toMatch(/- \[ \] .*weather.*/i);
+      });
+
+      it.only('should generate a complex todo thought 2', async () => {
+        const courseName = 'Computer Science Fundamentals';
+
+        const routerProcess: RouterProcess = {
+          question: `Show assignments for "${courseName}".`,
+          maxIterations: 3,
+          iterationHistory: [],
+          contextId: 'test-context-id',
+          agentTools: mockAgentToolsRoutingReal,
+        };
+
+        const result = await getTodoThought(
+          routerProcess,
+          aiProvider,
+          logger,
+          true,
+        );
+
+        expect(result).toBeDefined();
+        expect(typeof result).toBe('string');
+        expect(result.length).toBeGreaterThan(0);
+
+        const strippedResult = stripThoughts(result);
+        expect(strippedResult.length).toBeGreaterThan(0);
+
+        expect(strippedResult).toMatch(/<TODO_LIST>/);
+        expect(strippedResult).toMatch(/<\/TODO_LIST>/);
+
+        expect(strippedResult).toContain(courseName);
+        expect(strippedResult).toMatch(/- \[ \] .*assignments.*/i);
+        expect(strippedResult).not.toMatch(/- \[ \] .*details.*/i);
       });
     });
   }

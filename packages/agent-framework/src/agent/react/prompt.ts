@@ -31,10 +31,6 @@ Important rules:
         ? iterationHistory[iterationHistory.length - 1]
         : undefined;
 
-    const isRoutingAgent = routerProcess.agentTools.some(
-      (t) => t.name === 'moodle-agent',
-    );
-
     const latestObservation =
       lastIt?.structuredThought?.functionCalls
         ?.map((c: unknown) => (c as ToolCallWithResult).result ?? '')
@@ -54,7 +50,6 @@ Important rules:
     return {
       iterationHistory,
       lastIt,
-      isRoutingAgent,
       latestObservation,
       minimalToolsSnapshot,
       previousTodo,
@@ -472,10 +467,10 @@ ${JSON.stringify(agentTools)}
 
   public static getTodoThoughtPrompt = (
     routerProcess: RouterProcess,
+    isRoutingAgent: boolean,
   ): AIGenerateTextOptions => {
     const {
       iterationHistory,
-      isRoutingAgent,
       latestObservation,
       minimalToolsSnapshot,
       previousTodo,
@@ -552,6 +547,18 @@ ${JSON.stringify(agentTools)}
               1) One task for collecting data from the learning platform,
               2) One task for creating or updating events in the calendar.
             - Do NOT mention both domains in the same task line.
+          - DOMAIN CONSOLIDATION RULE (CRITICAL):
+            - If you have multiple consecutive tasks that all belong to the same domain, you MUST combine them into a single, comprehensive task.
+            - Example (BAD):
+              - [ ] Use the learning platform to find the "Computer Science Fundamentals" course and retrieve its details.
+              - [ ] Check the course for all assignments using the learning platform's tools.
+            - Example (GOOD):
+              - [ ] Use the learning platform to find the "Computer Science Fundamentals" course, retrieve its details, and check all assignments.
+            - This consolidation should happen when:
+              • Tasks are directly consecutive in the list
+              • Both tasks clearly refer to the same domain (inferred from tool names in TOOLS_SNAPSHOT, e.g., both involve "moodle" or both involve "calendar")
+              • Combining them creates a coherent, single-phase action
+            - Do NOT consolidate tasks from different domains or tasks that have subtasks between them.
           - ABSOLUTE LANGUAGE BAN:
             - Tasks MUST NOT contain:
               • any string that looks like code (includes "()", "::", backticks, or quotes around function names),

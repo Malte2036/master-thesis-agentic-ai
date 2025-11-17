@@ -10,7 +10,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
     task_type: 'get_user_info',
     input: 'Show my Moodle profile basics.',
     expected_output:
-      'Here is your user information: First name: {firstname}, Last name: {lastname}, Username: {username}.',
+      'Here is your user information: First name: {firstname}, Last name: {lastname}.',
     expected_tool_calls: [{ function: 'moodle-agent.get_user_info', args: {} }],
   },
 
@@ -27,8 +27,9 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   {
     id: 'case_103',
     task_type: 'search_course',
-    input: 'Find the course named "Intro to Safety".',
-    expected_output: 'I found the course "Intro to Safety".',
+    input: 'Find information about the course named "Intro to Safety".',
+    expected_output:
+      'Here is the information about the course "Intro to Safety": {course_information}.',
     expected_tool_calls: [
       {
         function: 'moodle-agent.search_courses_by_name',

@@ -5,7 +5,7 @@ import { Logger } from '../../../../logger';
 import { AIProvider } from '../../../../services';
 import { getNaturalLanguageThought } from '../../get-natural-language-thought';
 import {
-  mockAgentToolsSequentialComplex,
+  mockAgentToolsRoutingReal,
   mockAgentToolsSequentiel,
 } from '../router.spec.config';
 import { TEST_AI_PROVIDERS, TEST_CONFIG, setupTest } from '../spec.config';
@@ -63,7 +63,7 @@ describe('getNaturalLanguageThought (sequentiel)', () => {
           maxIterations: 3,
           iterationHistory: [],
           contextId: 'test-context-id',
-          agentTools: mockAgentToolsSequentialComplex,
+          agentTools: mockAgentToolsRoutingReal,
         };
 
         const result = await getNaturalLanguageThought(
