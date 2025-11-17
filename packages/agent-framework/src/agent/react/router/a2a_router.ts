@@ -43,6 +43,10 @@ export class A2AReActRouter extends ReActRouter {
     return this.agentClients.find((agent) => agent.name === functionName);
   }
 
+  private getAgentNames(): string[] {
+    return this.agentClients.map((agent) => agent.name);
+  }
+
   protected override async callClientInParallel(
     functionCalls: ToolCall[],
     remainingCalls: number,
@@ -68,7 +72,7 @@ export class A2AReActRouter extends ReActRouter {
           return {
             ...parsedDecision,
             type: 'agent',
-            result: `No agent found for function: ${parsedDecision.function}`,
+            result: `No agent found for function: ${parsedDecision.function}. Maybe you have selected a to specific tool that is not available. Please try again with a different tool ${this.getAgentNames().join(', ')}.`,
           } satisfies AgentToolCallWithResult;
         }
 

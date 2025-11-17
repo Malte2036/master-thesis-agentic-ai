@@ -471,24 +471,8 @@ ${JSON.stringify(agentTools)}
     routerProcess: RouterProcess,
     isRoutingAgent: boolean,
   ): AIGenerateTextOptions => {
-    const {
-      iterationHistory,
-      latestObservation,
-      minimalToolsSnapshot,
-      previousTodo,
-    } = this.buildSharedContext(routerProcess);
-
-    const pastText =
-      iterationHistory
-        .slice(-3)
-        .map(
-          (it) =>
-            `Iteration ${it.iteration}
-      - Thought: ${it.naturalLanguageThought}
-      - Calls: ${JSON.stringify(it.structuredThought?.functionCalls ?? [])}
-      `,
-        )
-        .join('\n') || '— none —';
+    const { latestObservation, minimalToolsSnapshot, previousTodo } =
+      this.buildSharedContext(routerProcess);
 
     return {
       messages: [
@@ -601,7 +585,13 @@ ${JSON.stringify(agentTools)}
         - Optional subtasks are indented by two spaces: "  - [ ] Subtask".
         - Output nothing before <TODO_LIST> or after </TODO_LIST>.
 
-        TOOLS SNAPSHOT (read once as reference; do not regurgitate):
+        CRITICAL TOOL RESTRICTION (HARD GUARD):
+        - You MUST ONLY reference tools that are explicitly listed in the TOOLS SNAPSHOT below.
+        - You MUST NOT reference, mention, or plan tasks involving any tools that are NOT in the TOOLS SNAPSHOT.
+        - Even if you know other tools exist, you MUST NOT use them. Only tools from the snapshot are available.
+        - If a task requires a tool not in the snapshot, you MUST NOT create that task.
+
+        Available tools (reference only; do not include in your output):
         <TOOLS_SNAPSHOT>
         ${JSON.stringify(minimalToolsSnapshot)}
         </TOOLS_SNAPSHOT>
