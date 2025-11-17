@@ -15,7 +15,7 @@ describe('stripThoughts', () => {
 
   it('removes multiple think tags from text', () => {
     const input = '<think>first</think> middle <think>second</think> end';
-    const expected = ' middle  end';
+    const expected = 'middle  end';
     expect(stripThoughts(input)).toBe(expected);
   });
 
@@ -57,7 +57,7 @@ describe('stripEvidenceJson', () => {
   it('removes multiple evidence-json blocks from text', () => {
     const input =
       '```evidence-json\n{"a": 1}\n``` middle ```evidence-json\n{"b": 2}\n``` end';
-    const expected = ' middle  end';
+    const expected = 'middle  end';
     expect(stripEvidenceJson(input)).toBe(expected);
   });
 

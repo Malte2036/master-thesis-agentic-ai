@@ -148,7 +148,9 @@ describe.concurrent('getTodoThought', () => {
 
         expect(strippedResult).toMatch(/<TODO_LIST>/);
         expect(strippedResult).toMatch(/<\/TODO_LIST>/);
-        expect(strippedResult).toMatch(/- \[ \] .*weather.*/i);
+
+        expect(strippedResult).toMatch(/- \[ \] .*assignments.*/i);
+        expect(strippedResult).toMatch(/- \[ \] .*quizzes.*/i);
       });
 
       it('should generate a complex todo thought 2', async () => {
