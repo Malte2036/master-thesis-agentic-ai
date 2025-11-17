@@ -13,14 +13,16 @@ type ModelOptions = {
   seed?: number;
 };
 
-const DEFAULT_OPTIONS: ModelOptions = {
-  temperature: 0.6,
-  top_p: 0.8,
-  top_k: 20,
-  min_p: 0,
-  // This seed is used to reproduce the results
-  seed: 42,
-};
+function getDefaultOptions(): ModelOptions {
+  return {
+    temperature: 0.6,
+    top_p: 0.8,
+    top_k: 20,
+    min_p: 0,
+    // This seed is used to reproduce the results
+    seed: process.env['SEED'] ? parseInt(process.env['SEED']) : undefined,
+  };
+}
 
 // Use SDK's message param type for compatibility with .create()
 type ChatMessage = OpenAI.ChatCompletionMessageParam;
@@ -214,9 +216,11 @@ export class OpenAIProvider implements AIProvider {
       ...(options?.messages || []),
       { role: 'user' as const, content: prompt },
     ];
+    const defaultOptions = getDefaultOptions();
+    this.logger.log('SEED:', defaultOptions.seed);
     const content = await this.makeApiCall(messages, false, undefined, {
-      ...DEFAULT_OPTIONS,
-      temperature: temperature ?? DEFAULT_OPTIONS.temperature,
+      ...defaultOptions,
+      temperature: temperature ?? defaultOptions.temperature,
     });
     return content.trim();
   }
@@ -243,9 +247,10 @@ export class OpenAIProvider implements AIProvider {
       { role: 'user' as const, content: prompt },
     ];
 
+    const defaultOptions = getDefaultOptions();
     const content = await this.makeApiCall(messages, true, jsonSchema, {
-      ...DEFAULT_OPTIONS,
-      temperature: temperature ?? DEFAULT_OPTIONS.temperature,
+      ...defaultOptions,
+      temperature: temperature ?? defaultOptions.temperature,
     });
 
     if (!jsonSchema) {
