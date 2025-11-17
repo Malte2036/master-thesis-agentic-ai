@@ -10,7 +10,7 @@ import { EXAMPLE_EVALUATION_TEST_DATA } from '../evaluation/evaluation.data.exam
 
 const REPORT_BASE_PATH = './evaluation/report';
 
-const getGitHash = (): string | undefined => {
+export const getGitHash = (): string | undefined => {
   try {
     return execSync('git rev-parse HEAD', { encoding: 'utf-8' }).trim();
   } catch (error) {
@@ -19,7 +19,7 @@ const getGitHash = (): string | undefined => {
   }
 };
 
-const getTimestamp = (): string => {
+export const getTimestamp = (): string => {
   return new Date().toISOString();
 };
 
@@ -30,9 +30,8 @@ export const writeEvaluationReport = (
   // Only add example data if requested and not already present
   if (includeExampleData) {
     const exampleData = getExampleEvaluationTestData();
-    const exampleIds = new Set(exampleData.map((entry) => entry.id));
     const existingIds = new Set(report.testEntries.map((entry) => entry.id));
-    
+
     // Only add example entries that aren't already in the report
     const newExampleData = exampleData.filter(
       (entry) => !existingIds.has(entry.id),

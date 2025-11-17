@@ -223,6 +223,8 @@ ${extendedSystemPrompt}
         - Final (DONE): Provide the evidence-json block first, then the Final answer reproducing only values from that evidence.
         
         Stay precise. Do not invent values. One step at a time.
+
+        IMPORTANT: Only use tools that are listed in the TOOLS SNAPSHOT. Do not use any tools that are not listed in the TOOLS SNAPSHOT. Even if you know them.
         
         TOOLS SNAPSHOT (read once as reference; do not regurgitate):
         <TOOLS_SNAPSHOT>
@@ -512,12 +514,6 @@ ${JSON.stringify(agentTools)}
         },
         {
           role: 'system' as const,
-          content: `<TOOLS_SNAPSHOT>
-  ${JSON.stringify(minimalToolsSnapshot)}
-  </TOOLS_SNAPSHOT>`,
-        },
-        {
-          role: 'system' as const,
           content: `
         You are an internal planning module.
         
@@ -604,12 +600,12 @@ ${JSON.stringify(agentTools)}
         - One task per line, starting with "- [ ]" or "- [x]".
         - Optional subtasks are indented by two spaces: "  - [ ] Subtask".
         - Output nothing before <TODO_LIST> or after </TODO_LIST>.
+
+        TOOLS SNAPSHOT (read once as reference; do not regurgitate):
+        <TOOLS_SNAPSHOT>
+        ${JSON.stringify(minimalToolsSnapshot)}
+        </TOOLS_SNAPSHOT>
         `.trim(),
-        },
-        {
-          role: 'assistant',
-          content: `Recent iterations (oldest → newest, max 3):
-${pastText}`,
         },
       ],
     };

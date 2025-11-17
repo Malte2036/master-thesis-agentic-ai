@@ -1,5 +1,5 @@
 import json
-from typing import Iterable, List, Any, Dict
+from typing import Iterable, List, Any, Dict, Optional
 from deepeval import evaluate
 from deepeval.test_case import LLMTestCase, LLMTestCaseParams, ToolCall, ToolCallParams
 from deepeval.metrics import GEval, AnswerRelevancyMetric, ContextualRelevancyMetric,ToolCorrectnessMetric, TaskCompletionMetric
@@ -57,8 +57,9 @@ def get_context(e: Dict[str, Any]) -> List[str]:
 
     return context
 
-def get_test_cases(path: str = "./report/report.json") -> List[LLMTestCase]:
-    data = json.load(open(path, "r", encoding="utf-8"))
+def get_test_cases(data: Optional[Dict[str, Any]] = None, path: str = "./report/report.json") -> List[LLMTestCase]:
+    if data is None:
+        data = json.load(open(path, "r", encoding="utf-8"))
     entries = data.get("testEntries", data if isinstance(data, list) else [])
     tcs = []
     for e in entries:
@@ -85,6 +86,10 @@ def get_test_cases(path: str = "./report/report.json") -> List[LLMTestCase]:
         tcs.append(tc)
     
     return tcs
+
+def load_report_data(path: str = "./report/report.json") -> Dict[str, Any]:
+    """Load report data and return it along with metadata."""
+    return json.load(open(path, "r", encoding="utf-8"))
 
 metrics = [
     AnswerRelevancyMetric(threshold=0.5),
@@ -181,7 +186,20 @@ metrics.append(GEval(
 #     threshold=0.7,
 # ))
 
-tcs = get_test_cases()
+# Load report data
+report_data = load_report_data()
+git_hash = report_data.get("gitHash", "N/A")
+timestamp = report_data.get("timestamp", "N/A")
+
+# Print git hash and timestamp as first values
+print("\n" + "╔" + "═"*98 + "╗")
+print("║" + " "*35 + "EVALUATION REPORT METADATA" + " "*36 + "║")
+print("╠" + "═"*98 + "╣")
+print(f"║ {'Git Hash:':<20} {git_hash:<76} ║")
+print(f"║ {'Timestamp:':<20} {timestamp:<76} ║")
+print("╚" + "═"*98 + "╝")
+
+tcs = get_test_cases(report_data)
 result = evaluate(display_config=DisplayConfig(file_output_dir="./report/evaluation_report"),test_cases=tcs, metrics=metrics)
 
 # Print metrics table
