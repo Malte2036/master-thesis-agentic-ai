@@ -25,6 +25,8 @@ export const EvaluationReportEntrySchema = EvaluationReportBaseSchema.extend({
 });
 
 export const EvaluationReportSchema = z.object({
+  gitHash: z.string().optional(),
+  timestamp: z.string().optional(),
   testEntries: z.array(EvaluationReportEntrySchema),
 });
 
