@@ -277,6 +277,9 @@ ${pastText}`,
 Thought:
   CALL: moodle-agent
   parameters="prompt=Retrieve user information for the current user, parameters=user='current user'"
+
+Output:
+  {"functionCalls": [{"function": "moodle-agent", "args": {"prompt": "Retrieve user information for the current user", "parameters": "user='current user'"}}], "isFinished": false}
     `
       : `
 Thought:
@@ -510,6 +513,25 @@ ${JSON.stringify(agentTools)}
     routerProcess: RouterProcess,
     isRoutingAgent: boolean,
   ): AIGenerateTextOptions => {
+    const fewShotExample = isRoutingAgent
+      ? `
+Thought:
+  I need to list all sections and pages for "Digital Health UX" and create a calendar event for the first section's page due date.
+  I will use the moodle-agent to list all sections and pages for "Digital Health UX" and after that I will use the calendar-agent to create a calendar event for the first section's page due date.
+  Output:
+  <TODO_LIST>
+  - [ ] moodle-agent: Search for the course "Digital Health UX", get the course details and list all sections and pages.
+  - [ ] calendar-agent: Create a calendar event for the first section's page due date using the course details.
+  </TODO_LIST>`
+      : `
+Thought:
+  I need to retrieve user information for the current user.
+  I will use the get_user_info tool to retrieve user information for the current user.
+  Output:
+  <TODO_LIST>
+  - [ ] get_user_info: Retrieve user information for the current user.
+  </TODO_LIST>`;
+
     const { latestObservation, minimalToolsSnapshot, previousTodo } =
       this.buildSharedContext(routerProcess);
 
@@ -618,6 +640,9 @@ ${JSON.stringify(agentTools)}
         - [ ] Second task
         - [ ] Third task
         </TODO_LIST>
+
+        Few-shot example:
+        ${fewShotExample}
         
         Formatting rules:
         - One task per line, starting with "- [ ]" or "- [x]".

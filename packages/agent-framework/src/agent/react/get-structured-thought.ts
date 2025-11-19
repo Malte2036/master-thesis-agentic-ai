@@ -60,39 +60,5 @@ export async function getStructuredThought(
     JSON.stringify(structuredResponse, null, 2),
   );
 
-  // Check if structured thought contains get_ or search_
-  const structuredResponseJson = JSON.stringify(structuredResponse);
-  if (
-    structuredResponseJson.includes('get_') ||
-    structuredResponseJson.includes('search_')
-  ) {
-    logger.warn(
-      chalk.yellow('ATTENTION: Structured thought contains get_ or search_'),
-    );
-  }
-
-  // Also check function call names
-  if (structuredResponse.functionCalls) {
-    for (const functionCall of structuredResponse.functionCalls) {
-      if (
-        typeof functionCall === 'object' &&
-        functionCall !== null &&
-        'function' in functionCall &&
-        typeof functionCall.function === 'string'
-      ) {
-        if (
-          functionCall.function.includes('get_') ||
-          functionCall.function.includes('search_')
-        ) {
-          logger.warn(
-            chalk.yellow(
-              `ATTENTION: Function call name "${functionCall.function}" contains get_ or search_`,
-            ),
-          );
-        }
-      }
-    }
-  }
-
   return structuredResponse;
 }
