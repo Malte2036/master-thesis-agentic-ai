@@ -28,6 +28,7 @@ describe('getStructuredThought', () => {
           mockAgentTools,
           aiProvider,
           logger,
+          false,
         );
 
         expect(result).toBeDefined();

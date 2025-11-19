@@ -5,6 +5,7 @@ import {
 } from '@master-thesis-agentic-ai/types';
 import { AIGenerateTextOptions } from '../../services';
 import { getCurrentTimestamp } from '../../utils';
+import { unknown } from 'zod/v4';
 
 /**
  * ReActPrompt with compact STATE injection, strict DONE/CALL enforcement,
@@ -24,8 +25,31 @@ Important rules:
 `,
   ];
 
+  private static stripInternalFromRouterProcess(
+    routerProcess: RouterProcess,
+  ): RouterProcess {
+    return {
+      ...routerProcess,
+      iterationHistory: routerProcess.iterationHistory?.map((iteration) => ({
+        ...iteration,
+        structuredThought: {
+          ...iteration.structuredThought,
+          functionCalls: iteration.structuredThought.functionCalls
+            ?.map((call: unknown) => call as ToolCallWithResult)
+            .map((call: ToolCallWithResult) => ({
+              ...call,
+              internalRouterProcess: undefined,
+            })),
+        },
+      })),
+    };
+  }
+
   private static buildSharedContext(routerProcess: RouterProcess) {
+    routerProcess = this.stripInternalFromRouterProcess(routerProcess);
+
     const iterationHistory = routerProcess.iterationHistory ?? [];
+
     const lastIt =
       iterationHistory.length > 0
         ? iterationHistory[iterationHistory.length - 1]
@@ -246,11 +270,28 @@ ${pastText}`,
    */
   public static getStructuredThoughtPrompt = (
     agentTools: AgentTool[],
-  ): AIGenerateTextOptions => ({
-    messages: [
-      {
-        role: 'system' as const,
-        content: `You are a highly precise system that translates an assistant's thought into a structured JSON object.
+    isRoutingAgent: boolean,
+  ): AIGenerateTextOptions => {
+    const fewShotExample = isRoutingAgent
+      ? `
+Thought:
+  CALL: moodle-agent
+  parameters="prompt=Retrieve user information for the current user, parameters=user='current user'"
+    `
+      : `
+Thought:
+  CALL: get_user_info
+  parameters="username=student"
+
+Output:
+  {"functionCalls": [{"function": "get_user_info", "args": {"username": "student"}}], "isFinished": false}
+    `;
+
+    return {
+      messages: [
+        {
+          role: 'system' as const,
+          content: `You are a highly precise system that translates an assistant's thought into a structured JSON object.
 Your single most important job is to distinguish between a plan to **execute a tool** and a plan to **provide a final text answer**.
 
 HARD GATING (STRICT, OVERRIDES ALL ELSE)
@@ -304,26 +345,21 @@ Thought:
 Output:
   {"functionCalls": [], "isFinished": true}
 
-Few-shot example (CALL: block → call):
-
-Thought:
-  CALL: get_user_info
-  parameters="username=student"
-
-Output:
-  {"functionCalls": [{"function": "get_user_info", "args": {"username": "student"}}], "isFinished": false}
+Few-shot example (DONE: block → final answer):
+${fewShotExample}
 
 Now, parse the following thought with zero deviation from these rules.`,
-      },
-      {
-        role: 'system' as const,
-        content: `Possible function calls:
+        },
+        {
+          role: 'system' as const,
+          content: `Possible function calls:
 <TOOLS_SNAPSHOT>
 ${JSON.stringify(agentTools)}
 </TOOLS_SNAPSHOT>`,
-      },
-    ],
-  });
+        },
+      ],
+    };
+  };
 
   public static getRouterResponseSummaryPrompt = (
     routerResponse: RouterProcess,
@@ -360,7 +396,10 @@ ${JSON.stringify(agentTools)}
   
   Redaction of internal machinery (CRITICAL):
   5) You MUST NOT mention or allude to:
-     - Tool, function, method, API, or agent names (for example: \`search_courses_by_name\`, \`get_course_details\`, "Moodle Agent").
+     - Tool, function, method, API, or agent names (for example: ${routerResponse.agentTools
+       .slice(0, 3)
+       .map((tool) => `\`${tool.name}\``)
+       .join(', ')}).
      - The words "tool", "function", "API", "endpoint", "agent", "prompt", or "ReAct".
      - Any identifier-like strings with underscores, parentheses, or obvious code style.
      Instead, describe what happened in human/domain terms, such as:
@@ -370,7 +409,7 @@ ${JSON.stringify(agentTools)}
   6) Do NOT narrate internal step-by-step reasoning or retries using phrases like "First, the system called...", "Then it tried...", "Wait...", "however the tool failed".
      - Summarize the overall process and outcome at a high level instead:
        - GOOD: "The system first identified the course in the learning platform and then retrieved its detailed contents."
-       - BAD:  "It first called \`search_courses_by_name\`, then \`get_course_details\`, then retried after an error."
+       - BAD:  "It first called \`${routerResponse.agentTools.at(0)?.name}\`, then \`${routerResponse.agentTools.at(1)?.name}\`, then retried after an error."
   
   Coverage requirements (in flowing prose):
   • Restate the original goal in your own words and state the current overall status as one of: success, partial, or failure.

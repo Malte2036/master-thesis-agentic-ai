@@ -11,6 +11,7 @@ import {
 import { RoutingAgentClient } from '../utils/routing-agent-client';
 import { waitForService } from '../utils/wait-for-service';
 import { mockAssignments, mockUserInfo } from './routing.e2e.test.mock';
+import { ToolCall } from '@master-thesis-agentic-ai/types';
 
 vi.setConfig({ testTimeout: 120_000, maxConcurrency: 3 });
 
@@ -414,6 +415,53 @@ describe('E2E Routing Agent Test', () => {
       // expect(await Wiremock.countCalendarRequests('/create_calendar_event')).toBe(
       //   3, // Based on mockAssignments, there are 3 assignments total
       // );
+    },
+  );
+
+  it.concurrent.only(
+    'should ensure thoughts never include get_ or search_',
+    async ({ wiremock }) => {
+      await wiremock.addMoodleLoginMapping('mock-token');
+
+      await wiremock.addMoodleMapping(
+        'core_webservice_get_site_info',
+        mockUserInfo,
+      );
+
+      const testPrompt = 'Show my Moodle profile basics.';
+
+      const { process } = await routingAgent.askAndWaitForResponse(
+        {
+          prompt: testPrompt,
+        },
+        wiremock.contextId,
+      );
+
+      expect(process).toBeDefined();
+      expect(process.iterationHistory).toBeDefined();
+      expect(process.iterationHistory.length).toBeGreaterThan(0);
+
+      // Check all iterations
+      for (const iteration of process.iterationHistory) {
+        const functionCalls = iteration.structuredThought
+          .functionCalls as ToolCall[];
+
+        // Check todo thought if present
+        if (iteration.todoThought) {
+          expect(iteration.todoThought).not.toContain('get_');
+          expect(iteration.todoThought).not.toContain('search_');
+        }
+
+        // Check natural language thought
+        expect(iteration.naturalLanguageThought).toBeDefined();
+        expect(iteration.naturalLanguageThought).not.toContain('get_');
+        expect(iteration.naturalLanguageThought).not.toContain('search_');
+
+        for (const functionCall of functionCalls) {
+          expect(functionCall.function).not.toContain('get_');
+          expect(functionCall.function).not.toContain('search_');
+        }
+      }
     },
   );
 });

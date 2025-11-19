@@ -214,6 +214,7 @@ export abstract class ReActRouter extends Router {
       this.agentTools,
       this.aiOptions.structuredAiProvider,
       this.logger,
+      isRoutingAgent,
     );
 
     return { naturalLanguageThought, todoThought, structuredThought };

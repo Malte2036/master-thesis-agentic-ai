@@ -39,6 +39,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           mockAgentToolsComplex,
           aiProvider,
           logger,
+          false,
         );
 
         const names = res.functionCalls?.map((c) => c.function) ?? [];
@@ -68,6 +69,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           mockAgentToolsComplex,
           aiProvider,
           logger,
+          false,
         );
 
         const names = res.functionCalls.map((c) => c.function);
@@ -87,6 +89,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           mockAgentToolsComplex,
           aiProvider,
           logger,
+          false,
         );
 
         const call = res.functionCalls[0];
@@ -109,6 +112,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           mockAgentToolsComplex,
           aiProvider,
           logger,
+          false,
         );
 
         // Only assert presence, not order
@@ -129,6 +133,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           mockAgentToolsComplex,
           aiProvider,
           logger,
+          false,
         );
 
         const vectorCalls = res.functionCalls.filter(
@@ -152,6 +157,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           mockAgentToolsComplex,
           aiProvider,
           logger,
+          false,
         );
 
         const flightCalls = res.functionCalls.filter(
@@ -183,6 +189,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           mockAgentToolsComplex,
           aiProvider,
           logger,
+          false,
         );
 
         expect(res.functionCalls).toEqual([]);
@@ -196,6 +203,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           mockAgentToolsComplex,
           aiProvider,
           logger,
+          false,
         );
 
         expect(res.functionCalls).toEqual([]); // nothing runs in parallel without args
@@ -215,6 +223,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           mockAgentToolsComplex,
           aiProvider,
           logger,
+          false,
         );
 
         for (const c of res.functionCalls) {
@@ -237,6 +246,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           mockAgentToolsComplex,
           aiProvider,
           logger,
+          false,
         );
 
         // Should recognize that we have complete information and finish
@@ -250,6 +260,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           mockAgentToolsComplex,
           aiProvider,
           logger,
+          false,
         );
 
         expect(result).toBeDefined();
@@ -263,6 +274,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           mockAgentToolsComplex,
           aiProvider,
           logger,
+          false,
         );
 
         expect(result).toBeDefined();
@@ -286,6 +298,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           moodleAgentToolsMock,
           aiProvider,
           logger,
+          false,
         );
 
         // Should recognize that user information is already present and not make another call
@@ -310,6 +323,7 @@ describe('getStructuredThought (parallel execution semantics)', () => {
           mockAgentToolsComplex,
           aiProvider,
           logger,
+          false,
         );
 
         expect(res.isFinished).toBe(false);
