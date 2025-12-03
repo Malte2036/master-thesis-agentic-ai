@@ -54,6 +54,14 @@ export const RouterIterationSchema = z.object({
 
 export type RouterIteration = z.infer<typeof RouterIterationSchema>;
 
+export const RouterFeatureConfigSchema = z
+  .object({
+    hasToDoList: z.boolean().nullish(),
+  })
+  .nullish();
+
+export type RouterFeatureConfig = z.infer<typeof RouterFeatureConfigSchema>;
+
 export const RouterProcessSchema = z.object({
   contextId: z.string(),
   question: z.string(),
@@ -63,6 +71,7 @@ export const RouterProcessSchema = z.object({
   error: z.string().optional(),
   agentTools: z.array(AgentToolSchema),
   agentName: z.string(),
+  featureConfig: RouterFeatureConfigSchema,
 });
 
 export type RouterProcess = z.infer<typeof RouterProcessSchema>;

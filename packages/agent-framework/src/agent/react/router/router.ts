@@ -1,6 +1,7 @@
 import {
   addIterationToRouterProcess,
   AgentTool,
+  RouterFeatureConfig,
   RouterProcess,
   StructuredThoughtResponseWithResults,
   ToolCall,
@@ -21,6 +22,7 @@ import { getTodoThought } from '../get-todo-thought';
 
 export abstract class ReActRouter extends Router {
   private isRoutingAgent: boolean;
+  private featureConfig: RouterFeatureConfig;
 
   protected constructor(
     protected readonly logger: Logger,
@@ -32,6 +34,10 @@ export abstract class ReActRouter extends Router {
     super();
 
     this.isRoutingAgent = agentName === 'routing-agent';
+
+    this.featureConfig = {
+      hasToDoList: process.env['REACT_HAS_TODO_LIST'] === 'true',
+    };
   }
 
   async *routeQuestion(
@@ -46,6 +52,7 @@ export abstract class ReActRouter extends Router {
       iterationHistory: [],
       agentTools: this.agentTools,
       agentName: this.agentName,
+      featureConfig: this.featureConfig,
     };
 
     const generator = this.iterate(routerProcess);
@@ -197,12 +204,15 @@ export abstract class ReActRouter extends Router {
   protected async generateThoughts(
     routerProcess: RouterProcess,
   ): Promise<GeneratedThoughtsResponse> {
-    const todoThought = await getTodoThought(
-      routerProcess,
-      this.aiOptions.aiProvider,
-      this.logger,
-      this.isRoutingAgent,
-    );
+    let todoThought;
+    if (routerProcess.featureConfig?.hasToDoList) {
+      todoThought = await getTodoThought(
+        routerProcess,
+        this.aiOptions.aiProvider,
+        this.logger,
+        this.isRoutingAgent,
+      );
+    }
 
     const naturalLanguageThought = await getNaturalLanguageThought(
       routerProcess,
