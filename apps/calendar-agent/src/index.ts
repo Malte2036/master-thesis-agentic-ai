@@ -34,6 +34,7 @@ export async function getRouter(): Promise<Router> {
     logger,
     aiOptions,
     systemPromptOptions,
+    'calendar-agent',
     'calendar-mcp',
   );
 }

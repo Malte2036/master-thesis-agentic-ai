@@ -13,19 +13,25 @@ import {
   RouterAIOptions,
   RouterSystemPromptOptions,
   GeneratedThoughtsResponse,
+  AgentName,
 } from '../../router';
 import { getNaturalLanguageThought } from '../get-natural-language-thought';
 import { getStructuredThought } from '../get-structured-thought';
 import { getTodoThought } from '../get-todo-thought';
 
 export abstract class ReActRouter extends Router {
+  private isRoutingAgent: boolean;
+
   protected constructor(
     protected readonly logger: Logger,
     protected readonly aiOptions: RouterAIOptions,
     protected readonly systemPromptOptions: RouterSystemPromptOptions,
     protected readonly agentTools: AgentTool[],
+    protected readonly agentName: AgentName,
   ) {
     super();
+
+    this.isRoutingAgent = agentName === 'routing-agent';
   }
 
   async *routeQuestion(
@@ -39,6 +45,7 @@ export abstract class ReActRouter extends Router {
       maxIterations,
       iterationHistory: [],
       agentTools: this.agentTools,
+      agentName: this.agentName,
     };
 
     const generator = this.iterate(routerProcess);
@@ -190,15 +197,11 @@ export abstract class ReActRouter extends Router {
   protected async generateThoughts(
     routerProcess: RouterProcess,
   ): Promise<GeneratedThoughtsResponse> {
-    const isRoutingAgent = routerProcess.agentTools.some(
-      (t) => t.name === 'router-agent',
-    );
-
     const todoThought = await getTodoThought(
       routerProcess,
       this.aiOptions.aiProvider,
       this.logger,
-      isRoutingAgent,
+      this.isRoutingAgent,
     );
 
     const naturalLanguageThought = await getNaturalLanguageThought(
@@ -214,7 +217,7 @@ export abstract class ReActRouter extends Router {
       this.agentTools,
       this.aiOptions.structuredAiProvider,
       this.logger,
-      isRoutingAgent,
+      this.isRoutingAgent,
     );
 
     return { naturalLanguageThought, todoThought, structuredThought };

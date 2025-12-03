@@ -7,7 +7,11 @@ import { MCPClient } from '../../../adapters';
 import { getMcpClient } from '../../../adapters/mcp/mcp_client_utils';
 import { MCPName } from '../../../config';
 import { Logger } from '../../../logger';
-import { RouterAIOptions, RouterSystemPromptOptions } from '../../router';
+import {
+  AgentName,
+  RouterAIOptions,
+  RouterSystemPromptOptions,
+} from '../../router';
 import { listAgentsToolsToAgentTools } from '../../utils';
 import { ReActRouter } from './router';
 
@@ -17,15 +21,17 @@ export class MCPReActRouterRouter extends ReActRouter {
     aiOptions: RouterAIOptions,
     systemPromptOptions: RouterSystemPromptOptions,
     agentTools: AgentTool[],
+    agentName: AgentName,
     private readonly mcpClient: MCPClient,
   ) {
-    super(logger, aiOptions, systemPromptOptions, agentTools);
+    super(logger, aiOptions, systemPromptOptions, agentTools, agentName);
   }
 
   static async create(
     logger: Logger,
     aiOptions: RouterAIOptions,
     systemPromptOptions: RouterSystemPromptOptions,
+    agentName: AgentName,
     mcpName: MCPName,
   ) {
     const mcpClient = await getMcpClient(logger, mcpName);
@@ -37,6 +43,7 @@ export class MCPReActRouterRouter extends ReActRouter {
       aiOptions,
       systemPromptOptions,
       agentTools,
+      agentName,
       mcpClient,
     );
   }

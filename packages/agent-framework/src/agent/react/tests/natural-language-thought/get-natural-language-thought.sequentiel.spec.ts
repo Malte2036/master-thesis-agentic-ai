@@ -35,6 +35,7 @@ describe('getNaturalLanguageThought (sequentiel)', () => {
           iterationHistory: [],
           contextId: 'test-context-id',
           agentTools: mockAgentToolsSequentiel,
+          agentName: 'test-agent',
         };
 
         const result = await getNaturalLanguageThought(
@@ -64,6 +65,7 @@ describe('getNaturalLanguageThought (sequentiel)', () => {
           iterationHistory: [],
           contextId: 'test-context-id',
           agentTools: mockAgentToolsRoutingReal,
+          agentName: 'test-agent',
         };
 
         const result = await getNaturalLanguageThought(

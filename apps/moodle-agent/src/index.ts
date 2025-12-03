@@ -31,6 +31,7 @@ export async function getRouter(): Promise<Router> {
     logger,
     aiOptions,
     systemPromptOptions,
+    'moodle-agent',
     'moodle-mcp',
   );
 }

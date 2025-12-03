@@ -53,6 +53,7 @@ describe.concurrent('getTodoThought', () => {
           iterationHistory: [],
           contextId: 'test-context-id',
           agentTools: mockAgentTools,
+          agentName: 'test-agent',
         };
 
         const result = await getTodoThought(
@@ -101,6 +102,7 @@ describe.concurrent('getTodoThought', () => {
           ],
           contextId: 'test-context-id',
           agentTools: mockAgentTools,
+          agentName: 'test-agent',
         };
 
         const result = await getTodoThought(
@@ -130,6 +132,7 @@ describe.concurrent('getTodoThought', () => {
           iterationHistory: [],
           contextId: 'test-context-id',
           agentTools: mockAgentToolsRoutingReal,
+          agentName: 'test-agent',
         };
 
         const result = await getTodoThought(
@@ -162,6 +165,7 @@ describe.concurrent('getTodoThought', () => {
           iterationHistory: [],
           contextId: 'test-context-id',
           agentTools: mockAgentToolsRoutingReal,
+          agentName: 'test-agent',
         };
 
         const result = await getTodoThought(

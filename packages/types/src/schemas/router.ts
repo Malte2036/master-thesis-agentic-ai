@@ -62,6 +62,7 @@ export const RouterProcessSchema = z.object({
   iterationHistory: z.array(RouterIterationSchema),
   error: z.string().optional(),
   agentTools: z.array(AgentToolSchema),
+  agentName: z.string(),
 });
 
 export type RouterProcess = z.infer<typeof RouterProcessSchema>;

@@ -31,6 +31,7 @@ describe('getNaturalLanguageThought', () => {
           iterationHistory: [],
           contextId: 'test-context-id',
           agentTools: mockAgentTools,
+          agentName: 'test-agent',
         };
 
         const result = await getNaturalLanguageThought(
@@ -57,6 +58,7 @@ describe('getNaturalLanguageThought', () => {
           iterationHistory: [],
           contextId: 'test-context-id',
           agentTools: mockAgentTools,
+          agentName: 'test-agent',
         };
 
         const result = await getNaturalLanguageThought(

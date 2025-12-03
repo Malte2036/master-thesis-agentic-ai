@@ -88,6 +88,7 @@ async function routeQuestion({
     aiOptions,
     systemPromptOptions,
     agentTools,
+    'routing-agent',
     agentClients,
   );
 
