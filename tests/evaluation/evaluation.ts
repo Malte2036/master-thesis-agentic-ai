@@ -6,7 +6,11 @@ import {
 import { RoutingAgentClient } from '../utils/routing-agent-client';
 import { waitForService } from '../utils/wait-for-service';
 import { E2E_EVALUATION_TEST_DATA } from './evaluation.data';
-import { writeEvaluationReport } from '../report/report';
+import {
+  writeEvaluationReport,
+  getGitHash,
+  getTimestamp,
+} from '../report/report';
 
 const ROUTING_AGENT_URL = 'http://localhost:3000';
 const MOODLE_AGENT_URL = 'http://localhost:1234';
@@ -18,11 +22,17 @@ const BATCH_SIZE = 10;
 const BATCH_DELAY = 2000; // 2 seconds between batches
 
 const report: EvaluationReport = {
+  gitHash: getGitHash(),
+  timestamp: getTimestamp(),
   testEntries: [],
 };
 
 async function runEvaluationTests() {
   console.log('🚀 Starting E2E Evaluation Tests...');
+
+  // Write empty report at the beginning with hash and timestamp
+  console.log('📊 Writing initial empty report...');
+  writeEvaluationReport(report, false);
 
   try {
     // Initialize routing agent
@@ -117,6 +127,11 @@ async function runEvaluationTests() {
       );
 
       results.push(...batchResults);
+      report.testEntries.push(...batchResults);
+
+      // Write report after each batch to ensure progress is saved
+      console.log('📊 Writing evaluation report...');
+      writeEvaluationReport(report);
 
       // Add delay between batches (except for the last batch)
       if (i + BATCH_SIZE < E2E_EVALUATION_TEST_DATA.length) {
@@ -124,10 +139,6 @@ async function runEvaluationTests() {
         await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY));
       }
     }
-    report.testEntries.push(...results);
-
-    console.log('📊 Writing evaluation report...');
-    writeEvaluationReport(report);
 
     console.log('🎉 All evaluation tests completed successfully!');
 

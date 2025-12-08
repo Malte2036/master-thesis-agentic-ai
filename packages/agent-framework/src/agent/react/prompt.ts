@@ -5,10 +5,12 @@ import {
 } from '@master-thesis-agentic-ai/types';
 import { AIGenerateTextOptions } from '../../services';
 import { getCurrentTimestamp } from '../../utils';
+import { unknown } from 'zod/v4';
 
 /**
  * ReActPrompt with compact STATE injection, strict DONE/CALL enforcement,
- * and VERBATIM evidence protocol to prevent hallucinated/rewritten values.
+ * a VERBATIM evidence protocol to prevent hallucinated/rewritten values,
+ * and a separate TODO planning module for multi-step tasks.
  */
 export class ReActPrompt {
   public static readonly BASE_PROMPTS: string[] = [
@@ -23,20 +25,73 @@ Important rules:
 `,
   ];
 
-  /**
-   * Prompt for the natural-language "thought" step.
-   * Adds ORIGINAL_GOAL and a compact STATE block, enforces a leading DONE:/CALL: decision,
-   * and requires an evidence-json block on DONE to avoid data drift.
-   */
-  public static getNaturalLanguageThoughtPrompt = (
-    extendedSystemPrompt: string,
+  private static stripInternalFromRouterProcess(
     routerProcess: RouterProcess,
-  ): AIGenerateTextOptions => {
+  ): RouterProcess {
+    return {
+      ...routerProcess,
+      iterationHistory: routerProcess.iterationHistory?.map((iteration) => ({
+        ...iteration,
+        structuredThought: {
+          ...iteration.structuredThought,
+          functionCalls: iteration.structuredThought.functionCalls
+            ?.map((call: unknown) => call as ToolCallWithResult)
+            .map((call: ToolCallWithResult) => ({
+              ...call,
+              internalRouterProcess: undefined,
+            })),
+        },
+      })),
+    };
+  }
+
+  private static buildSharedContext(routerProcess: RouterProcess) {
+    routerProcess = this.stripInternalFromRouterProcess(routerProcess);
+
     const iterationHistory = routerProcess.iterationHistory ?? [];
+
     const lastIt =
       iterationHistory.length > 0
         ? iterationHistory[iterationHistory.length - 1]
         : undefined;
+
+    const latestObservation =
+      lastIt?.structuredThought?.functionCalls
+        ?.map((c: unknown) => (c as ToolCallWithResult).result ?? '')
+        .join(', ') ?? 'null';
+
+    const minimalToolsSnapshot =
+      routerProcess.agentTools?.map((t: AgentTool) => ({
+        name: t.name,
+        description: t.description,
+      })) ?? [];
+
+    const previousTodo =
+      lastIt?.todoThought && lastIt.todoThought.length > 0
+        ? lastIt.todoThought
+        : '<TODO_LIST>\n</TODO_LIST>';
+
+    return {
+      iterationHistory,
+      lastIt,
+      latestObservation,
+      minimalToolsSnapshot,
+      previousTodo,
+    };
+  }
+
+  /**
+   * Prompt for the natural-language "thought" step.
+   * Adds ORIGINAL_GOAL and a compact STATE block, incorporates the current TODO_LIST,
+   * enforces a leading DONE/CALL decision, and requires an evidence-json block on DONE
+   * to avoid data drift.
+   */
+  public static getNaturalLanguageThoughtPrompt = (
+    extendedSystemPrompt: string,
+    routerProcess: RouterProcess,
+    currentTodoThought: string | undefined,
+  ): AIGenerateTextOptions => {
+    const { iterationHistory, lastIt } = this.buildSharedContext(routerProcess);
 
     const allCalls = iterationHistory.flatMap(
       (it) => it.structuredThought?.functionCalls ?? [],
@@ -45,13 +100,12 @@ Important rules:
     const state = {
       lastAction: lastIt?.structuredThought?.functionCalls ?? [],
       lastObservation:
-        lastIt?.structuredThought.functionCalls
-          .map((call: unknown) => (call as ToolCallWithResult).result)
+        lastIt?.structuredThought?.functionCalls
+          ?.map((call: unknown) => (call as ToolCallWithResult).result)
           .join(', ') ?? null,
       allCalls,
     };
 
-    // Build a compact Past Actions text (limit to last 5 iterations to keep prompt lean)
     const pastText =
       iterationHistory
         .slice(-5)
@@ -59,10 +113,19 @@ Important rules:
           (it) =>
             `Iteration ${it.iteration}
 - Thought which justifies the next step: ${it.naturalLanguageThought}
-- The function calls that were made: ${JSON.stringify(it.structuredThought.functionCalls)}
+- The function calls that were made: ${JSON.stringify(
+              it.structuredThought.functionCalls,
+            )}
 `,
         )
         .join('\n') || '— none —';
+
+    const { previousTodo } = this.buildSharedContext(routerProcess);
+
+    const todoList =
+      currentTodoThought && currentTodoThought.trim().length > 0
+        ? currentTodoThought
+        : previousTodo;
 
     return {
       messages: [
@@ -70,10 +133,8 @@ Important rules:
           role: 'system' as const,
           content,
         })),
-        // Provide the original user goal and a compact, machine-readable STATE first
         {
           role: 'system' as const,
-          // you used routerProcess.question in your existing file, keep that here
           content: `ORIGINAL_GOAL: ${routerProcess.question ?? '(missing)'}`,
         },
         {
@@ -82,71 +143,119 @@ Important rules:
 ${JSON.stringify(state)}
 </STATE_JSON>`,
         },
-
-        // Keep any extended domain/system guidance
+        {
+          role: 'system' as const,
+          content: todoList,
+        },
         {
           role: 'system' as const,
           content: `
 ${extendedSystemPrompt}
 `,
         },
-
-        // Strict rubric requiring DONE: or CALL:, with VERBATIM evidence for DONE
         {
           role: 'system' as const,
           content: `
-You are a reasoning engine inside an autonomous AI agent. Each call is one iteration in the same task.
-Your reply MUST begin with exactly one of these tokens:
+        You are a reasoning engine inside an autonomous AI agent. Each call is one iteration in the same task.
+        
+        You receive:
+        - ORIGINAL_GOAL: the user's initial request.
+        - <STATE_JSON>: a compact snapshot of previous actions and their observations.
+        - <TODO_LIST>…</TODO_LIST>: the current multi-step plan, maintained by a separate internal planning module.
+        
+        Division of responsibilities:
+        - The TODO list is a helpful but *fallible* plan to achieve ORIGINAL_GOAL.
+        - Your job is NOT to edit or rewrite the TODO list.
+        - Your job IS to:
+          • Use the TODO list as guidance to see which part of the goal is likely next.
+          • Trust tool definitions and parameter requirements over the TODO list if they conflict.
+          • Check <STATE_JSON> and the most recent observation to avoid redundant work.
+          • Decide whether to finish (DONE) or execute exactly one tool call (CALL) in this iteration.
+        
+        Conflict handling with TODO_LIST (CRITICAL):
+        - If the "next" unchecked TODO step cannot be executed because required parameters are missing (e.g. a tool needs course_id but you only have courseName), you MUST:
+          • Treat that TODO step as temporarily blocked, and
+          • Choose a CALL that obtains the missing information (e.g. search by name to get the ID).
+        - You MUST NOT get stuck debating whether the TODO list is correct.
+          • At most one short sentence is allowed to mention the mismatch.
+          • After that, immediately choose a single DONE or CALL action that best advances ORIGINAL_GOAL.
+        - In case of conflict, ALWAYS prioritize:
+          1) Tool signatures and available parameters in STATE_JSON,
+          2) ORIGINAL_GOAL,
+          3) Then the TODO list (as soft guidance only).
+        
+        Planning vs efficiency:
+        - Always aim for the **shortest successful sequence of tool calls** that fully satisfies ORIGINAL_GOAL.
+        - If calling an additional tool would only reconfirm, decorate, or slightly refine information you already have enough to answer the goal, you MUST NOT call it. Instead, finish with DONE in this iteration.
+        
+        Default behavior:
+        - Look at the TODO list to understand the rough phase you are in (e.g. "identify course", "fetch details", "extract pages").
+        - Before calling any tool, inspect STATE_JSON.lastObservation and STATE_JSON.allCalls:
+          • If the part of the goal covered by the current TODO step is already satisfied by the existing state, mentally treat that step as done and move on to the *next* TODO step.
+          • If calling a tool would repeat a previous call with identical arguments, do NOT call it again.
+        
+        Internal reasoning length (VERY IMPORTANT):
+        - Keep your internal reasoning before "DONE:" or "CALL:" **short and focused**.
+        - Use at most a few concise sentences (roughly <= 5) to justify your choice.
+        - Do NOT repeat yourself, do NOT loop on contradictions: identify the best next action once, then act.
+        
+        Your reply MUST begin with exactly one of these tokens:
+        
+        - "DONE:" followed by the final answer to the ORIGINAL_GOAL, if the STATE indicates the goal is already satisfied or if the next action would repeat a past call without producing new information.
+        - "CALL:" followed by the single function to execute now and the exact arguments to pass.
+        
+        Goal satisfaction rubric (APPLY BEFORE proposing any tool call):
+        1) If the most recent observation already contains the requested data or indicates success, output "DONE:" with a concise summary. Do NOT call any tools.
+        2) Never repeat a tool call with the same function name and identical arguments already listed in STATE.allCalls. If a repeat would occur, output "DONE:" summarizing the already obtained results.
+        3) Only call a tool if at least one *new* fact will be produced toward the goal.
+        4) If any required parameter is missing or ambiguous, do NOT call a tool; ask for the exact value(s) and end with "DONE:" (no action needed now).
+        5) If ORIGINAL_GOAL can already be completely answered using only STATE.lastObservation, you MUST respond with DONE in this iteration and you MUST NOT call any further tools.
+        
+        VERBATIM DATA RULES (CRITICAL — ONLY APPLIES TO DONE):
+        - All factual values (names, titles, IDs, dates, amounts) you present **must appear byte-for-byte** somewhere in STATE.lastObservation. No paraphrasing, no rewording, no synonym substitutions for proper nouns.
+        - You MUST aggressively trim the JSON slice(s) you use as evidence to **only** the fields you actually reference in the Final answer. Do NOT include large HTML/text blobs, full tables, or long logs if you only need a few fields.
+        - If an object contains long text fields that you do not need (e.g., full HTML content), you MUST omit those fields from the evidence-json block.
+        - You MUST include an **evidence block** that copies the exact JSON slice(s) you used from STATE.lastObservation, surrounded by a fenced code block with the language tag "evidence-json".
+        - Any value shown in your final answer that is not present in the evidence block is forbidden.
+        
+        Format when using DONE:
+        DONE:
+        \`\`\`evidence-json
+        <PASTE ONLY the minimal JSON slice(s) copied exactly from STATE.lastObservation>
+        \`\`\`
+        Final:
+        <Write the final answer, and whenever you reproduce a value from the evidence (e.g., id, assignment name, date), copy it exactly (consider wrapping such literals in backticks). Do not invent fields that aren't in the evidence. 
+        Critically, in the Final section you MUST:
+        - Answer ONLY what ORIGINAL_GOAL explicitly asks for.
+        - Avoid adding extra related facts, assignments, suggestions, or commentary that the user did not request.>
+        
+        Format when using CALL (NO EVIDENCE ALLOWED):
+        CALL: <function_name>
+        parameters="key1=value1, key2=value2"
+        
+        CRITICAL: When using CALL, you MUST NOT include any evidence-json block, data samples, or example results. The tool has not been executed yet, so you cannot have any data. Do not hallucinate or invent data. Simply state the function name and the required parameters.
+        
+        Parameter echo (when you choose CALL):
+        - After "CALL:", write the function name and list **every** required parameter with concrete values (verbatim tokens), e.g., id="900", date="2025-10-05".
+        - You may include optional parameters, but only with explicit, literal values.
+        - If you cannot provide all required parameters with literal values, you cannot call.
+        - NEVER include evidence-json, data samples, or example outputs when using CALL.
+        
+        Intent patterns:
+        - Execute: "CALL: <function_name> with parameters (NO evidence-json)
+          parameters="key1=value1, key2=value2"
+        - Final (DONE): Provide the evidence-json block first, then the Final answer reproducing only values from that evidence.
+        
+        Stay precise. Do not invent values. One step at a time.
 
-- "DONE:" followed by the final answer to the ORIGINAL_GOAL, if the STATE indicates the goal is already satisfied or if the next action would repeat a past call without producing new information.
-- "CALL:" followed by the single function to execute now and the exact arguments to pass.
-
-Goal satisfaction rubric (APPLY BEFORE proposing any tool call):
-1) If the most recent observation already contains the requested data or indicates success, output "DONE:" with a concise summary. Do NOT call any tools.
-2) Never repeat a tool call with the same function name and identical arguments already listed in STATE.allCalls. If a repeat would occur, output "DONE:" summarizing the already obtained results.
-3) Only call a tool if at least one *new* fact will be produced toward the goal.
-4) If any required parameter is missing or ambiguous, do NOT call a tool; ask for the exact value(s) and end with "DONE:" (no action needed now).
-
-VERBATIM DATA RULES (CRITICAL — ONLY APPLIES TO DONE):
-- All factual values (names, titles, IDs, dates, amounts) you present **must appear byte-for-byte** somewhere in STATE.lastObservation. No paraphrasing, no rewording, no synonym substitutions for proper nouns.
-- You MUST include an **evidence block** that copies the exact JSON slice(s) you used from STATE.lastObservation, surrounded by a fenced code block with the language tag "evidence-json".
-- Any value shown in your final answer that is not present in the evidence block is forbidden.
-
-Format when using DONE:
-DONE:
-\`\`\`evidence-json
-<PASTE ONLY the minimal JSON slice(s) copied exactly from STATE.lastObservation>
-\`\`\`
-Final:
-<Write the final answer, and whenever you reproduce a value from the evidence (e.g., id, assignment name, date), copy it exactly (consider wrapping such literals in backticks). Do not invent fields that aren't in the evidence.>
-
-Format when using CALL (NO EVIDENCE ALLOWED):
-CALL: <function_name>
-parameters="key1=value1, key2=value2"
-
-CRITICAL: When using CALL, you MUST NOT include any evidence-json block, data samples, or example results. The tool has not been executed yet, so you cannot have any data. Do not hallucinate or invent data. Simply state the function name and the required parameters.
-
-Parameter echo (when you choose CALL):
-- After "CALL:", write the function name and list **every** required parameter with concrete values (verbatim tokens), e.g., id="900", date="2025-10-05".
-- You may include optional parameters, but only with explicit, literal values.
-- If you cannot provide all required parameters with literal values, you cannot call.
-- NEVER include evidence-json, data samples, or example outputs when using CALL.
-
-Intent patterns:
-- Execute: "CALL: <function_name> with parameters (NO evidence-json)
-  parameters="key1=value1, key2=value2"
-- Final (DONE): Provide the evidence-json block first, then the Final answer reproducing only values from that evidence.
-
-Stay precise. Do not invent values. One step at a time.
-
-TOOLS SNAPSHOT (read once as reference; do not regurgitate):
-<TOOLS_SNAPSHOT>
-${JSON.stringify(routerProcess.agentTools)}
-</TOOLS_SNAPSHOT>
-`,
+        IMPORTANT: Only use tools that are listed in the TOOLS SNAPSHOT. Do not use any tools that are not listed in the TOOLS SNAPSHOT. Even if you know them.
+        
+        TOOLS SNAPSHOT (read once as reference; do not regurgitate):
+        <TOOLS_SNAPSHOT>
+        ${JSON.stringify(routerProcess.agentTools)}
+        </TOOLS_SNAPSHOT>
+        `.trim(),
         },
-
-        // Short, human-readable history to aid reasoning
         {
           role: 'assistant' as const,
           content: `Past actions and their results (oldest → newest; last 5 shown):
@@ -155,16 +264,37 @@ ${pastText}`,
       ],
     };
   };
+
   /**
    * Prompt for the structured-thought (JSON) step.
    */
   public static getStructuredThoughtPrompt = (
     agentTools: AgentTool[],
-  ): AIGenerateTextOptions => ({
-    messages: [
-      {
-        role: 'system' as const,
-        content: `You are a highly precise system that translates an assistant's thought into a structured JSON object.
+    isRoutingAgent: boolean,
+  ): AIGenerateTextOptions => {
+    const fewShotExample = isRoutingAgent
+      ? `
+Thought:
+  CALL: moodle-agent
+  parameters="prompt=Retrieve user information for the current user, parameters=user='current user'"
+
+Output:
+  {"functionCalls": [{"function": "moodle-agent", "args": {"prompt": "Retrieve user information for the current user", "parameters": "user='current user'"}}], "isFinished": false}
+    `
+      : `
+Thought:
+  CALL: get_user_info
+  parameters="username=student"
+
+Output:
+  {"functionCalls": [{"function": "get_user_info", "args": {"username": "student"}}], "isFinished": false}
+    `;
+
+    return {
+      messages: [
+        {
+          role: 'system' as const,
+          content: `You are a highly precise system that translates an assistant's thought into a structured JSON object.
 Your single most important job is to distinguish between a plan to **execute a tool** and a plan to **provide a final text answer**.
 
 HARD GATING (STRICT, OVERRIDES ALL ELSE)
@@ -218,26 +348,21 @@ Thought:
 Output:
   {"functionCalls": [], "isFinished": true}
 
-Few-shot example (CALL: block → call):
-
-Thought:
-  CALL: get_user_info
-  parameters="username=student"
-
-Output:
-  {"functionCalls": [{"function": "get_user_info", "args": {"username": "student"}}], "isFinished": false}
+Few-shot example (DONE: block → final answer):
+${fewShotExample}
 
 Now, parse the following thought with zero deviation from these rules.`,
-      },
-      {
-        role: 'system' as const,
-        content: `Possible function calls:
+        },
+        {
+          role: 'system' as const,
+          content: `Possible function calls:
 <TOOLS_SNAPSHOT>
 ${JSON.stringify(agentTools)}
 </TOOLS_SNAPSHOT>`,
-      },
-    ],
-  });
+        },
+      ],
+    };
+  };
 
   public static getRouterResponseSummaryPrompt = (
     routerResponse: RouterProcess,
@@ -247,8 +372,6 @@ ${JSON.stringify(agentTools)}
         role: 'system' as const,
         content,
       })),
-
-      // Full process as single source of truth
       {
         role: 'system' as const,
         content: `<STATE_JSON>
@@ -256,13 +379,10 @@ ${JSON.stringify(agentTools)}
   ${routerResponse.error ? `\nERROR: ${routerResponse.error}` : ''}
   </STATE_JSON>`,
       },
-
-      // Original goal (for intent + language mirroring)
       {
         role: 'system' as const,
         content: `ORIGINAL_GOAL: ${routerResponse.question}`,
       },
-
       {
         role: 'system' as const,
         content: `
@@ -274,15 +394,35 @@ ${JSON.stringify(agentTools)}
   Grounding & Truthfulness (apply to every sentence):
   1) Use ONLY facts present inside <STATE_JSON>. No invention, no guessing, no external knowledge.
   2) Prefer the most recent observation when describing the outcome.
-  3) Copy concrete literals exactly (IDs, titles, dates, URLs, counts) and wrap them in backticks.
-  4) Do not include raw JSON, stack traces, or tool noise.
+  3) Copy concrete literals exactly (titles, dates, URLs, counts) and wrap them in backticks.
+  4) Do not include raw JSON, stack traces, or low-level logs.
   
-  Coverage requirements (include all of these, in flowing prose):
-  • State the original goal in your own words and the current overall status as one of: success, partial, or failure.
-  • Report the concrete results available now using exact literals from state (names, IDs, dates, URLs, counts).
+  Redaction of internal machinery (CRITICAL):
+  5) You MUST NOT mention or allude to:
+     - Tool, function, method, API, or agent names (for example: ${routerResponse.agentTools
+       .slice(0, 3)
+       .map((tool) => `\`${tool.name}\``)
+       .join(', ')}).
+     - The words "tool", "function", "API", "endpoint", "agent", "prompt", or "ReAct".
+     - Any identifier-like strings with underscores, parentheses, or obvious code style.
+     Instead, describe what happened in human/domain terms, such as:
+     - "The system looked up the course in the learning platform."
+     - "The system retrieved the detailed course contents."
+  
+  6) Do NOT narrate internal step-by-step reasoning or retries using phrases like "First, the system called...", "Then it tried...", "Wait...", "however the tool failed".
+     - Summarize the overall process and outcome at a high level instead:
+       - GOOD: "The system first identified the course in the learning platform and then retrieved its detailed contents."
+       - BAD:  "It first called \`${routerResponse.agentTools.at(0)?.name}\`, then \`${routerResponse.agentTools.at(1)?.name}\`, then retried after an error."
+  
+  Coverage requirements (in flowing prose):
+  • Restate the original goal in your own words and state the current overall status as one of: success, partial, or failure.
+  • Report the concrete results available now using exact literals from state (names, titles, dates, URLs, counts), expressed in domain language.
+  • If intermediate attempts or failures are important for understanding the final status, describe them briefly and generically (e.g. "An earlier attempt to retrieve details from the platform failed, but a later attempt succeeded.").
   
   Failure handling:
-  - If <STATE_JSON> contains strings like "error", "failed", "not implemented", "unauthorized", "forbidden", "not found", acknowledge the failure explicitly and clarify its impact on the goal.
+  - If <STATE_JSON> contains signals like "error", "failed", "not implemented", "unauthorized", "forbidden", "not found":
+    - Acknowledge the failure explicitly in high-level language (no error codes, no stack traces).
+    - Clarify how this affects the ability to reach the goal (e.g. "As a result, detailed course sections could not be retrieved.").
   
   Output format (exactly):
   SUMMARY: <multi-paragraph prose in the user's language, using backticks for any exact literals from state and covering all sections above>`.trim(),
@@ -300,11 +440,15 @@ ${JSON.stringify(agentTools)}
       })),
       {
         role: 'system',
-        content: `ORIGINAL_GOAL: ${String(routerResponse.question ?? '(missing)')}`,
+        content: `ORIGINAL_GOAL: ${String(
+          routerResponse.question ?? '(missing)',
+        )}`,
       },
       {
         role: 'system',
-        content: `<STATE_JSON>\n${JSON.stringify(routerResponse)}\n</STATE_JSON>`,
+        content: `<STATE_JSON>\n${JSON.stringify(
+          routerResponse,
+        )}\n</STATE_JSON>`,
       },
       {
         role: 'system',
@@ -357,8 +501,167 @@ ${JSON.stringify(agentTools)}
       
       Errors/Empty:
       8) If required data is missing in <STATE_JSON> or an action failed, say so briefly and give one concrete next step. Do not show raw errors.
+      9) Keep your answer as short and focused as possible while fully satisfying ORIGINAL_GOAL.
+         - If the goal is to confirm a fact, answer with a direct confirmation and only the strictly necessary supporting details.
+         - If the goal is to list items (courses, assignments, events, pages, forums), provide the list and avoid unrelated context, commentary, or suggestions.
       `.trim(),
       },
     ],
   });
+
+  public static getTodoThoughtPrompt = (
+    routerProcess: RouterProcess,
+    isRoutingAgent: boolean,
+  ): AIGenerateTextOptions => {
+    const fewShotExample = isRoutingAgent
+      ? `
+Thought:
+  I need to list all sections and pages for "Digital Health UX" and create a calendar event for the first section's page due date.
+  I will use the moodle-agent to list all sections and pages for "Digital Health UX" and after that I will use the calendar-agent to create a calendar event for the first section's page due date.
+  Output:
+  <TODO_LIST>
+  - [ ] moodle-agent: Search for the course "Digital Health UX", get the course details and list all sections and pages.
+  - [ ] calendar-agent: Create a calendar event for the first section's page due date using the course details.
+  </TODO_LIST>`
+      : `
+Thought:
+  I need to retrieve user information for the current user.
+  I will use the get_user_info tool to retrieve user information for the current user.
+  Output:
+  <TODO_LIST>
+  - [ ] get_user_info: Retrieve user information for the current user.
+  </TODO_LIST>`;
+
+    const { latestObservation, minimalToolsSnapshot, previousTodo } =
+      this.buildSharedContext(routerProcess);
+
+    return {
+      messages: [
+        ...this.BASE_PROMPTS.map((content) => ({
+          role: 'system' as const,
+          content,
+        })),
+        {
+          role: 'system' as const,
+          content: `ORIGINAL_GOAL: ${routerProcess.question ?? '(missing)'}`,
+        },
+        {
+          role: 'system' as const,
+          content: `<PREVIOUS_TODO_LIST>
+  ${previousTodo}
+  </PREVIOUS_TODO_LIST>`,
+        },
+        {
+          role: 'system' as const,
+          content: `<LATEST_OBSERVATION>
+  ${latestObservation}
+  </LATEST_OBSERVATION>`,
+        },
+        {
+          role: 'system' as const,
+          content: `
+        You are an internal planning module.
+        
+        Inputs:
+        - ORIGINAL_GOAL: what the user ultimately wants.
+        - PREVIOUS_TODO_LIST: the current plan.
+        - LATEST_OBSERVATION: most recent tool results.
+        - TOOLS_SNAPSHOT: available domains (each entry = one domain of work, e.g. one agent/API).
+        
+        Your job:
+        - Keep a TODO list that leads to ORIGINAL_GOAL.
+        - Start from PREVIOUS_TODO_LIST and update it using LATEST_OBSERVATION.
+        - Use only a small number of clear steps that can realistically be advanced using the domains in TOOLS_SNAPSHOT.
+        ${
+          isRoutingAgent
+            ? `- For routing/orchestration (multi-domain):
+          - Think in domains/phases, not low-level function calls.
+          - Prefer 1–7 big steps like "collect all Moodle data needed for the goal" or "update the calendar with the needed events".
+          - Only split into smaller tasks if it clearly improves understanding.
+          - HARD LANGUAGE RULE:
+            - Tasks MUST be plain human language.
+            - NEVER use code-style names (e.g. "search_courses_by_name", "get_course_details").
+            - NEVER use underscores (_), dots (.), parentheses "()", or words like "tool", "agent", "API", "endpoint", "function" inside tasks.
+          - HARD DOMAIN RULE:
+            - Each task line MUST refer to at most ONE domain from TOOLS_SNAPSHOT (e.g. learning platform vs calendar).
+            - If a logical step needs both domains (e.g. "use Moodle dates to create calendar events"), you MUST split it into two tasks:
+              1) One task for collecting data from the learning platform,
+              2) One task for creating or updating events in the calendar.
+            - Do NOT mention both domains in the same task line.
+          - ABSOLUTE LANGUAGE BAN:
+            - Tasks MUST NOT contain:
+              • any string that looks like code (includes "()", "::", backticks, or quotes around function names),
+              • exact tool names from TOOLS_SNAPSHOT,
+              • field/parameter names like course_id, user_id, assignment_id, or similar.
+            - If PREVIOUS_TODO_LIST contains such items, you MUST rewrite them into plain human language and remove the code-like parts.`
+            : `- For single-domain / non-routing agents:
+          - You may break work into several steps, but avoid micro-steps.
+          - Group closely related actions into one task when possible.
+          - You MAY mention the agent/tool in plain language (e.g. "via the Moodle agent"), but NEVER in code form or with arguments.`
+        }
+        
+        Dependencies:
+        - Do not write a task that assumes parameters you don’t have yet.
+          - First "find the course and get its title or identifier", then "fetch its details".
+        
+        Evolution rules:
+        ${
+          isRoutingAgent
+            ? `- Use PREVIOUS_TODO_LIST only as a hint for what has been attempted so far.
+        - You MAY rewrite, merge, or delete tasks to keep the list:
+          • short,
+          • domain-based (each task mapped to exactly one domain),
+          • and free of tool names or code-like text.
+        - Ensure the resulting TODO list has at most 3–7 tasks, each referring to exactly one domain.`
+            : `- Treat PREVIOUS_TODO_LIST as append-only.
+        - You MUST NOT delete tasks, reorder tasks, or change their wording.
+        - The ONLY allowed change to existing lines is:
+          - "- [ ]" → "- [x]" when that line is fully done.
+        - To refine the plan, append NEW tasks at the end (or as indented subtasks).`
+        }
+        
+        Marking done:
+        - Turn "- [ ]" into "- [x]" only when the **whole** outcome of that line is clearly complete in LATEST_OBSERVATION.
+        - Fetching data alone does NOT finish tasks that say "extract", "summarize", "list", "compile", or "answer the question".
+        
+        Content rules:
+        - Each task is one short, single-line action description, e.g. "Ask the learning platform to collect all assignments due this week".
+        - Do NOT include JSON, raw IDs, long URLs, query parameters, or long text excerpts.
+        - New tasks MUST be relevant to the current ORIGINAL_GOAL (no unrelated courses/topics).
+        - Avoid creating near-duplicate tasks; if a step is already present, reuse that line and only mark it done when appropriate.
+        
+        Scope:
+        - Do not decide DONE/CALL here; another module executes tools.
+        - Your only output is the updated plan.
+        
+        Output format (STRICT):
+        <TODO_LIST>
+        - [x] First task
+        - [ ] Second task
+        - [ ] Third task
+        </TODO_LIST>
+
+        Few-shot example:
+        ${fewShotExample}
+        
+        Formatting rules:
+        - One task per line, starting with "- [ ]" or "- [x]".
+        - Optional subtasks are indented by two spaces: "  - [ ] Subtask".
+        - Output nothing before <TODO_LIST> or after </TODO_LIST>.
+
+        CRITICAL TOOL RESTRICTION (HARD GUARD):
+        - You MUST ONLY reference tools that are explicitly listed in the TOOLS SNAPSHOT below.
+        - You MUST NOT reference, mention, or plan tasks involving any tools that are NOT in the TOOLS SNAPSHOT.
+        - Even if you know other tools exist, you MUST NOT use them. Only tools from the snapshot are available.
+        - If a task requires a tool not in the snapshot, you MUST NOT create that task.
+
+        Available tools (reference only; do not include in your output):
+        <TOOLS_SNAPSHOT>
+        ${JSON.stringify(minimalToolsSnapshot)}
+        </TOOLS_SNAPSHOT>
+        `.trim(),
+        },
+      ],
+    };
+  };
 }

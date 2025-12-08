@@ -10,6 +10,7 @@ import {
 export type IterationNodeData = {
   iterationNumber: number;
   thought: string;
+  todoThought?: string;
   isFinished: boolean;
   functionCallsCount: number;
   functionCalls: unknown[];
@@ -21,11 +22,13 @@ export const IterationNode = memo(({ data }: NodeProps<IterationNode>) => {
   const {
     iterationNumber,
     thought,
+    todoThought,
     isFinished,
     functionCallsCount,
     functionCalls,
   } = data;
   const [isThoughtExpanded, setIsThoughtExpanded] = useState(false);
+  const [isTodoExpanded, setIsTodoExpanded] = useState(false);
   const [isStructuredExpanded, setIsStructuredExpanded] = useState(false);
 
   const truncatedThought = thought.slice(0, 100);
@@ -94,6 +97,34 @@ export const IterationNode = memo(({ data }: NodeProps<IterationNode>) => {
           )}
         </div>
       </div>
+
+      {/* Todo List Section */}
+      {todoThought && (
+        <div
+          className="border-t border-gray-200 pt-2 mb-2 cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsTodoExpanded(!isTodoExpanded);
+          }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-semibold text-orange-600 flex items-center gap-1">
+              <span>✅ Todo List</span>
+            </div>
+            <span className="text-xs opacity-60">
+              {isTodoExpanded ? '▼' : '▶'}
+            </span>
+          </div>
+
+          {isTodoExpanded && (
+            <div className="mt-2">
+              <div className="text-[11px] text-gray-700 bg-orange-50 rounded px-2 py-1 max-h-[200px] overflow-y-auto">
+                <pre className="whitespace-pre-wrap">{todoThought}</pre>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Structured Thought Section */}
       <div

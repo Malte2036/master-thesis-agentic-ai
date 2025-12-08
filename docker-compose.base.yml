@@ -75,6 +75,7 @@ services:
       - HOSTNAME=moodle-agent
       # - AI_MODEL=qwen3:4b
       - AI_MODEL=${AI_MODEL}
+      - REACT_HAS_TODO_LIST=${REACT_HAS_TODO_LIST}
     depends_on:
       - moodle-mcp
 
@@ -91,6 +92,7 @@ services:
       - HOSTNAME=calendar-agent
       # - AI_MODEL=qwen3:4b
       - AI_MODEL=${AI_MODEL}
+      - REACT_HAS_TODO_LIST=${REACT_HAS_TODO_LIST}
     depends_on:
       - calendar-mcp
 
@@ -107,6 +109,7 @@ services:
       - AGENT_URLS=http://moodle-agent:1234,http://calendar-agent:1235
       # - AI_MODEL=qwen3:4b
       - AI_MODEL=${AI_MODEL}
+      - REACT_HAS_TODO_LIST=${REACT_HAS_TODO_LIST}
     depends_on:
       - moodle-agent
       - calendar-agent

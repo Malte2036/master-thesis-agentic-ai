@@ -10,7 +10,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
     task_type: 'get_user_info',
     input: 'Show my Moodle profile basics.',
     expected_output:
-      'Here is your user information: First name: {firstname}, Last name: {lastname}, Username: {username}.',
+      'Here is your user information: First name: {firstname}, Last name: {lastname}.',
     expected_tool_calls: [{ function: 'moodle-agent.get_user_info', args: {} }],
   },
 
@@ -27,8 +27,9 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   {
     id: 'case_103',
     task_type: 'search_course',
-    input: 'Find the course named "Intro to Safety".',
-    expected_output: 'I found the course "Intro to Safety".',
+    input: 'Find information about the course named "Intro to Safety".',
+    expected_output:
+      'Here is the information about the course "Intro to Safety": {course_information}.',
     expected_tool_calls: [
       {
         function: 'moodle-agent.search_courses_by_name',
@@ -40,7 +41,8 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
     id: 'case_104',
     task_type: 'search_course',
     input: 'Do I have a course called "Digital Health UX"?',
-    expected_output: 'I found the course "Digital Health UX".',
+    expected_output:
+      'The course: "Digital Health UX" has the following information: {partial_course_information}',
     expected_tool_calls: [
       {
         function: 'moodle-agent.search_courses_by_name',
@@ -52,7 +54,8 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
     id: 'case_105',
     task_type: 'search_course',
     input: 'Look up "Operations Level 2".',
-    expected_output: 'I found the course "Operations Level 2".',
+    expected_output:
+      'The course: "Operations Level 2" has the following information: {partial_course_information}',
     expected_tool_calls: [
       {
         function: 'moodle-agent.search_courses_by_name',
@@ -64,7 +67,8 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
     id: 'case_106',
     task_type: 'search_course',
     input: 'Search for the course "Advanced Mathematics".',
-    expected_output: 'I found the course "Advanced Mathematics".',
+    expected_output:
+      'The course: "Advanced Mathematics" has the following information: {partial_course_information}',
     expected_tool_calls: [
       {
         function: 'moodle-agent.search_courses_by_name',
@@ -76,7 +80,8 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
     id: 'case_107',
     task_type: 'search_course',
     input: 'Search for "Computer Science Fundamentals".',
-    expected_output: 'I found the course "Computer Science Fundamentals".',
+    expected_output:
+      'The course: "Computer Science Fundamentals" has the following information: {partial_course_information}',
     expected_tool_calls: [
       {
         function: 'moodle-agent.search_courses_by_name',
@@ -833,7 +838,8 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
     id: 'case_147',
     task_type: 'search_course',
     input: 'Find the module "SAFE".',
-    expected_output: 'I found the course "Intro to Safety".',
+    expected_output:
+      'The course: "Intro to Safety" has the following information: {partial_course_information}',
     expected_tool_calls: [
       {
         function: 'moodle-agent.search_courses_by_name',
@@ -1382,7 +1388,8 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
     id: 'case_174',
     task_type: 'search_course',
     input: 'Do I have a course named "OPS-201"?',
-    expected_output: 'I found the course "Operations Level 2".',
+    expected_output:
+      'The course: "Operations Level 2" has the following information: {partial_course_information}',
     expected_tool_calls: [
       {
         function: 'moodle-agent.search_courses_by_name',

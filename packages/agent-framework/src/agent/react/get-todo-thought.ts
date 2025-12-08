@@ -3,32 +3,33 @@ import chalk from 'chalk';
 import { Logger } from '../../logger';
 import { AIProvider } from '../../services';
 import { ReActPrompt } from './prompt';
+import { stripThoughts } from '../../utils/llm';
 
-export async function getNaturalLanguageThought(
+export async function getTodoThought(
   routerProcess: RouterProcess,
   aiProvider: AIProvider,
   logger: Logger,
-  extendedNaturalLanguageThoughtSystemPrompt: string,
-  todoThought?: string,
+  isRoutingAgent: boolean,
 ): Promise<string> {
-  const systemPrompt = ReActPrompt.getNaturalLanguageThoughtPrompt(
-    extendedNaturalLanguageThoughtSystemPrompt,
+  const systemPrompt = ReActPrompt.getTodoThoughtPrompt(
     routerProcess,
-    todoThought,
+    isRoutingAgent,
   );
 
-  logger.log(chalk.magenta('Generating natural language thought...'));
+  logger.log(chalk.magenta('Generating todo thought...'));
 
-  const responseString = await aiProvider.generateText?.(
+  let responseString = await aiProvider.generateText?.(
     routerProcess.question,
     systemPrompt,
   );
+
+  responseString = stripThoughts(responseString);
 
   if (!responseString) {
     throw new Error('No response from AI provider');
   }
 
-  logger.log(chalk.magenta('Natural language thought:'), responseString);
+  logger.log(chalk.magenta('Todo thought:'), responseString);
 
   return responseString;
 }

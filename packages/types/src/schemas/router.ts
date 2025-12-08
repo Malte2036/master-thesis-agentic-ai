@@ -48,10 +48,19 @@ export type StructuredThoughtResponseWithResults = z.infer<
 export const RouterIterationSchema = z.object({
   iteration: z.number(),
   naturalLanguageThought: z.string(),
+  todoThought: z.string().optional(),
   structuredThought: StructuredThoughtResponseWithResultsSchema,
 });
 
 export type RouterIteration = z.infer<typeof RouterIterationSchema>;
+
+export const RouterFeatureConfigSchema = z
+  .object({
+    hasToDoList: z.boolean().nullish(),
+  })
+  .nullish();
+
+export type RouterFeatureConfig = z.infer<typeof RouterFeatureConfigSchema>;
 
 export const RouterProcessSchema = z.object({
   contextId: z.string(),
@@ -61,6 +70,8 @@ export const RouterProcessSchema = z.object({
   iterationHistory: z.array(RouterIterationSchema),
   error: z.string().optional(),
   agentTools: z.array(AgentToolSchema),
+  agentName: z.string(),
+  featureConfig: RouterFeatureConfigSchema,
 });
 
 export type RouterProcess = z.infer<typeof RouterProcessSchema>;
@@ -69,6 +80,7 @@ export const addIterationToRouterProcess = (
   routerProcess: RouterProcess,
   iteration: number,
   naturalLanguageThought: string,
+  todoThought: string | undefined,
   structuredThought: StructuredThoughtResponseWithResults,
 ): RouterProcess => {
   return {
@@ -78,6 +90,7 @@ export const addIterationToRouterProcess = (
       {
         iteration,
         naturalLanguageThought,
+        todoThought,
         structuredThought,
       },
     ],

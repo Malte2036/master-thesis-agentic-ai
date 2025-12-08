@@ -43,7 +43,7 @@ export const mockAgentToolsSequentiel: AgentTool[] = [
   },
 ];
 
-export const mockAgentToolsSequentialComplex: AgentTool[] = [
+export const mockAgentToolsRoutingReal: AgentTool[] = [
   {
     name: 'moodle-agent',
     description:

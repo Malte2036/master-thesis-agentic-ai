@@ -5,7 +5,11 @@ import {
 } from '@master-thesis-agentic-ai/types';
 import { AgentClient } from '../../../adapters';
 import { Logger } from '../../../logger';
-import { RouterAIOptions, RouterSystemPromptOptions } from '../../router';
+import {
+  AgentName,
+  RouterAIOptions,
+  RouterSystemPromptOptions,
+} from '../../router';
 import { ReActRouter } from './router';
 
 export class A2AReActRouter extends ReActRouter {
@@ -14,9 +18,10 @@ export class A2AReActRouter extends ReActRouter {
     aiOptions: RouterAIOptions,
     systemPromptOptions: RouterSystemPromptOptions,
     agentTools: AgentTool[],
+    agentName: AgentName,
     private readonly agentClients: AgentClient[],
   ) {
-    super(logger, aiOptions, systemPromptOptions, agentTools);
+    super(logger, aiOptions, systemPromptOptions, agentTools, agentName);
   }
 
   static async create(
@@ -24,6 +29,7 @@ export class A2AReActRouter extends ReActRouter {
     aiOptions: RouterAIOptions,
     systemPromptOptions: RouterSystemPromptOptions,
     agentTools: AgentTool[],
+    agentName: AgentName,
     agentClients: AgentClient[],
   ) {
     return new A2AReActRouter(
@@ -31,6 +37,7 @@ export class A2AReActRouter extends ReActRouter {
       aiOptions,
       systemPromptOptions,
       agentTools,
+      agentName,
       agentClients,
     );
   }
@@ -41,6 +48,10 @@ export class A2AReActRouter extends ReActRouter {
 
   private getAgentClient(functionName: string): AgentClient | undefined {
     return this.agentClients.find((agent) => agent.name === functionName);
+  }
+
+  private getAgentNames(): string[] {
+    return this.agentClients.map((agent) => agent.name);
   }
 
   protected override async callClientInParallel(
@@ -68,7 +79,7 @@ export class A2AReActRouter extends ReActRouter {
           return {
             ...parsedDecision,
             type: 'agent',
-            result: `No agent found for function: ${parsedDecision.function}`,
+            result: `No agent found for function: ${parsedDecision.function}. Maybe you have selected a to specific tool that is not available. Please try again with a different tool ${this.getAgentNames().join(', ')}.`,
           } satisfies AgentToolCallWithResult;
         }
 

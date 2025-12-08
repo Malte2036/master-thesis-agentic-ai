@@ -13,14 +13,16 @@ type ModelOptions = {
   seed?: number;
 };
 
-const DEFAULT_OPTIONS: ModelOptions = {
-  temperature: 0.6,
-  top_p: 0.8,
-  top_k: 20,
-  min_p: 0,
-  // This seed is used to reproduce the results
-  seed: 42,
-};
+function getDefaultOptions(): ModelOptions {
+  return {
+    temperature: 0.6,
+    top_p: 0.8,
+    top_k: 20,
+    min_p: 0,
+    // This seed is used to reproduce the results
+    seed: process.env['SEED'] ? parseInt(process.env['SEED']) : undefined,
+  };
+}
 
 // Use SDK's message param type for compatibility with .create()
 type ChatMessage = OpenAI.ChatCompletionMessageParam;
@@ -159,10 +161,50 @@ export class OpenAIProvider implements AIProvider {
       ...(response_format ? { response_format } : {}),
     };
 
-    const res = await this.client.chat.completions.create(params);
-    const content = res.choices?.[0]?.message?.content ?? '';
-    if (!content) throw new Error('No content returned from OpenAI/vLLM');
-    return content;
+    try {
+      return await this.executeApiCallWithTimeout(params);
+    } catch (err) {
+      if (
+        err instanceof Error &&
+        err.message === 'Request timeout after 30 seconds'
+      ) {
+        this.logger.log('Retrying request after timeout...');
+
+        try {
+          return await this.executeApiCallWithTimeout(params);
+        } catch (err) {
+          this.logger.error('Failed to retry request after timeout:', err);
+          return 'Failed to generate thought after multiple retries. Please try again.';
+        }
+      }
+      throw err;
+    }
+  }
+
+  private async executeApiCallWithTimeout(
+    params: OpenAI.ChatCompletionCreateParamsNonStreaming,
+  ): Promise<string> {
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => {
+      abortController.abort();
+    }, 30000);
+
+    try {
+      const res = await this.client.chat.completions.create(params, {
+        signal: abortController.signal,
+      });
+      clearTimeout(timeoutId);
+      const content = res.choices?.[0]?.message?.content ?? '';
+      if (!content) throw new Error('No content returned from OpenAI/vLLM');
+      return content;
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (abortController.signal.aborted) {
+        this.logger.error('Request timeout after 30 seconds');
+        throw new Error('Request timeout after 30 seconds');
+      }
+      throw err;
+    }
   }
 
   async generateText(
@@ -174,9 +216,11 @@ export class OpenAIProvider implements AIProvider {
       ...(options?.messages || []),
       { role: 'user' as const, content: prompt },
     ];
+    const defaultOptions = getDefaultOptions();
+    this.logger.log('SEED:', defaultOptions.seed);
     const content = await this.makeApiCall(messages, false, undefined, {
-      ...DEFAULT_OPTIONS,
-      temperature: temperature ?? DEFAULT_OPTIONS.temperature,
+      ...defaultOptions,
+      temperature: temperature ?? defaultOptions.temperature,
     });
     return content.trim();
   }
@@ -203,9 +247,10 @@ export class OpenAIProvider implements AIProvider {
       { role: 'user' as const, content: prompt },
     ];
 
+    const defaultOptions = getDefaultOptions();
     const content = await this.makeApiCall(messages, true, jsonSchema, {
-      ...DEFAULT_OPTIONS,
-      temperature: temperature ?? DEFAULT_OPTIONS.temperature,
+      ...defaultOptions,
+      temperature: temperature ?? defaultOptions.temperature,
     });
 
     if (!jsonSchema) {

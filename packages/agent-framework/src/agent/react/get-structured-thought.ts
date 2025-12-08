@@ -14,6 +14,7 @@ export async function getStructuredThought(
   agentTools: AgentTool[],
   structuredAiProvider: AIProvider,
   logger: Logger,
+  isRoutingAgent: boolean,
 ): Promise<StructuredThoughtResponse> {
   naturalLanguageThought = stripThoughts(naturalLanguageThought);
 
@@ -30,8 +31,10 @@ export async function getStructuredThought(
   }
 
   logger.log(chalk.magenta('Generating structured thought...'));
-  const structuredSystemPrompt =
-    ReActPrompt.getStructuredThoughtPrompt(agentTools);
+  const structuredSystemPrompt = ReActPrompt.getStructuredThoughtPrompt(
+    agentTools,
+    isRoutingAgent,
+  );
 
   const structuredResponse =
     await structuredAiProvider.generateJson<StructuredThoughtResponse>(
@@ -56,5 +59,6 @@ export async function getStructuredThought(
     chalk.magenta('Structured thought:'),
     JSON.stringify(structuredResponse, null, 2),
   );
+
   return structuredResponse;
 }

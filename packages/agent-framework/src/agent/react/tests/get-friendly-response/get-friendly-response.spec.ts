@@ -92,6 +92,7 @@ The current user has the following information:
           ],
           contextId: 'test-context-id',
           agentTools: mockAgentTools,
+          agentName: 'test-agent',
         };
 
         const result = await getFriendlyResponse(

@@ -7,6 +7,8 @@ import {
 } from '@master-thesis-agentic-ai/types';
 import { AIProvider } from '../services';
 
+export type AgentName = `${string}-agent`;
+
 export type RouterAIOptions = {
   aiProvider: AIProvider;
   structuredAiProvider: AIProvider;
@@ -18,6 +20,7 @@ export type RouterSystemPromptOptions = {
 
 export type GeneratedThoughtsResponse = {
   naturalLanguageThought: string;
+  todoThought: string | undefined;
   structuredThought: StructuredThoughtResponse;
 };
 
