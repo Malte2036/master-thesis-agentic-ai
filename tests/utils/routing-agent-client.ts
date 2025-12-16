@@ -43,7 +43,7 @@ export class RoutingAgentClient {
         'x-test-id': testId,
       },
       body: JSON.stringify({
-        max_iterations: 5,
+        max_iterations: 10,
         ...request,
       }),
     });

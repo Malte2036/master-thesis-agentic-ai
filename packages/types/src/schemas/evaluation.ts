@@ -4,7 +4,11 @@ import { ToolCallSchema } from './agent';
 
 export const EvaluationReportBaseSchema = z.object({
   id: z.string(),
-  task_type: z.string(),
+  task_type: z.enum([
+    'single-hop',
+    'intra-agent-multi-hop',
+    'inter-agent-multi-hop',
+  ]),
   input: z.string(),
   extended_evaluation_input: z
     .string()

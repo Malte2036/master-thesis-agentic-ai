@@ -18,7 +18,7 @@ const CALENDAR_AGENT_URL = 'http://localhost:1235';
 
 const TIMEOUT = 360000;
 // Run tests in batches
-const BATCH_SIZE = 10;
+const BATCH_SIZE = 5; // 10;
 const BATCH_DELAY = 2000; // 2 seconds between batches
 
 const report: EvaluationReport = {

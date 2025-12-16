@@ -7,7 +7,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── User profile ─────────────────────────────────────────────────────────────
   {
     id: 'case_101',
-    task_type: 'get_user_info',
+    task_type: 'single-hop',
     input: 'Show my Moodle profile basics.',
     expected_output:
       'Here is your user information: First name: {firstname}, Last name: {lastname}.',
@@ -17,7 +17,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Course listing & lookup ──────────────────────────────────────────────────
   {
     id: 'case_102',
-    task_type: 'get_all_courses',
+    task_type: 'single-hop',
     input: 'List all my courses with a short summary.',
     expected_output: 'Here are your current courses: {course_names}.',
     expected_tool_calls: [
@@ -26,7 +26,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_103',
-    task_type: 'search_course',
+    task_type: 'single-hop',
     input: 'Find information about the course named "Intro to Safety".',
     expected_output:
       'Here is the information about the course "Intro to Safety": {course_information}.',
@@ -39,7 +39,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_104',
-    task_type: 'search_course',
+    task_type: 'single-hop',
     input: 'Do I have a course called "Digital Health UX"?',
     expected_output:
       'The course: "Digital Health UX" has the following information: {partial_course_information}',
@@ -52,7 +52,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_105',
-    task_type: 'search_course',
+    task_type: 'single-hop',
     input: 'Look up "Operations Level 2".',
     expected_output:
       'The course: "Operations Level 2" has the following information: {partial_course_information}',
@@ -65,7 +65,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_106',
-    task_type: 'search_course',
+    task_type: 'single-hop',
     input: 'Search for the course "Advanced Mathematics".',
     expected_output:
       'The course: "Advanced Mathematics" has the following information: {partial_course_information}',
@@ -78,7 +78,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_107',
-    task_type: 'search_course',
+    task_type: 'single-hop',
     input: 'Search for "Computer Science Fundamentals".',
     expected_output:
       'The course: "Computer Science Fundamentals" has the following information: {partial_course_information}',
@@ -93,7 +93,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Course details (sections, pages, activities) ─────────────────────────────
   {
     id: 'case_108',
-    task_type: 'get_course_details',
+    task_type: 'intra-agent-multi-hop',
     input: 'List all sections in "Intro to Safety".',
     expected_output: 'Here are the sections for "Intro to Safety": {sections}.',
     expected_tool_calls: [
@@ -109,7 +109,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_109',
-    task_type: 'get_course_details',
+    task_type: 'intra-agent-multi-hop',
     input: 'Show me the pages and forums in "Intro to Safety".',
     expected_output:
       'Here are the pages and forums in "Intro to Safety": {pages_and_forums}.',
@@ -126,7 +126,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_110',
-    task_type: 'get_course_details',
+    task_type: 'intra-agent-multi-hop',
     input: 'List all sections and pages for "Digital Health UX".',
     expected_output:
       'Here are the sections and pages for "Digital Health UX": {sections_and_pages}.',
@@ -143,7 +143,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_111',
-    task_type: 'get_course_details',
+    task_type: 'intra-agent-multi-hop',
     input: 'What URLs are linked in "Intro to Safety"?',
     expected_output: 'Here are the URLs linked in "Intro to Safety": {urls}.',
     expected_tool_calls: [
@@ -159,7 +159,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_112',
-    task_type: 'get_course_details',
+    task_type: 'intra-agent-multi-hop',
     input:
       'List the week names (section titles) for "Computer Science Fundamentals".',
     expected_output:
@@ -179,7 +179,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Summaries / page-level prompts ───────────────────────────────────────────
   {
     id: 'case_113',
-    task_type: 'summarize_page',
+    task_type: 'intra-agent-multi-hop',
     input: 'Summarize the page "Emergency Procedures" from Intro to Safety.',
     expected_output:
       'Here is the summary of the page "Emergency Procedures" from Intro to Safety: {summary}.',
@@ -196,7 +196,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_114',
-    task_type: 'summarize_page',
+    task_type: 'intra-agent-multi-hop',
     input: 'Summarize "Course Syllabus" in Digital Health UX.',
     expected_output:
       'Here is the summary of "Course Syllabus" from Digital Health UX: {summary}.',
@@ -215,7 +215,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Assignments (per course) ─────────────────────────────────────────────────
   {
     id: 'case_115',
-    task_type: 'get_assignments_for_course',
+    task_type: 'intra-agent-multi-hop',
     input: 'List assignments for "Intro to Safety".',
     expected_output:
       'Here are the assignments for "Intro to Safety": {assignment_names_or_none}.',
@@ -232,7 +232,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_116',
-    task_type: 'get_assignments_for_course',
+    task_type: 'intra-agent-multi-hop',
     input: 'List assignments for "Digital Health UX".',
     expected_output:
       'Here are the assignments for "Digital Health UX": {assignment_names_or_none}.',
@@ -249,7 +249,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_117',
-    task_type: 'get_assignments_for_course',
+    task_type: 'intra-agent-multi-hop',
     input: 'Show assignments for "Operations Level 2".',
     expected_output:
       'Here are the assignments for "Operations Level 2": {assignment_names_or_none}.',
@@ -266,7 +266,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_118',
-    task_type: 'get_assignments_for_course',
+    task_type: 'intra-agent-multi-hop',
     input: 'Show assignments for "Advanced Mathematics".',
     expected_output:
       'Here are the assignments for "Advanced Mathematics": {assignment_names_or_none}.',
@@ -283,7 +283,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_119',
-    task_type: 'get_assignments_for_course',
+    task_type: 'intra-agent-multi-hop',
     input: 'Show assignments for "Computer Science Fundamentals".',
     expected_output:
       'Here are the assignments for "Computer Science Fundamentals": {assignment_names_or_none}.',
@@ -302,7 +302,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Assignments (cross-course / timeboxed) ───────────────────────────────────
   {
     id: 'case_120',
-    task_type: 'get_assignments_timeboxed',
+    task_type: 'single-hop',
     input: 'Show all assignments due in September 2025.',
     expected_output:
       'Assignments due in September 2025: {assignment_list_or_none}.',
@@ -318,7 +318,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_121',
-    task_type: 'get_assignments_timeboxed',
+    task_type: 'single-hop',
     input: 'Show all assignments due in October 2025.',
     expected_output:
       'Assignments due in October 2025: {assignment_list_or_none}.',
@@ -334,7 +334,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_122',
-    task_type: 'get_assignments_after',
+    task_type: 'single-hop',
     input: 'List all assignments due after 2025-09-20.',
     expected_output:
       'Assignments due after 2025-09-20: {assignment_list_or_none}.',
@@ -347,7 +347,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_123',
-    task_type: 'get_assignments_before',
+    task_type: 'single-hop',
     input: 'List all assignments due before 2025-10-03.',
     expected_output:
       'Assignments due before 2025-10-03: {assignment_list_or_none}.',
@@ -360,7 +360,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_124',
-    task_type: 'last_past_assignment',
+    task_type: 'single-hop',
     input: 'Find my most recent past assignment.',
     extended_evaluation_input: CURRENT_DATE_NOTE,
     expected_output:
@@ -374,7 +374,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_125',
-    task_type: 'next_due_assignment',
+    task_type: 'single-hop',
     input: 'What is my next assignment due after today?',
     extended_evaluation_input: CURRENT_DATE_NOTE,
     expected_output:
@@ -390,7 +390,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Combine Moodle + Calendar (create events) ────────────────────────────────
   {
     id: 'case_126',
-    task_type: 'create_event_for_assignment',
+    task_type: 'inter-agent-multi-hop',
     input:
       'Create a calendar event for my next due assignment, lasting 2 hours, with the assignment intro as description.',
     extended_evaluation_input: CURRENT_DATE_NOTE,
@@ -414,7 +414,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_127',
-    task_type: 'create_event_for_specific_course',
+    task_type: 'inter-agent-multi-hop',
     input:
       'Find the next assignment in "Digital Health UX" and create a 90-minute calendar event using its intro as description.',
     expected_output:
@@ -441,7 +441,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_128',
-    task_type: 'create_event_for_last_past_assignment',
+    task_type: 'inter-agent-multi-hop',
     input:
       'Take my last past assignment and create a 1.5 hour review session on its due date.',
     extended_evaluation_input: CURRENT_DATE_NOTE,
@@ -467,7 +467,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Calendar: recurring events ───────────────────────────────────────────────
   {
     id: 'case_129',
-    task_type: 'create_recurring_calendar',
+    task_type: 'single-hop',
     input:
       'Set a recurring study block every Tue/Thu from 18:00 to 19:30 for the next 3 weeks called "Evening Study".',
     extended_evaluation_input: CURRENT_DATE_NOTE,
@@ -488,7 +488,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_130',
-    task_type: 'create_recurring_calendar',
+    task_type: 'single-hop',
     input:
       'Create a weekly "Math Review" every Friday 15:00–16:00 for 5 weeks.',
     extended_evaluation_input: CURRENT_DATE_NOTE,
@@ -511,7 +511,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Calendar: list, find, update ────────────────────────────────────────────
   {
     id: 'case_131',
-    task_type: 'list_calendar_events',
+    task_type: 'single-hop',
     input: 'List my calendar events for the next 7 days.',
     extended_evaluation_input: CURRENT_DATE_NOTE,
     expected_output:
@@ -525,7 +525,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_132',
-    task_type: 'list_calendar_events',
+    task_type: 'single-hop',
     input: 'Show calendar events between 2025-10-01 and 2025-10-07.',
     expected_output:
       'Here are your events from 2025-10-01 to 2025-10-07: {event_list_or_none}.',
@@ -541,7 +541,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_133',
-    task_type: 'find_event_and_update',
+    task_type: 'intra-agent-multi-hop',
     input: 'Find my "Evening Study" event and extend the next one to 2 hours.',
     expected_output:
       'I found your upcoming "Evening Study" and updated its duration to 2 hours.',
@@ -565,7 +565,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_134',
-    task_type: 'find_event_and_move',
+    task_type: 'intra-agent-multi-hop',
     input: 'Move my next "Study Block" event 30 minutes later.',
     expected_output:
       'I found your upcoming "Study Block" event and shifted it 30 minutes later.',
@@ -589,7 +589,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_135',
-    task_type: 'find_event_and_rename',
+    task_type: 'intra-agent-multi-hop',
     input: 'Rename my next "Math Review" event to "Math Deep Dive".',
     expected_output: 'I updated your upcoming event title to "Math Deep Dive".',
     expected_tool_calls: [
@@ -613,7 +613,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_136',
-    task_type: 'find_event_and_add_location',
+    task_type: 'intra-agent-multi-hop',
     input: 'Add location "Library Room B" to my next "Evening Study".',
     expected_output:
       'I added the location "Library Room B" to your next "Evening Study".',
@@ -640,7 +640,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Cross-course assignment digests ──────────────────────────────────────────
   {
     id: 'case_137',
-    task_type: 'assignment_digest',
+    task_type: 'single-hop',
     input: 'Give me a digest of upcoming assignments for the next 10 days.',
     extended_evaluation_input: CURRENT_DATE_NOTE,
     expected_output:
@@ -654,7 +654,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_138',
-    task_type: 'assignment_digest',
+    task_type: 'single-hop',
     input: 'Show assignments due this week.',
     extended_evaluation_input: CURRENT_DATE_NOTE,
     expected_output: 'Assignments due this week: {assignment_list_or_none}.',
@@ -670,7 +670,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_139',
-    task_type: 'assignment_digest',
+    task_type: 'single-hop',
     input: 'What was due last week?',
     extended_evaluation_input: CURRENT_DATE_NOTE,
     expected_output: 'Assignments due last week: {assignment_list_or_none}.',
@@ -688,7 +688,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Course-specific “next/last” (relative) ──────────────────────────────────
   {
     id: 'case_140',
-    task_type: 'course_next_assignment',
+    task_type: 'intra-agent-multi-hop',
     input: 'What is the next due assignment in "Advanced Mathematics"?',
     extended_evaluation_input: CURRENT_DATE_NOTE,
     expected_output:
@@ -706,7 +706,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_141',
-    task_type: 'course_last_assignment',
+    task_type: 'intra-agent-multi-hop',
     input:
       'What was the most recent past assignment in "Computer Science Fundamentals"?',
     extended_evaluation_input: CURRENT_DATE_NOTE,
@@ -727,7 +727,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Calendar creation from course context ────────────────────────────────────
   {
     id: 'case_142',
-    task_type: 'create_course_kickoff_event',
+    task_type: 'inter-agent-multi-hop',
     input:
       'Create a 1-hour kickoff session for "Intro to Safety" next Monday at 09:00.',
     extended_evaluation_input: CURRENT_DATE_NOTE,
@@ -751,7 +751,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_143',
-    task_type: 'create_course_review_series',
+    task_type: 'single-hop',
     input: 'Every Wednesday 17:00–18:00 for 4 weeks, create "Safety Review".',
     extended_evaluation_input: CURRENT_DATE_NOTE,
     expected_output:
@@ -773,7 +773,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Course details: blocks/forums ───────────────────────────────────────────
   {
     id: 'case_144',
-    task_type: 'get_course_details',
+    task_type: 'intra-agent-multi-hop',
     input: 'List the side blocks in "Intro to Safety".',
     expected_output:
       'Here are the blocks in "Intro to Safety": {block_titles}.',
@@ -790,7 +790,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_145',
-    task_type: 'get_course_details',
+    task_type: 'intra-agent-multi-hop',
     input: 'Which forums exist in "Digital Health UX"?',
     expected_output: 'Forums in "Digital Health UX": {forum_names}.',
     expected_tool_calls: [
@@ -808,7 +808,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Rollups by course family ────────────────────────────────────────────────
   {
     id: 'case_146',
-    task_type: 'rollup_assignments_selected_courses',
+    task_type: 'intra-agent-multi-hop',
     input:
       'Show assignments for "Intro to Safety" and "Digital Health UX" in one list.',
     expected_output:
@@ -836,7 +836,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── “SAFE” alias to course ──────────────────────────────────────────────────
   {
     id: 'case_147',
-    task_type: 'search_course',
+    task_type: 'single-hop',
     input: 'Find the module "SAFE".',
     expected_output:
       'The course: "Intro to Safety" has the following information: {partial_course_information}',
@@ -849,7 +849,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_148',
-    task_type: 'get_course_details',
+    task_type: 'intra-agent-multi-hop',
     input: 'Get details for the SAFE module.',
     expected_output:
       'Here are the sections and activities for "Intro to Safety": {sections_and_activities}.',
@@ -868,7 +868,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Calendar windows (relative) ─────────────────────────────────────────────
   {
     id: 'case_149',
-    task_type: 'list_calendar_events',
+    task_type: 'single-hop',
     input: 'What do I have on my calendar tomorrow?',
     extended_evaluation_input: CURRENT_DATE_NOTE,
     expected_output: 'Here are your events for tomorrow: {event_list_or_none}.',
@@ -884,7 +884,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_150',
-    task_type: 'list_calendar_events',
+    task_type: 'single-hop',
     input: 'Show me my events for this weekend.',
     extended_evaluation_input: CURRENT_DATE_NOTE,
     expected_output:
@@ -903,7 +903,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Page checks in other courses ────────────────────────────────────────────
   {
     id: 'case_151',
-    task_type: 'summarize_page',
+    task_type: 'intra-agent-multi-hop',
     input: 'Summarize the "Course Syllabus" page from "Advanced Mathematics".',
     expected_output:
       'Here is the summary of "Course Syllabus" from Advanced Mathematics: {summary}.',
@@ -920,7 +920,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_152',
-    task_type: 'summarize_page',
+    task_type: 'intra-agent-multi-hop',
     input: 'Summarize "Python Style Guide" in "Computer Science Fundamentals".',
     expected_output:
       'Here is the summary of "Python Style Guide" from Computer Science Fundamentals: {summary}.',
@@ -939,7 +939,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Assignment → calendar for a named course ────────────────────────────────
   {
     id: 'case_153',
-    task_type: 'assignment_to_calendar',
+    task_type: 'inter-agent-multi-hop',
     input:
       'Create a 2-hour prep session for the next "Operations Level 2" assignment on its due date.',
     extended_evaluation_input: CURRENT_DATE_NOTE,
@@ -969,7 +969,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Course resource discovery ────────────────────────────────────────────────
   {
     id: 'case_154',
-    task_type: 'get_course_details',
+    task_type: 'intra-agent-multi-hop',
     input: 'List external links in "Computer Science Fundamentals".',
     expected_output:
       'External links in "Computer Science Fundamentals": {urls}.',
@@ -988,7 +988,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Capability (no tool call) ───────────────────────────────────────────────
   {
     id: 'case_155',
-    task_type: 'ask_capabilities',
+    task_type: 'single-hop',
     input: 'What can you do for me in Moodle?',
     expected_output:
       'I can search courses, list enrolled courses, fetch course details, list assignments (by course or across all courses with time filters), and create or update calendar events.',
@@ -998,7 +998,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Timeboxed “today/this month” queries ────────────────────────────────────
   {
     id: 'case_156',
-    task_type: 'get_assignments_timeboxed',
+    task_type: 'single-hop',
     input: 'Show assignments due today.',
     extended_evaluation_input: CURRENT_DATE_NOTE,
     expected_output: 'Assignments due today: {assignment_list_or_none}.',
@@ -1014,7 +1014,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_157',
-    task_type: 'get_assignments_timeboxed',
+    task_type: 'single-hop',
     input: 'Show assignments due this month.',
     extended_evaluation_input: CURRENT_DATE_NOTE,
     expected_output: 'Assignments due this month: {assignment_list_or_none}.',
@@ -1032,7 +1032,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Rename / augment calendar items ─────────────────────────────────────────
   {
     id: 'case_158',
-    task_type: 'find_event_and_add_description',
+    task_type: 'intra-agent-multi-hop',
     input:
       'Find my next "Evening Study" and add "Bring OSHA Quick Card" to its description.',
     extended_evaluation_input: CURRENT_DATE_NOTE,
@@ -1061,7 +1061,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Cross-check page exists then summarize ───────────────────────────────────
   {
     id: 'case_159',
-    task_type: 'summarize_page',
+    task_type: 'intra-agent-multi-hop',
     input: 'Summarize "Final Exam Study Guide" from "Intro to Safety".',
     expected_output:
       'Here is the summary of "Final Exam Study Guide" from Intro to Safety: {summary}.',
@@ -1080,7 +1080,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Find-and-patch by free text (relative “upcoming”) ───────────────────────
   {
     id: 'case_160',
-    task_type: 'find_event_and_update',
+    task_type: 'intra-agent-multi-hop',
     input:
       'Find my next "Digital Health UX" session and add the location "Design Lab 2".',
     extended_evaluation_input: CURRENT_DATE_NOTE,
@@ -1109,7 +1109,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Multi-course section enumeration ────────────────────────────────────────
   {
     id: 'case_161',
-    task_type: 'get_course_details',
+    task_type: 'intra-agent-multi-hop',
     input: 'List section titles for "Operations Level 2".',
     expected_output:
       'Here are the section titles for "Operations Level 2": {section_titles}.',
@@ -1126,7 +1126,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_162',
-    task_type: 'get_course_details',
+    task_type: 'intra-agent-multi-hop',
     input: 'List section titles for "Advanced Mathematics".',
     expected_output:
       'Here are the section titles for "Advanced Mathematics": {section_titles}.',
@@ -1145,7 +1145,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Per-course URL extraction ────────────────────────────────────────────────
   {
     id: 'case_163',
-    task_type: 'get_course_details',
+    task_type: 'intra-agent-multi-hop',
     input: 'Show external links for "Advanced Mathematics".',
     expected_output: 'External links in "Advanced Mathematics": {urls}.',
     expected_tool_calls: [
@@ -1161,7 +1161,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_164',
-    task_type: 'get_course_details',
+    task_type: 'intra-agent-multi-hop',
     input: 'Show external links for "Computer Science Fundamentals".',
     expected_output:
       'External links in "Computer Science Fundamentals": {urls}.',
@@ -1180,7 +1180,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Day planning: assignments + calendar (today) ────────────────────────────
   {
     id: 'case_165',
-    task_type: 'plan_today',
+    task_type: 'inter-agent-multi-hop',
     input: 'What assignments are due today and what events do I have today?',
     extended_evaluation_input: CURRENT_DATE_NOTE,
     expected_output:
@@ -1206,7 +1206,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Week planning: assignments + calendar (this week) ───────────────────────
   {
     id: 'case_166',
-    task_type: 'plan_week',
+    task_type: 'inter-agent-multi-hop',
     input: 'Give me this week’s assignments and my calendar schedule.',
     extended_evaluation_input: CURRENT_DATE_NOTE,
     expected_output:
@@ -1232,7 +1232,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Follow-up: Create slots from assignments (this week) ────────────────────
   {
     id: 'case_167',
-    task_type: 'bulk_create_study_events',
+    task_type: 'inter-agent-multi-hop',
     input:
       'Create a 1-hour study slot on each day an assignment is due this week.',
     extended_evaluation_input: CURRENT_DATE_NOTE,
@@ -1261,7 +1261,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Course quick checkers ───────────────────────────────────────────────────
   {
     id: 'case_168',
-    task_type: 'get_course_details',
+    task_type: 'intra-agent-multi-hop',
     input: 'Does "Intro to Safety" have a forum for announcements?',
     expected_output:
       '"Intro to Safety" contains an announcements forum: {forum_name}.',
@@ -1278,8 +1278,8 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   },
   {
     id: 'case_169',
-    task_type: 'get_course_details',
-    input: 'Does "Digital Health UX" include a “Design Critique Forum”?',
+    task_type: 'intra-agent-multi-hop',
+    input: 'Does "Digital Health UX" include a "Design Critique Forum"?',
     expected_output:
       '"Digital Health UX" contains the forum "Design Critique Forum".',
     expected_tool_calls: [
@@ -1297,7 +1297,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Course-section enumeration variants ─────────────────────────────────────
   {
     id: 'case_170',
-    task_type: 'get_course_details',
+    task_type: 'intra-agent-multi-hop',
     input: 'List section names for "Computer Science Fundamentals".',
     expected_output:
       'Section names for "Computer Science Fundamentals": {section_titles}.',
@@ -1316,7 +1316,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Calendar: busy window check (relative) ──────────────────────────────────
   {
     id: 'case_171',
-    task_type: 'calendar_window',
+    task_type: 'single-hop',
     input: 'Am I free next Thursday between 14:00 and 16:00?',
     extended_evaluation_input: CURRENT_DATE_NOTE,
     expected_output:
@@ -1335,7 +1335,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Create a calendar event for tomorrow (relative) ─────────────────────────
   {
     id: 'case_172',
-    task_type: 'page_to_calendar',
+    task_type: 'single-hop',
     input:
       'Create a 45-minute session to read "Hazard Types Overview" tomorrow at 18:00.',
     extended_evaluation_input: CURRENT_DATE_NOTE,
@@ -1357,7 +1357,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Shift/retitle “next” event (relative) ───────────────────────────────────
   {
     id: 'case_173',
-    task_type: 'find_event_and_update',
+    task_type: 'intra-agent-multi-hop',
     input:
       'Find my next "Evening Study" and change the title to "Safety Study".',
     extended_evaluation_input: CURRENT_DATE_NOTE,
@@ -1386,7 +1386,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Course presence yes/no (search-only) ────────────────────────────────────
   {
     id: 'case_174',
-    task_type: 'search_course',
+    task_type: 'single-hop',
     input: 'Do I have a course named "OPS-201"?',
     expected_output:
       'The course: "Operations Level 2" has the following information: {partial_course_information}',
@@ -1401,7 +1401,7 @@ export const E2E_EVALUATION_TEST_DATA: EvaluationReportBase[] = [
   // ── Multi-tool chain with 7-day window (relative) ───────────────────────────
   {
     id: 'case_175',
-    task_type: 'week_ahead_brief',
+    task_type: 'inter-agent-multi-hop',
     input:
       'Give me a week-ahead brief: assignments due and my calendar for the next 7 days.',
     extended_evaluation_input: CURRENT_DATE_NOTE,

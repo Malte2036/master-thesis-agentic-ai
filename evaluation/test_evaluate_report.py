@@ -1,5 +1,6 @@
 import json
 from typing import Iterable, List, Any, Dict, Optional
+from collections import defaultdict
 from deepeval import evaluate
 from deepeval.test_case import LLMTestCase, LLMTestCaseParams, ToolCall, ToolCallParams
 from deepeval.metrics import GEval, AnswerRelevancyMetric, ContextualRelevancyMetric,ToolCorrectnessMetric, TaskCompletionMetric
@@ -90,6 +91,84 @@ def get_test_cases(data: Optional[Dict[str, Any]] = None, path: str = "./report/
 def load_report_data(path: str = "./report/report.json") -> Dict[str, Any]:
     """Load report data and return it along with metadata."""
     return json.load(open(path, "r", encoding="utf-8"))
+
+def detect_goal_drifting(entry: Dict[str, Any]) -> bool:
+    """Detect if agent drifted from original goal."""
+    trace = entry.get("trace", {})
+    iteration_history = trace.get("iterationHistory", [])
+
+    # Check if agent continues after apparent completion
+    if len(iteration_history) >= 8:  # Threshold for excessive iterations (maxIterations = 10)
+        return True
+
+    # Check for contradictory actions
+    # TODO: Implement more sophisticated goal drift detection
+    return False
+
+def detect_loop(entry: Dict[str, Any]) -> bool:
+    """Detect if agent got stuck in a loop (duplicate function calls)."""
+    trace = entry.get("trace", {})
+    iteration_history = trace.get("iterationHistory", [])
+
+    seen_calls = set()
+    for iteration in iteration_history:
+        function_calls = iteration.get("structuredThought", {}).get("functionCalls", [])
+        call_signature = json.dumps(function_calls, sort_keys=True)
+
+        if call_signature in seen_calls and call_signature != "[]":
+            return True
+        seen_calls.add(call_signature)
+
+    return False
+
+def detect_json_error(entry: Dict[str, Any]) -> bool:
+    """Detect if there was a JSON parsing error."""
+    trace = entry.get("trace", {})
+    error = trace.get("error", "")
+
+    # Check for JSON-related errors
+    if any(keyword in error.lower() for keyword in ["json", "parse", "syntax", "unexpected token"]):
+        return True
+
+    # Check iteration history for errors
+    iteration_history = trace.get("iterationHistory", [])
+    for iteration in iteration_history:
+        thought = iteration.get("structuredThought", {})
+        if "error" in thought or "Error" in str(thought):
+            return True
+
+    return False
+
+def count_successful_steps(entry: Dict[str, Any]) -> int:
+    """Count successful tool call steps."""
+    trace = entry.get("trace", {})
+    iteration_history = trace.get("iterationHistory", [])
+
+    successful_steps = 0
+    for iteration in iteration_history:
+        function_calls = iteration.get("structuredThought", {}).get("functionCalls", [])
+        for call in function_calls:
+            if call.get("result") and "error" not in str(call.get("result", "")).lower():
+                successful_steps += 1
+
+    return successful_steps
+
+def extract_common_errors(entries: List[Dict[str, Any]], limit: int = 3) -> List[str]:
+    """Extract most common error messages."""
+    error_counts = defaultdict(int)
+
+    for entry in entries:
+        trace = entry.get("trace", {})
+        error = trace.get("error", "")
+
+        if error:
+            # Simplify error message
+            simplified = error.split("\n")[0][:100]  # First line, max 100 chars
+            error_counts[simplified] += 1
+
+    # Sort by frequency and return top N
+    sorted_errors = sorted(error_counts.items(), key=lambda x: x[1], reverse=True)
+    return [error for error, count in sorted_errors[:limit]]
 
 metrics = [
     AnswerRelevancyMetric(threshold=0.5),
@@ -199,6 +278,13 @@ print(f"║ {'Git Hash:':<20} {git_hash:<76} ║")
 print(f"║ {'Timestamp:':<20} {timestamp:<76} ║")
 print("╚" + "═"*98 + "╝")
 
+# Group test entries by task_type
+entries = report_data.get("testEntries", [])
+entries_by_type = defaultdict(list)
+for entry in entries:
+    task_type = entry.get("task_type", "unknown")
+    entries_by_type[task_type].append(entry)
+
 tcs = get_test_cases(report_data)
 result = evaluate(display_config=DisplayConfig(file_output_dir="./report/evaluation_report"),test_cases=tcs, metrics=metrics)
 
@@ -229,16 +315,16 @@ print("─" * 100)
 for metric_name, scores in metric_scores.items():
     # Clean up metric name (remove [GEval] tag)
     clean_name = metric_name.replace(" [GEval]", "")
-    
+
     avg_score = sum(scores) / len(scores)
     min_score = min(scores)
     max_score = max(scores)
     threshold = metric_thresholds.get(metric_name, 0.5)
     pass_rate = sum(1 for s in scores if s >= threshold) / len(scores) * 100
-    
+
     # Add visual indicator for pass/fail
     indicator = "✓" if pass_rate >= 70 else "✗"
-    
+
     print(f"{clean_name:<45} {avg_score:>10.3f} {min_score:>8.3f} {max_score:>8.3f} {threshold:>10.2f} {pass_rate:>11.1f}% {indicator}")
 
 print("─" * 100)
@@ -253,4 +339,125 @@ print(f"{'Passed:':<30} {passed_tests:>5}")
 print(f"{'Failed:':<30} {total_tests - passed_tests:>5}")
 print(f"{'Overall Pass Rate:':<30} {overall_pass_rate:>5.1f}%")
 print("\n" + "═"*100 + "\n")
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TASK TYPE ANALYSIS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+print("\n" + "╔" + "═"*98 + "╗")
+print("║" + " "*35 + "TASK TYPE BREAKDOWN" + " "*42 + "║")
+print("╚" + "═"*98 + "╝\n")
+
+# Map test results back to entries
+test_result_map = {}
+for i, test_result in enumerate(result.test_results):
+    if i < len(entries):
+        entry_id = entries[i].get("id", f"test_{i}")
+        test_result_map[entry_id] = test_result
+
+# Analyze by task type
+categories_report = {}
+failure_analysis = {
+    "goal_drifting_count": 0,
+    "loop_count": 0,
+    "json_error_count": 0,
+    "faithfulness_fail": 0,
+}
+
+# Find Faithfulness metric name
+faithfulness_metric_name = None
+for metric_name in metric_scores.keys():
+    if "Faithfulness" in metric_name or "faithfulness" in metric_name.lower():
+        faithfulness_metric_name = metric_name
+        break
+
+for task_type, type_entries in entries_by_type.items():
+    n = len(type_entries)
+    passed = 0
+    total_steps = 0
+    failed_entries = []
+
+    for entry in type_entries:
+        entry_id = entry.get("id", "")
+        test_result = test_result_map.get(entry_id)
+
+        if test_result and test_result.success:
+            passed += 1
+
+        # Count successful steps
+        steps = count_successful_steps(entry)
+        total_steps += steps
+
+        # Failure analysis
+        if detect_goal_drifting(entry):
+            failure_analysis["goal_drifting_count"] += 1
+
+        if detect_loop(entry):
+            failure_analysis["loop_count"] += 1
+
+        if detect_json_error(entry):
+            failure_analysis["json_error_count"] += 1
+
+        # Check Faithfulness metric
+        if test_result and faithfulness_metric_name:
+            for metric_result in test_result.metrics_data:
+                if metric_result.name == faithfulness_metric_name:
+                    threshold = metric_thresholds.get(faithfulness_metric_name, 0.7)
+                    if metric_result.score < threshold:
+                        failure_analysis["faithfulness_fail"] += 1
+
+        if not (test_result and test_result.success):
+            failed_entries.append(entry)
+
+    pass_rate = (passed / n * 100) if n > 0 else 0
+    avg_steps = (total_steps / n) if n > 0 else 0
+    common_errors = extract_common_errors(failed_entries, limit=3)
+
+    categories_report[task_type] = {
+        "n": n,
+        "passed": passed,
+        "pass_rate_percent": round(pass_rate, 2),
+        "avg_steps_success": round(avg_steps, 2),
+        "common_errors": common_errors,
+    }
+
+    # Print task type summary
+    print(f"Task Type: {task_type}")
+    print(f"  Total Tests: {n}")
+    print(f"  Passed: {passed}")
+    print(f"  Pass Rate: {pass_rate:.1f}%")
+    print(f"  Avg Successful Steps: {avg_steps:.2f}")
+    if common_errors:
+        print(f"  Common Errors:")
+        for i, error in enumerate(common_errors, 1):
+            print(f"    {i}. {error}")
+    print()
+
+print("─" * 100)
+print("\nFailure Analysis:")
+print(f"  Goal Drifting: {failure_analysis['goal_drifting_count']}")
+print(f"  Loop Detection: {failure_analysis['loop_count']}")
+print(f"  JSON Errors: {failure_analysis['json_error_count']}")
+print(f"  Faithfulness Fails: {failure_analysis['faithfulness_fail']}")
+print("\n" + "═"*100 + "\n")
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# GENERATE JSON REPORT
+# ═══════════════════════════════════════════════════════════════════════════════
+
+json_report = {
+    "summary": {
+        "total_tests": total_tests,
+        "overall_pass_rate": round(overall_pass_rate, 2),
+    },
+    "categories": categories_report,
+    "failure_analysis": failure_analysis,
+}
+
+# Save JSON report
+output_path = "./report/task_type_analysis.json"
+with open(output_path, "w", encoding="utf-8") as f:
+    json.dump(json_report, f, indent=2, ensure_ascii=False)
+
+print(f"✓ Task type analysis report saved to: {output_path}\n")
 
