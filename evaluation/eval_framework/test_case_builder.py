@@ -224,6 +224,231 @@ DEBUG: Function completed successfully with trace_id=abc123""",
         ],
     )))
 
+    # POSITIVE CONTROL C: Partial Match but Semantically Correct
+    calibration_cases.append((
+        "POSITIVE C: Partial Match Semantically Correct",
+        True,
+        LLMTestCase(
+        input="Wann ist die nächste Abgabe für Verteilte Systeme?",
+        actual_output="Die nächste Abgabe für Verteilte Systeme ist Übungsblatt 1, fällig am 14.12.2025.",
+        expected_output="Die nächste Abgabe ist 'Übungsblatt 1' am 14. Dezember 2025.",
+        context=[
+            f"Current date for evaluation: {EVALUATION_CURRENT_DATE}",
+            "Course: Verteilte Systeme",
+            "Assignment: Übungsblatt 1",
+            "Due date: 2025-12-14T23:59:00Z"
+        ],
+        expected_tools=[
+            ToolCall(name="moodle.get_upcoming_assignments", input_parameters={"course_name": "Verteilte Systeme"})
+        ],
+        tools_called=[
+            ToolCall(name="moodle.get_upcoming_assignments", input_parameters={"course_name": "Verteilte Systeme"})
+        ],
+    )))
+
+    # POSITIVE CONTROL D: Complex Query with Correct Reasoning
+    calibration_cases.append((
+        "POSITIVE D: Complex Query Correct Reasoning",
+        True,
+        LLMTestCase(
+        input="Zeige mir alle kommenden Abgaben und erstelle Kalendereinträge für die nächsten drei.",
+        actual_output="Ich habe die folgenden Abgaben gefunden: Übungsblatt 1 (14.12.2025), Übungsblatt 2 (21.12.2025), Übungsblatt 3 (28.12.2025). Kalendereinträge wurden für alle drei erstellt.",
+        expected_output="Abgaben gefunden: Übungsblatt 1 (14.12.2025), Übungsblatt 2 (21.12.2025), Übungsblatt 3 (28.12.2025). Kalendereinträge erstellt.",
+        context=[
+            f"Current date for evaluation: {EVALUATION_CURRENT_DATE}",
+            "Course: Verteilte Systeme",
+            "Assignments: Übungsblatt 1 (2025-12-14), Übungsblatt 2 (2025-12-21), Übungsblatt 3 (2025-12-28)",
+            "Calendar events created: cal_123, cal_124, cal_125"
+        ],
+        expected_tools=[
+            ToolCall(name="moodle.get_upcoming_assignments", input_parameters={"course_name": "Verteilte Systeme"}),
+            ToolCall(name="calendar.create_event", input_parameters={"title": "Verteilte Systeme - Übungsblatt 1", "date": "2025-12-14"}),
+            ToolCall(name="calendar.create_event", input_parameters={"title": "Verteilte Systeme - Übungsblatt 2", "date": "2025-12-21"}),
+            ToolCall(name="calendar.create_event", input_parameters={"title": "Verteilte Systeme - Übungsblatt 3", "date": "2025-12-28"})
+        ],
+        tools_called=[
+            ToolCall(name="moodle.get_upcoming_assignments", input_parameters={"course_name": "Verteilte Systeme"}),
+            ToolCall(name="calendar.create_event", input_parameters={"title": "Verteilte Systeme - Übungsblatt 1", "date": "2025-12-14"}),
+            ToolCall(name="calendar.create_event", input_parameters={"title": "Verteilte Systeme - Übungsblatt 2", "date": "2025-12-21"}),
+            ToolCall(name="calendar.create_event", input_parameters={"title": "Verteilte Systeme - Übungsblatt 3", "date": "2025-12-28"})
+        ],
+    )))
+
+    # NEGATIVE CONTROL E: Correct Tools but Wrong Parameters
+    calibration_cases.append((
+        "NEGATIVE E: Wrong Parameters",
+        False,
+        LLMTestCase(
+        input="Wann ist die nächste Abgabe für Verteilte Systeme?",
+        actual_output="Die nächste Abgabe ist 'Übungsblatt 2' am 21. Dezember 2025.",
+        expected_output="Die nächste Abgabe ist 'Übungsblatt 1' am 14. Dezember 2025.",
+        context=[
+            f"Current date for evaluation: {EVALUATION_CURRENT_DATE}",
+            "Course: Verteilte Systeme",
+            "Assignment: Übungsblatt 1",
+            "Due date: 2025-12-14T23:59:00Z"
+        ],
+        expected_tools=[
+            ToolCall(name="moodle.get_upcoming_assignments", input_parameters={"course_name": "Verteilte Systeme"})
+        ],
+        tools_called=[
+            ToolCall(name="moodle.get_upcoming_assignments", input_parameters={"course_name": "Datenbanken"})
+        ],
+    )))
+
+    # NEGATIVE CONTROL F: Partial Tool Match
+    calibration_cases.append((
+        "NEGATIVE F: Partial Tool Match",
+        False,
+        LLMTestCase(
+        input="Erstelle einen Kalendereintrag für die Abgabe 'Übungsblatt 1' in Verteilte Systeme am 14.12.2025 um 23:59 Uhr.",
+        actual_output="Ich habe versucht, den Kalendereintrag zu erstellen, aber es gab ein Problem.",
+        expected_output="Kalendereintrag erstellt für 'Verteilte Systeme - Übungsblatt 1' am 14.12.2025 um 23:59 Uhr.",
+        context=[
+            f"Current date for evaluation: {EVALUATION_CURRENT_DATE}",
+            "Course: Verteilte Systeme",
+            "Assignment: Übungsblatt 1",
+            "Due date: 2025-12-14T23:59:00Z"
+        ],
+        expected_tools=[
+            ToolCall(name="moodle.get_assignment_details", input_parameters={"assignment_name": "Übungsblatt 1"}),
+            ToolCall(name="calendar.create_event", input_parameters={
+                "title": "Verteilte Systeme - Übungsblatt 1",
+                "date": "2025-12-14",
+                "time": "23:59"
+            })
+        ],
+        tools_called=[
+            ToolCall(name="moodle.get_assignment_details", input_parameters={"assignment_name": "Übungsblatt 1"}),
+            ToolCall(name="calendar.list_events", input_parameters={})
+        ],
+    )))
+
+    # NEGATIVE CONTROL G: Correct Tools but Wrong Order
+    calibration_cases.append((
+        "NEGATIVE G: Wrong Tool Order",
+        False,
+        LLMTestCase(
+        input="Erstelle einen Kalendereintrag für die Abgabe 'Übungsblatt 1' in Verteilte Systeme am 14.12.2025 um 23:59 Uhr.",
+        actual_output="Kalendereintrag erstellt, aber Details fehlen noch.",
+        expected_output="Kalendereintrag erstellt für 'Verteilte Systeme - Übungsblatt 1' am 14.12.2025 um 23:59 Uhr.",
+        context=[
+            f"Current date for evaluation: {EVALUATION_CURRENT_DATE}",
+            "Course: Verteilte Systeme",
+            "Assignment: Übungsblatt 1",
+            "Due date: 2025-12-14T23:59:00Z"
+        ],
+        expected_tools=[
+            ToolCall(name="moodle.get_assignment_details", input_parameters={"assignment_name": "Übungsblatt 1"}),
+            ToolCall(name="calendar.create_event", input_parameters={
+                "title": "Verteilte Systeme - Übungsblatt 1",
+                "date": "2025-12-14",
+                "time": "23:59"
+            })
+        ],
+        tools_called=[
+            ToolCall(name="calendar.create_event", input_parameters={
+                "title": "Verteilte Systeme - Übungsblatt 1",
+                "date": "2025-12-14",
+                "time": "23:59"
+            }),
+            ToolCall(name="moodle.get_assignment_details", input_parameters={"assignment_name": "Übungsblatt 1"})
+        ],
+    )))
+
+    # NEGATIVE CONTROL H: Empty Output
+    calibration_cases.append((
+        "NEGATIVE H: Empty Output",
+        False,
+        LLMTestCase(
+        input="Wann ist die nächste Abgabe für Verteilte Systeme?",
+        actual_output="",
+        expected_output="Die nächste Abgabe ist 'Übungsblatt 1' am 14. Dezember 2025.",
+        context=[
+            f"Current date for evaluation: {EVALUATION_CURRENT_DATE}",
+            "Course: Verteilte Systeme",
+            "Assignment: Übungsblatt 1",
+            "Due date: 2025-12-14T23:59:00Z"
+        ],
+        expected_tools=[
+            ToolCall(name="moodle.get_upcoming_assignments", input_parameters={"course_name": "Verteilte Systeme"})
+        ],
+        tools_called=[
+            ToolCall(name="moodle.get_upcoming_assignments", input_parameters={"course_name": "Verteilte Systeme"})
+        ],
+    )))
+
+    # NEGATIVE CONTROL I: Off-Topic but Plausible Answer
+    calibration_cases.append((
+        "NEGATIVE I: Off-Topic Plausible Answer",
+        False,
+        LLMTestCase(
+        input="Wann ist die nächste Abgabe für Verteilte Systeme?",
+        actual_output="Die nächste Vorlesung findet am Montag, den 15. Dezember 2025 um 10:00 Uhr statt.",
+        expected_output="Die nächste Abgabe ist 'Übungsblatt 1' am 14. Dezember 2025.",
+        context=[
+            f"Current date for evaluation: {EVALUATION_CURRENT_DATE}",
+            "Course: Verteilte Systeme",
+            "Assignment: Übungsblatt 1",
+            "Due date: 2025-12-14T23:59:00Z"
+        ],
+        expected_tools=[
+            ToolCall(name="moodle.get_upcoming_assignments", input_parameters={"course_name": "Verteilte Systeme"})
+        ],
+        tools_called=[
+            ToolCall(name="moodle.get_course_schedule", input_parameters={"course_name": "Verteilte Systeme"})
+        ],
+    )))
+
+    # NEGATIVE CONTROL J: Missing Required Tool Calls
+    calibration_cases.append((
+        "NEGATIVE J: Missing Required Tool Calls",
+        False,
+        LLMTestCase(
+        input="Erstelle einen Kalendereintrag für die Abgabe 'Übungsblatt 1' in Verteilte Systeme am 14.12.2025 um 23:59 Uhr.",
+        actual_output="Ich habe versucht, die Informationen zu finden, aber konnte den Kalendereintrag nicht erstellen.",
+        expected_output="Kalendereintrag erstellt für 'Verteilte Systeme - Übungsblatt 1' am 14.12.2025 um 23:59 Uhr.",
+        context=[
+            f"Current date for evaluation: {EVALUATION_CURRENT_DATE}",
+            "Course: Verteilte Systeme",
+            "Assignment: Übungsblatt 1",
+            "Due date: 2025-12-14T23:59:00Z"
+        ],
+        expected_tools=[
+            ToolCall(name="moodle.get_assignment_details", input_parameters={"assignment_name": "Übungsblatt 1"}),
+            ToolCall(name="calendar.create_event", input_parameters={
+                "title": "Verteilte Systeme - Übungsblatt 1",
+                "date": "2025-12-14",
+                "time": "23:59"
+            })
+        ],
+        tools_called=[
+            ToolCall(name="moodle.get_assignment_details", input_parameters={"assignment_name": "Übungsblatt 1"})
+        ],
+    )))
+
+    # NEGATIVE CONTROL K: Factually Incorrect but Well-Formatted
+    calibration_cases.append((
+        "NEGATIVE K: Factually Incorrect",
+        False,
+        LLMTestCase(
+        input="Wann ist die nächste Abgabe für Verteilte Systeme?",
+        actual_output="Die nächste Abgabe ist 'Übungsblatt 5' am 30. Dezember 2025.",
+        expected_output="Die nächste Abgabe ist 'Übungsblatt 1' am 14. Dezember 2025.",
+        context=[
+            f"Current date for evaluation: {EVALUATION_CURRENT_DATE}",
+            "Course: Verteilte Systeme",
+            "Assignment: Übungsblatt 1",
+            "Due date: 2025-12-14T23:59:00Z"
+        ],
+        expected_tools=[
+            ToolCall(name="moodle.get_upcoming_assignments", input_parameters={"course_name": "Verteilte Systeme"})
+        ],
+        tools_called=[
+            ToolCall(name="moodle.get_upcoming_assignments", input_parameters={"course_name": "Verteilte Systeme"})
+        ],
+    )))
+
     return calibration_cases
 
 

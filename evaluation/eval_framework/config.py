@@ -30,18 +30,18 @@ class EvaluationConfig:
 # and generate a comparative summary.
 
 EXPERIMENTS: List[EvaluationConfig] = [
-    EvaluationConfig(
-        name="Without TODO List",
-        report_path="./report/report_without_todo.json",
-        output_dir="./report/evaluation_without_todo",
-        description="Agent operates without todo list feature"
-    ),
-    EvaluationConfig(
-        name="With TODO List",
-        report_path="./report/report_with_todo.json",
-        output_dir="./report/evaluation_with_todo",
-        description="Agent uses todo list for task management"
-    ),
+    # EvaluationConfig(
+    #     name="Without TODO List",
+    #     report_path="./report/report_without_todo.json",
+    #     output_dir="./report/evaluation_without_todo",
+    #     description="Agent operates without todo list feature"
+    # ),
+    # EvaluationConfig(
+    #     name="With TODO List",
+    #     report_path="./report/report_with_todo.json",
+    #     output_dir="./report/evaluation_with_todo",
+    #     description="Agent uses todo list for task management"
+    # ),
 ]
 
 CALIBRATION_OUTPUT_DIR = "./report/calibration_report"
