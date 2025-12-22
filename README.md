@@ -30,6 +30,26 @@ The system follows a hierarchical microservice structure that strictly separates
 
 ---
 
+## 📋 Prerequisites
+
+Before setting up the project, ensure your environment meets the following requirements:
+
+- **Hardware**: An NVIDIA GPU with sufficient VRAM (e.g., RTX 4090) is required to support the local inference of the Qwen3-4B model via the vLLM engine.
+
+- **Containerization**: Docker and Docker Compose are necessary to orchestrate the distributed microservice architecture.
+
+- **Node.js**: Version 22+ is used for the backend logic and the Next.js frontend.
+
+- **pnpm**: The project uses pnpm for efficient package management within the Nx monorepo.
+
+- **Python**: Required for executing the semantic evaluation pipeline and metrics analysis using the DeepEval framework.
+
+- **Moodle Access**: A valid Webservice Token is required for course and assignment retrieval.
+
+- **Google Calendar Access**: Configured OAuth2 credentials are required for managing calendar events.
+
+---
+
 ## 🛠 Technology Stack
 
 - **Frontend**: Next.js with real-time visualization of the reasoning process via Server-Sent Events (SSE).
