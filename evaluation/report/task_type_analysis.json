@@ -1,0 +1,35 @@
+{
+  "summary": {
+    "total_tests": 75,
+    "overall_pass_rate": 53.33
+  },
+  "categories": {
+    "single-hop": {
+      "n": 30,
+      "passed": 14,
+      "pass_rate_percent": 46.67,
+      "avg_steps_success": 0.6,
+      "common_errors": []
+    },
+    "intra-agent-multi-hop": {
+      "n": 36,
+      "passed": 24,
+      "pass_rate_percent": 66.67,
+      "avg_steps_success": 0.53,
+      "common_errors": []
+    },
+    "inter-agent-multi-hop": {
+      "n": 9,
+      "passed": 2,
+      "pass_rate_percent": 22.22,
+      "avg_steps_success": 0.67,
+      "common_errors": []
+    }
+  },
+  "failure_analysis": {
+    "goal_drifting_count": 0,
+    "loop_count": 0,
+    "json_error_count": 4,
+    "faithfulness_fail": 14
+  }
+}

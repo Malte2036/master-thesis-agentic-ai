@@ -9,5 +9,5 @@ __pycache__
 *.pyzw
 .deepeval
 .env
-report/**/*
-!report/.keep
+report_old/**/*
+!report/**/*

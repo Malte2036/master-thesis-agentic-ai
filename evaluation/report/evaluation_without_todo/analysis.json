@@ -1,0 +1,77 @@
+{
+  "summary": {
+    "total_tests": 75,
+    "overall_pass_rate": 56.0
+  },
+  "calibration": {
+    "positive_controls": {
+      "total": 2,
+      "passed": 2,
+      "pass_rate": 100.0
+    },
+    "negative_controls": {
+      "total": 4,
+      "failed": 4,
+      "fail_rate": 100.0
+    },
+    "metrics_separation": {
+      "Answer Relevancy": {
+        "positive_avg": 1.0,
+        "negative_avg": 0.562,
+        "separation": 0.438
+      },
+      "Task Completion": {
+        "positive_avg": 1.0,
+        "negative_avg": 0.525,
+        "separation": 0.475
+      },
+      "Faithfulness (to context)": {
+        "positive_avg": 0.961,
+        "negative_avg": 0.449,
+        "separation": 0.513
+      },
+      "Goal Satisfaction": {
+        "positive_avg": 1.0,
+        "negative_avg": 0.433,
+        "separation": 0.567
+      },
+      "Format Compliance": {
+        "positive_avg": 1.0,
+        "negative_avg": 0.297,
+        "separation": 0.703
+      }
+    },
+    "calibration_valid": true
+  },
+  "categories": {
+    "single-hop": {
+      "n": 30,
+      "passed": 18,
+      "pass_rate_percent": 60.0,
+      "avg_steps_success": 0.67,
+      "common_errors": []
+    },
+    "intra-agent-multi-hop": {
+      "n": 36,
+      "passed": 19,
+      "pass_rate_percent": 52.78,
+      "avg_steps_success": 0.69,
+      "common_errors": [
+        "Maximum number of iterations reached."
+      ]
+    },
+    "inter-agent-multi-hop": {
+      "n": 9,
+      "passed": 5,
+      "pass_rate_percent": 55.56,
+      "avg_steps_success": 0.89,
+      "common_errors": []
+    }
+  },
+  "failure_analysis": {
+    "goal_drifting_count": 1,
+    "loop_count": 0,
+    "json_error_count": 5,
+    "faithfulness_fail": 0
+  }
+}
