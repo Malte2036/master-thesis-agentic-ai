@@ -116,13 +116,13 @@ A quantitative ablation study examined the impact of explicit planning modules o
 pnpm run test:evaluation
 # Start analysis script
 cd evaluation
-source venv/bin/activate && python evaluate_experiments.py
+source venv/bin/activate && pip install -r requirements.txt && python evaluate_experiments.py
 ```
 
 ---
 
 ## 👨‍💻 Author
 
-**Malte Sehmer**, Hochschule Düsseldorf – Department of Media
+**Malte Sehmer**, Hochschule Düsseldorf
 
 Submission Date: December 23, 2025

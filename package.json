@@ -22,7 +22,7 @@
     "lint": "nx run-many -t lint",
     "test": "nx run-many -t test",
     "test:e2e": "pnpm vitest run --dir tests/e2e",
-    "test:evaluation": "npx ts-node tests/evaluation/evaluation.ts",
+    "test:evaluation": "npx ts-node tests/evaluation/evaluation.ts && cd evaluation && source venv/bin/activate && pip install -r requirements.txt && python evaluate_experiments.py",
     "test:moodle-agent": "pnpm vitest run --dir apps/moodle-agent",
     "test:moodle-agent:e2e": "pnpm vitest run --dir apps/moodle-agent index.spec.ts",
     "test:agent-framework": "pnpm vitest run --dir packages/agent-framework",
