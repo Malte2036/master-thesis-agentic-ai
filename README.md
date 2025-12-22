@@ -1,124 +1,128 @@
-# 🎓 Agentic ReAct AI for University Task Automation
+# Agentic AI: Intelligent Study Assistant
 
-> A modular, agentic AI system based on the ReAct (Reasoning + Acting) paradigm that enables language models to solve real-world academic tasks through orchestrated reasoning and tool use.
+> **Thesis Title:** _Agentic AI: Conception and Prototypical Implementation of an Intelligent Study Assistant Based on a Large Language Model_
+>
+> **Original Title (German):** _Agentic AI: Konzeption und prototypische Umsetzung eines intelligenten Studienassistenten auf Basis eines Large Language Models_
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+This repository contains the conception and functional prototype of an intelligent study assistant, developed as part of a Master's thesis at **Hochschule Düsseldorf (HSD)**. The system uses a local **multi-agent architecture** to autonomously support student workflows such as deadline management and course organization.
 
-## 📋 Table of Contents
+## 🌟 Key Features
 
-- [📝 Project Details](#-project-details)
-  - [High-Level Thesis Goal](#high-level-thesis-goal)
-  - [Overall Architecture](#overall-architecture)
-  - [System Components](#system-components)
-  - [Current State & Key Characteristics](#current-state--key-characteristics)
-- [📚 Use Case](#-use-case)
-- [🚀 Getting Started](#-getting-started)
+- **Privacy-by-Design**: The system operates entirely locally on consumer hardware (e.g., RTX 4090), ensuring sensitive data such as grades and appointments never leave your own infrastructure.
 
-## 📝 Project Details
+- **Multi-Agent Orchestration**: A central **Routing Agent** decomposes complex tasks and delegates them to specialized sub-agents for Moodle and calendar services.
 
-### High-Level Thesis Goal
+- **Standardized Interoperability**: Uses the **Model Context Protocol (MCP)** for tool integration and the **Agent2Agent (A2A)** protocol for communication between autonomous agents.
 
-This project is a master's thesis that implements a modular, multi-agent AI system from scratch to automate university-related tasks. It is built on the **ReAct (Reasoning + Acting)** paradigm, where a central AI orchestrator can reason about a problem, select tools, observe the results, and repeat the cycle until the user's request is fulfilled. A key focus is on the interpretability of the agent's process, making the AI's "thinking" transparent to the user.
+- **High-Performance Inference**: Utilizes the **vLLM engine** with **PagedAttention** for highly efficient memory management and parallel request processing.
 
-### Overall Architecture
+---
 
-The system is designed with a hierarchical, **microservices-based multi-agent architecture**. This architecture features a clear separation of concerns between a single, autonomous agent that can reason and make decisions, and a set of passive "tool agents" that provide specialized capabilities.
+## 🏗 System Architecture
 
-This is a powerful and common pattern: the autonomous agent acts as an **artisan**, and the tool agents are its specialized **tools**. The artisan decides which tool to use and for what purpose; the tools simply execute their function when called upon.
+The system follows a hierarchical microservice structure that strictly separates cognitive planning from technical execution.
 
-Communication between the central orchestrator and the tool agents is handled by the **Model Context Protocol (MCP)**, a standardized protocol that allows the orchestrator to dynamically discover and execute the functions (tools) that each agent provides.
+- **Routing Agent**: Acts as an orchestrator and uses the **ReAct paradigm** (Reasoning + Acting) to solve tasks step by step.
 
-### System Components
+- **Tool Agents (Moodle/Calendar)**: Encapsulate domain-specific logic and perform independent "sub-reasoning" (e.g., resolving course names to IDs).
 
-The project is a polyglot monorepo (TypeScript/Node.js and Python) containing the following main components:
+- **MCP Servers**: Provide a standardized abstraction layer for technical access to external APIs such as Moodle or Google Calendar.
 
-- **User Interface (`apps/frontend`):**
+---
 
-  - **Technology:** Next.js (React/TypeScript) with Tailwind CSS.
-  - **Function:** Provides a modern web-based chat interface for the user. It communicates with the backend via HTTP and Server-Sent Events (SSE) for real-time updates.
-  - **Key Feature:** It includes a custom `ProcessViewer` component that visualizes the agent's step-by-step reasoning process (Thought -> Action -> Observation) as it happens, providing transparency into the agent's decision-making.
+## 🛠 Technology Stack
 
-- **Autonomous Orchestrator Agent (`apps/routing-agent`):**
+- **Frontend**: Next.js with real-time visualization of the reasoning process via Server-Sent Events (SSE).
 
-  - **Technology:** TypeScript/Node.js.
-  - **Function:** This is the "brain" or **artisan** of the system. As a true autonomous agent, it perceives the user's request, reasons about it, and acts to fulfill the goal. It manages the entire ReAct loop.
-  - **Implementation:** It uses a custom-built `ReActRouter` that:
-    1.  **Reasons (Thought):** Generates a natural language thought about what to do next.
-    2.  **Plans (Structured Thought):** Translates the thought into a structured, machine-readable plan that specifies which tool agent to call, which function to use, and with what arguments.
-    3.  **Acts (Tool Use):** Dispatches the function calls to the appropriate tool agents via MCP.
+- **Backend**: Node.js & TypeScript within an **Nx Monorepo**.
 
-- **Specialized Tool Agents (`apps/moodle-mcp`, `apps/calendar-mcp`):**
+- **AI Model**: **Qwen3-4B** (Small Language Model), optimized for local execution.
 
-  - **Technology:** TypeScript/Node.js standalone services.
-  - **Function:** These are the passive "workers" or **tools** that the orchestrator wields. They do not have their own reasoning loops or goals. They simply wait for commands from the orchestrator and execute their specific function (e.g., connect to an external API).
-  - **`moodle-mcp`:** Provides tools for interacting with the Moodle Learning Management System.
-    - `get_all_courses`, `search_courses_by_name`, `get_course_details`, `get_assignments_for_all_courses`, `get_assignments_for_course`, `get_user_info`.
-  - **`calendar-mcp`:** Provides a single, focused tool for calendar operations.
-    - `create_calendar_event`.
+- **Validation**: Strict runtime validation of all data structures using **Zod**.
 
-- **Shared Libraries (`packages/`):**
-  - **`agent-framework`:** A shared TypeScript package that provides the core infrastructure for creating new agents and enabling them to communicate via the **Model Context Protocol (MCP)**.
-  - **`types`:** A centralized package defining shared TypeScript types and Zod schemas, ensuring data consistency across all services.
+---
 
-### Current State & Key Characteristics
+## 🚀 Installation & Setup
 
-- **Framework-Free Core Logic:** The ReAct orchestration loop is implemented from the ground up, demonstrating a deep understanding of agentic principles without relying on third-party libraries like LangChain.
-- **Runnable System:** The project is a fully functional, multi-component system that can be run via `pnpm` and `docker-compose`.
-- **Focus on Transparency:** The real-time visualization of the agent's thought process is the most prominent feature of the user experience.
-- **Identified Area for Improvement:** The "Observation" step in the `routing-agent` is at a foundational stage. Currently, the agent observes the raw JSON output from the tool calls. The code block intended to create a natural language summary of this response is commented out.
+### 1. Preparation
 
-> ⚠️ **Note**: This project is designed for experimentation, not production deployment.
-
-## 📚 Use Case
-
-### Example Scenario
-
-> "Show me all my current courses, and create calendar events for any assignments due in the next 14 days."
-
-### Process Flow
-
-The system operates on the ReAct (Reason-Act) principle. For the example scenario, the flow is orchestrated by the `routing-agent` over several iterations:
-
-1.  **Initial Prompt:** The user asks: _"Show me all my current courses, and create calendar events for any assignments due in the next 14 days."_
-
-2.  **Iteration 1: Getting Course Information**
-
-    - **🤔 Thought:** The `routing-agent` decides it first needs to know which courses the user is enrolled in to find their assignments.
-    - **🎬 Action:** It calls the `get_all_courses` function on the `moodle-mcp`.
-    - **👀 Observation:** It receives a JSON list of the user's courses from the `moodle-mcp`.
-
-3.  **Iteration 2: Finding Assignments**
-
-    - **🤔 Thought:** Now that it has the courses, the agent decides it needs to find the assignments for those courses.
-    - **🎬 Action:** It calls the `get_assignments_for_course` function on the `moodle-mcp` for each course ID it found.
-    - **👀 Observation:** It receives a JSON list of assignments, including their due dates.
-
-4.  **Iteration 3: Creating Calendar Events**
-
-    - **🤔 Thought:** The agent now has the assignments. It filters them to find those due in the next 14 days and decides it needs to create calendar events for them.
-    - **🎬 Action:** For each relevant assignment, it calls the `create_calendar_event` function on the `calendar-mcp`, passing the assignment's name and due date.
-    - **👀 Observation:** It receives a success confirmation from the `calendar-mcp` for each created event.
-
-5.  **Final Response:**
-    - **🤔 Thought:** The agent sees that all tasks are complete. It decides it's time to formulate a friendly response to the user.
-    - **🎬 Action:** The agent generates a final, human-readable summary of the actions it took.
-    - **✅ Output:** The user receives a message like: "I have found your courses and created calendar events for 3 upcoming assignments."
-
-This entire process is streamed to the user interface, providing a transparent view of the agent's reasoning at every step.
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js (v16 or higher)
-- pnpm package manager
-
-### Installation
+Install dependencies and copy the example configuration file:
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Start all agents (e.g. routing-agent, moodle-mcp, calendar-mcp)
-pnpm dev
+pnpm i
+cp .env.example .env
 ```
+
+Enter your API keys and tokens in the `.env` file.
+
+### 2. Network Configuration (Local Development)
+
+To access the locally hosted Moodle instance, an entry must be added to the `hosts` file:
+
+- **Entry**: `127.0.0.1  moodle`
+- Moodle will then be accessible via `http://moodle`.
+
+### 3. Start System
+
+Starts the entire agent system along with a local Moodle instance:
+
+```bash
+bash scripts/start-docker.sh
+```
+
+### 4. End-to-End Tests
+
+Starts the system including **WireMock** to simulate the Moodle and Google Calendar APIs:
+
+```bash
+bash scripts/start-docker.sh test
+```
+
+---
+
+## 🧪 Testing
+
+Run tests for individual components:
+
+```bash
+# End-to-End tests
+pnpm test:e2e
+
+# Agent Framework unit tests
+pnpm test:agent-framework
+
+# Moodle Agent unit tests
+pnpm test:moodle-agent
+
+# Moodle Agent E2E tests
+pnpm test:moodle-agent:e2e
+```
+
+---
+
+## 📊 Evaluation & Research Findings
+
+A quantitative ablation study examined the impact of explicit planning modules on Small Language Models (SLMs).
+
+- **Results**: An explicit TODO list led to a performance drop of **10.7 percentage points** compared to the baseline (56.0% vs. 45.3% pass rate).
+
+- **Inverse Scaling**: The more complex the context becomes through planning patterns, the more the precision of smaller models decreases.
+
+- **Conclusion**: For local agent systems based on SLMs, a **"Less is More"** strategy in prompt engineering is more effective than complex planning patterns from larger models.
+
+### Running Evaluation Manually:
+
+```bash
+pnpm run test:evaluation
+# Start analysis script
+cd evaluation
+source venv/bin/activate && python evaluate_experiments.py
+```
+
+---
+
+## 👨‍💻 Author
+
+**Malte Sehmer**, Hochschule Düsseldorf – Department of Media
+
+Submission Date: December 23, 2025
