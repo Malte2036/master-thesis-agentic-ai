@@ -30,6 +30,12 @@ The system follows a hierarchical microservice structure that strictly separates
 
 ---
 
+## 🖥 User Interface
+
+![Frontend Use Case Question](docs/images/frontend_use_case_question.png)
+
+---
+
 ## 📋 Prerequisites
 
 Before setting up the project, ensure your environment meets the following requirements:
@@ -141,8 +147,16 @@ source venv/bin/activate && pip install -r requirements.txt && python evaluate_e
 
 ---
 
+## 🔍 Transparent Open Glass Approach
+
+The frontend provides a transparent "open glass" view into the agent's reasoning process. Users can observe in real-time how the system decomposes tasks, delegates to sub-agents, and executes tool calls. This makes the decision-making process fully transparent and comprehensible.
+
+![Frontend Graph](docs/images/impl_frontend_graph.png)
+
+---
+
 ## 👨‍💻 Author
 
-**Malte Sehmer**, Hochschule Düsseldorf
+**[Malte Sehmer](https://www.linkedin.com/in/malte-sehmer/)**, Hochschule Düsseldorf
 
 Submission Date: December 23, 2025
