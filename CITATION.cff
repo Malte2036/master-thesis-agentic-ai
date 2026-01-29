@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: 'If you use this software, please cite the underlying master thesis as follows.'
+authors:
+  - family-names: 'Sehmer'
+    given-names: 'Malte'
+title: 'Agentic AI: Conception and Prototypical Implementation of an Intelligent Study Assistant Based on a Large Language Model'
+version: 1.0.0
+date-released: 2025-12-23
+url: 'https://github.com/Malte2036/master-thesis-agentic-ai'
